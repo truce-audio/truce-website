@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="140 85 320 350" preserveAspectRatio="xMidYMid meet">
+  <!-- ============================================================
+       TRUCE · D3 · SPACE MONO · RUST PATH
+       Synthwave palette · RGB-shift glitch wordmark
+       ============================================================ -->
+
+  <!-- Dark canvas -->
+  <rect width="600" height="500" fill="#1A0B2E"/>
+
+  <!-- ============================================================
+       MARK · interlocked phase, single cycle
+       Pink wave (positive phase) crosses cyan wave (inverted)
+       at the center — the truce point.
+       ============================================================ -->
+  <g>
+    <!-- Pink wave: starts up, ends down -->
+    <path d="M 180 170
+             C 223 120, 257 120, 300 170
+             C 343 220, 377 220, 420 170"
+          fill="none" stroke="#FF2D7B" stroke-width="11" stroke-linecap="round"/>
+
+    <!-- Cyan wave: inverted phase -->
+    <path d="M 180 170
+             C 223 220, 257 220, 300 170
+             C 343 120, 377 120, 420 170"
+          fill="none" stroke="#14F0E0" stroke-width="11" stroke-linecap="round"/>
+
+    <!-- Truce point: cream node at the meeting -->
+    <circle cx="300" cy="170" r="5" fill="#F0E4D0"/>
+  </g>
+
+  <!-- ============================================================
+       WORDMARK · RGB-shift glitch
+       Three layers: pink offset left, cyan offset right,
+       cream on top. Chromatic aberration effect.
+       ============================================================ -->
+  <g>
+    <text x="296" y="360" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#FF2D7B">TRUCE</text>
+    <text x="304" y="360" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#14F0E0">TRUCE</text>
+    <text x="300" y="360" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#F0E4D0">TRUCE</text>
+  </g>
+
+  <!-- ============================================================
+       SUBTITLE · Space Mono · Rust-style namespace path
+       Cyan separators frame cream module names.
+       ============================================================ -->
+  <text x="300" y="398" text-anchor="middle"
+        font-family="'Space Mono','JetBrains Mono','Courier New',monospace"
+        font-size="13" font-weight="400" letter-spacing="1">
+    <tspan fill="#F0E4D0">truce</tspan><tspan fill="#14F0E0">::</tspan><tspan fill="#F0E4D0">audio</tspan><tspan fill="#14F0E0">::</tspan><tspan fill="#F0E4D0">plugin</tspan>
+  </text>
+</svg>

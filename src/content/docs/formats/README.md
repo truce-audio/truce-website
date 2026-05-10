@@ -1,0 +1,82 @@
+# Plugin Formats
+
+Truce compiles a single plugin crate into up to seven plugin formats,
+plus an app-mode [standalone](standalone.md) binary. This directory
+has a dedicated page per format — what it does, what it needs, how
+to turn it on, and what can go wrong.
+
+## Format matrix
+
+| Format | Cargo feature | macOS | Windows | Linux | Scaffolded default | Extras required |
+|--------|---------------|-------|---------|-------|--------------------|-----------------|
+| [CLAP](clap.md)    | `clap` | ✅ | ✅ | ✅ | ✅ | — |
+| [VST3](vst3.md)    | `vst3` | ✅ | ✅ | ✅ | ✅ | — |
+| [VST2](vst2.md)    | `vst2` | ✅ | ✅ | ✅ | opt-in | read licensing note |
+| [LV2](lv2.md)      | `lv2`  | ✅ | ✅ | ✅ | opt-in | — |
+| [AU v2](au.md)     | `au`   | ✅ | — | — | opt-in | Xcode CLI tools |
+| [AU v3](au.md)     | `au`   | ✅ | — | — | opt-in | full Xcode, Developer ID signing |
+| [AAX](aax.md)      | `aax`  | ✅ | ✅ | — | opt-in | AAX SDK (+ PACE wraptool for retail) |
+| [Standalone](standalone.md) | `standalone` | ✅ | ✅ | ✅ | opt-in | — (app mode, not a host-loaded format) |
+
+Scaffolded plugins get `clap` and `vst3` enabled in `[features].default`
+in `Cargo.toml`. To opt into another format, add it to `default` or
+pass it explicitly to `cargo truce install --<format>`.
+
+## Enabling a format
+
+Two ways to enable an opt-in format:
+
+**Per-install** (ad-hoc):
+
+```sh
+cargo truce install --vst2
+cargo truce install --lv2
+cargo truce install --aax
+cargo truce install --clap --vst3 --lv2    # mix and match
+```
+
+**Permanently** (edit `Cargo.toml`):
+
+```toml
+[features]
+default = ["clap", "vst3", "lv2"]    # add the ones you want
+clap = ["dep:truce-clap", "dep:clap-sys"]
+vst3 = ["dep:truce-vst3"]
+vst2 = ["dep:truce-vst2"]
+lv2  = ["dep:truce-lv2"]
+au   = ["dep:truce-au"]
+aax  = ["dep:truce-aax"]
+```
+
+## Quick-reference: install destinations
+
+`cargo truce install` defaults to **per-user** paths on every
+platform. Pass `--system` to install into the system-wide
+directories (sudo on macOS, Administrator shell on Windows). AAX,
+AU v3, and Windows VST2 are always system-only — `--user` for
+those formats falls back to the system path with a one-line note.
+`†` = `--user` falls back to system silently.
+
+| Format | macOS user | macOS system | Windows user | Windows system | Linux |
+|--------|-----------|--------------|--------------|----------------|-------|
+| CLAP   | `~/Library/Audio/Plug-Ins/CLAP/{Name}.clap` | `/Library/Audio/Plug-Ins/CLAP/{Name}.clap` | `%LOCALAPPDATA%\Programs\Common\CLAP\{Name}.clap` | `%COMMONPROGRAMFILES%\CLAP\{Name}.clap` | `~/.clap/{Name}.clap` |
+| VST3   | `~/Library/Audio/Plug-Ins/VST3/{Name}.vst3/` | `/Library/Audio/Plug-Ins/VST3/{Name}.vst3/` | `%LOCALAPPDATA%\Programs\Common\VST3\{Name}.vst3\` | `%COMMONPROGRAMFILES%\VST3\{Name}.vst3\` | `~/.vst3/{Name}.vst3/` |
+| VST2   | `~/Library/Audio/Plug-Ins/VST/{Name}.vst/` | `/Library/Audio/Plug-Ins/VST/{Name}.vst/` | system† | `%PROGRAMFILES%\Steinberg\VstPlugins\{Name}.dll` | `~/.vst/{Name}.so` |
+| LV2    | `~/Library/Audio/Plug-Ins/LV2/{Name}.lv2/` | `/Library/Audio/Plug-Ins/LV2/{Name}.lv2/` | `%APPDATA%\LV2\{Name}.lv2\` | `%COMMONPROGRAMFILES%\LV2\{Name}.lv2\` | `~/.lv2/{Name}.lv2/` |
+| AU v2  | `~/Library/Audio/Plug-Ins/Components/{Name}.component/` | `/Library/Audio/Plug-Ins/Components/{Name}.component/` | — | — | — |
+| AU v3  | system† (see note) | `/Applications/{Name}.app/Contents/PlugIns/AUExt.appex/` | — | — | — |
+| AAX    | system† | `/Library/Application Support/Avid/Audio/Plug-Ins/{Name}.aaxplugin/` | system† | `%COMMONPROGRAMFILES%\Avid\Audio\Plug-Ins\{Name}.aaxplugin\` | — |
+| Standalone | `target/bundles/{Name}.standalone/` (staged by `cargo truce run`; not installed) | same | same | same | same |
+
+Commands documented in each format's page use `cargo truce install` so
+you never touch these paths directly. They're listed here as a debug
+aid if plugins aren't being picked up by your DAW. `cargo truce
+doctor` prints both scopes side-by-side with a writable / sudo /
+not-present marker.
+
+## See also
+
+- [First plugin](../guide/first-plugin.md) — end-to-end walkthrough
+- [Shipping](../guide/shipping.md) — `install` / `build` / `validate` / `package`, signing, installers
+- [Reference](../reference/) — CLI, `truce.toml`, env vars, `#[param(...)]`
+- [Status](../README.md) — host coverage table
