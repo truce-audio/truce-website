@@ -235,15 +235,11 @@ host plug-in paths.
 
 Expected:
 
-```
-┌──────────────────────┐
-│  MY GAIN        V0.1 │
-├──────────────────────┤
-│        ◎             │
-│       Gain           │
-│      0.0 dB          │
-└──────────────────────┘
-```
+![Scaffolded my-gain plugin: a single Gain knob reading 0.0 dB](/screenshots/my-gain/default.png)
+
+(Rendered headlessly with `cargo truce screenshot --out screenshots/default.png`
+— the same path the screenshot regression tests in
+[gui/screenshot-testing.md](gui/screenshot-testing.md) use.)
 
 ## Edit and rebuild
 
