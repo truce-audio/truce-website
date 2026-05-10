@@ -41,8 +41,7 @@ backlog).
   AUExt entitlements emitter on `shell_mode` and add
   `com.apple.security.app-sandbox = false` for dev builds only;
   production paths stay sandboxed. ~10 lines of code in
-  `crates/cargo-truce/src/commands/install/au_v3.rs`. Item 5 in
-  shell-hardening.md.
+  `crates/cargo-truce/src/commands/install/au_v3.rs`.
 - **Authenticode round-trip with a real cert.** The Azure Trusted
   Signing / SHA1 thumbprint / `.pfx` paths are wired but haven't
   been exercised with a real EV / OV cert end-to-end.
@@ -56,8 +55,7 @@ backlog).
 - More example plugins (delay, compressor, reverb).
 - WebView GUI backend.
 - Distribution-grade dynamic shell (today's `--shell` is dev-loop
-  only; making it a shipping mechanism is a phase-2 question — see
-  `shell-hardening.md` item 8).
+  only; making it a shipping mechanism is a phase-2 question).
 
 ## See also
 

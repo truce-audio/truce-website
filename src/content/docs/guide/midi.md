@@ -205,7 +205,7 @@ context.output_events.push(Event {
 | VST2 | ✅ | ✅ | — | MIDI 1.0 only; opt-in per VST2's `canDo("receiveVstMidiEvent")` |
 | AU v2 | ✅ | ✅ | — | MIDI 2.0 events landing on the input bus are silently dropped |
 | AU v3 | ✅ | ✅ | — | Same as AU v2 |
-| AAX | ✅ | ✅ | — | Pro Tools' MIDI tracks; see `docs/formats/aax.md` |
+| AAX | ✅ | ✅ | — | Pro Tools' MIDI tracks; see [`formats/aax.md`](../formats/aax.md) |
 | LV2 | ✅ | ✅ | — | Hosts deliver `atom:Sequence`; emits one in turn for note effects |
 
 † MIDI 2.0 *channel-voice* messages (`NoteOn2`, `ControlChange2`,
