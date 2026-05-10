@@ -2,18 +2,18 @@
   <!-- Dark rounded badge — works on both light and dark GitHub backgrounds. -->
   <rect width="512" height="512" rx="96" fill="#1A0B2E"/>
 
-  <!-- Mark · interlocked phase, single cycle. Pink positive + cyan inverted,
-       crossing at the cream truce point. Same geometry as icon.svg / mark.svg,
-       scaled to a 512×512 canvas. -->
+  <!-- Mark · interlocked phase, single cycle.
+       Geometry scaled 1.5× from header.svg's wave (240×100 → 360×150),
+       centered in the canvas. Same proportions, thin strokes. -->
   <g>
-    <path d="M 80 256
-             C 152 128, 224 128, 256 256
-             C 288 384, 360 384, 432 256"
-          fill="none" stroke="#FF2D7B" stroke-width="44" stroke-linecap="round"/>
-    <path d="M 80 256
-             C 152 384, 224 384, 256 256
-             C 288 128, 360 128, 432 256"
-          fill="none" stroke="#14F0E0" stroke-width="44" stroke-linecap="round"/>
-    <circle cx="256" cy="256" r="22" fill="#F0E4D0"/>
+    <path d="M 76 256
+             C 141 181, 192 181, 256 256
+             C 321 331, 372 331, 436 256"
+          fill="none" stroke="#FF2D7B" stroke-width="17" stroke-linecap="round"/>
+    <path d="M 76 256
+             C 141 331, 192 331, 256 256
+             C 321 181, 372 181, 436 256"
+          fill="none" stroke="#14F0E0" stroke-width="17" stroke-linecap="round"/>
+    <circle cx="256" cy="256" r="8" fill="#F0E4D0"/>
   </g>
 </svg>

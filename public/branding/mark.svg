@@ -1,10 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="truce mark">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" role="img" aria-label="truce mark">
+  <!-- Canonical mark — geometry mirrored from header.svg.
+       Elongated wave (2.4:1), thin strokes. For displays ≥ ~64px.
+       For favicon-scale uses, see src/app/icon.svg. -->
+
   <!-- Pink wave (positive phase) -->
-  <path d="M 8 32 C 14 16, 22 16, 32 32 C 42 48, 50 48, 56 32"
-        fill="none" stroke="#FF2D7B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 0 50
+           C 43 0, 77 0, 120 50
+           C 163 100, 197 100, 240 50"
+        fill="none" stroke="#FF2D7B" stroke-width="11" stroke-linecap="round"/>
+
   <!-- Cyan wave (inverted phase) -->
-  <path d="M 8 32 C 14 48, 22 48, 32 32 C 42 16, 50 16, 56 32"
-        fill="none" stroke="#14F0E0" stroke-width="6" stroke-linecap="round"/>
-  <!-- Truce point -->
-  <circle cx="32" cy="32" r="3" fill="#F0E4D0"/>
+  <path d="M 0 50
+           C 43 100, 77 100, 120 50
+           C 163 0, 197 0, 240 50"
+        fill="none" stroke="#14F0E0" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- Truce point — where the two phases meet -->
+  <circle cx="120" cy="50" r="5" fill="#F0E4D0"/>
 </svg>

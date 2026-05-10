@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="truce">
+  <!-- Dark rounded badge — pairs with logo.svg, adds the TRUCE wordmark below the mark. -->
+  <rect width="512" height="512" rx="96" fill="#1A0B2E"/>
+
+  <!-- Mark · 1.2× scale of header.svg's wave geometry, centered on the upper third.
+       Same proportions as the original (2.4:1, thin stroke). -->
+  <g>
+    <path d="M 112 150
+             C 164 90, 204 90, 256 150
+             C 308 210, 348 210, 400 150"
+          fill="none" stroke="#FF2D7B" stroke-width="13" stroke-linecap="round"/>
+    <path d="M 112 150
+             C 164 210, 204 210, 256 150
+             C 308 90, 348 90, 400 150"
+          fill="none" stroke="#14F0E0" stroke-width="13" stroke-linecap="round"/>
+    <circle cx="256" cy="150" r="6" fill="#F0E4D0"/>
+  </g>
+
+  <!-- Wordmark · RGB-shift glitch (pink offset left, cyan offset right, cream on top).
+       Same Inter/Helvetica chain + 900 weight + letter-spacing as header.svg. -->
+  <g>
+    <text x="250" y="400" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="110" font-weight="900" letter-spacing="4"
+          fill="#FF2D7B">TRUCE</text>
+    <text x="262" y="400" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="110" font-weight="900" letter-spacing="4"
+          fill="#14F0E0">TRUCE</text>
+    <text x="256" y="400" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="110" font-weight="900" letter-spacing="4"
+          fill="#F0E4D0">TRUCE</text>
+  </g>
+</svg>
