@@ -25,7 +25,7 @@ it is.
                           ├─ calls PluginEditor::layout(…)       (main thread)
                           ├─ calls PluginLogic::save_state(…)    (main thread)
                           ├─ calls PluginLogic::load_state(…)    (audio thread)
-                          ├─ calls PluginEditor::state_changed() (audio thread)
+                          ├─ calls PluginLogic::state_changed()  (audio thread)
                           └─ drops when unloaded
 ```
 
@@ -35,11 +35,11 @@ Four things you write:
 2. A **plugin struct** with an inherent `new(params: Arc<P>)`.
 3. **Two trait impls** on the plugin struct:
    - `impl PluginLogic for ...` — DSP (`reset`, `process`,
-     `save_state`, `load_state`, `latency`, `tail`,
-     `bus_layouts`).
+     `save_state`, `load_state`, `state_changed`, `latency`,
+     `tail`, `bus_layouts`).
    - `impl PluginEditor for ...` — GUI (`layout`, `render`,
-     `custom_editor`, `state_changed`, …). Headless plugins
-     write `impl PluginEditor for X {}` — one trivial line.
+     `custom_editor`, …). Headless plugins write
+     `impl PluginEditor for X {}` — one trivial line.
 4. A **single `truce::plugin!` macro call** that wires those into
    every plugin format.
 
@@ -71,7 +71,8 @@ pub trait PluginLogic: Send + 'static {
     fn bus_layouts() -> Vec<BusLayout> { vec![BusLayout::stereo()] }
 
     fn save_state(&self) -> Vec<u8> { Vec::new() }
-    fn load_state(&mut self, data: &[u8]) {}
+    fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
+    fn state_changed(&mut self) {}
 
     fn latency(&self) -> u32 { 0 }
     fn tail(&self) -> u32 { 0 }
@@ -83,7 +84,8 @@ pub trait PluginLogic: Send + 'static {
 | `reset` | Sample rate or block size changes; before the first `process` | no | Clear delay lines, reset filter state, call `params.set_sample_rate` + `snap_smoothers`. |
 | `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing.md](processing.md). |
 | `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo in/out; instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
-| `save_state` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | no | **Extra** state only — params are serialized automatically. |
+| `save_state` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | no | **Extra** state only — params are serialized automatically. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. |
+| `state_changed` | After `load_state` returns | yes (audio thread, between blocks) | Plugin-side cache invalidation — re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
 | `latency` | Host bus reconfiguration | no | Samples of processing delay, for PDC. |
 | `tail` | Host transport stop | no | Samples of audio produced after input stops (reverb, delay). |
 
@@ -100,8 +102,6 @@ pub trait PluginEditor {
     fn hit_test(&self, widgets: &[WidgetRegion], x: f32, y: f32) -> Option<usize> { ... }
 
     fn custom_editor(&self) -> Option<Box<dyn Editor>> { None }
-
-    fn state_changed(&mut self) {}
 }
 ```
 
@@ -110,7 +110,12 @@ pub trait PluginEditor {
 | `layout` | Built-in GUI rebuild | no | Returns a `GridLayout` description of widgets. See [gui.md](gui.md). |
 | `render`, `uses_custom_render`, `hit_test` | Built-in GUI, when overridden | no | Escape hatches for custom visuals. See [gui.md](gui.md). |
 | `custom_editor` | Editor open | no | Return `Some(...)` to use egui / iced / Slint / raw window handle instead of the built-in widget set. See [gui.md](gui.md). |
-| `state_changed` | After `PluginLogic::load_state` returns | yes (audio thread, but only between blocks) | Plugin-side cache invalidation — re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
+
+Post-load-state cache invalidation lives on `PluginLogic` (audio
+thread) and on the `Editor` you return from `custom_editor`
+(GUI thread) — not on `PluginEditor` itself. See the
+`PluginLogic::state_changed` row above and
+[State persistence](#state-persistence) below.
 
 ### Construction is not on the trait
 
@@ -298,23 +303,25 @@ pub struct MyPlugin {
 impl PluginLogic for MyPlugin {
     fn save_state(&self) -> Vec<u8> { self.extra.serialize() }
 
-    fn load_state(&mut self, data: &[u8]) {
-        if let Some(s) = MyExtraState::deserialize(data) {
-            self.extra = s;
+    fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> {
+        match MyExtraState::deserialize(data) {
+            Some(s) => { self.extra = s; Ok(()) }
+            None => Err(StateLoadError::Malformed("MyExtraState")),
         }
     }
+
+    // Re-derive caches that depend on extra state (decoded IR,
+    // sample thumbnails, computed pad layouts). Runs on the audio
+    // thread under the same `&mut self` borrow as `load_state`, so
+    // the next `process()` block sees the refreshed caches.
+    fn state_changed(&mut self) {
+        self.extra_decoded_ir = decode_ir(&self.extra.ir_file_path);
+    }
+
     // ... reset, process ...
 }
 
 impl PluginEditor for MyPlugin {
-    // Re-derive caches that depend on extra state (decoded IR,
-    // sample thumbnails, computed pad layouts). Runs on the
-    // audio thread under the same `&mut self` borrow as
-    // `load_state`, so the next `process()` block sees the
-    // refreshed caches.
-    fn state_changed(&mut self) {
-        self.extra_decoded_ir = decode_ir(&self.extra.ir_file_path);
-    }
     // ... layout, custom_editor ...
 }
 ```
@@ -335,10 +342,11 @@ fn save_state(&self) -> Vec<u8> {
     bincode::serialize(&self.extra).unwrap()
 }
 
-fn load_state(&mut self, data: &[u8]) {
-    if let Ok(s) = bincode::deserialize::<MyExtraState>(data) {
-        self.extra = s;
-    }
+fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> {
+    let s = bincode::deserialize::<MyExtraState>(data)
+        .map_err(|e| StateLoadError::Other(e.to_string()))?;
+    self.extra = s;
+    Ok(())
 }
 ```
 
