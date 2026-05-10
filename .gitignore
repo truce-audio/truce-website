@@ -7,4 +7,3 @@ out/
 *.log
 .vercel
 next-env.d.ts
-public/screenshots/
