@@ -1,35 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="truce">
-  <!-- Dark rounded badge — pairs with logo.svg, adds the TRUCE wordmark below the mark. -->
+  <!-- Dark rounded badge — pairs with logo.svg, adds the TRUCE wordmark below the mark.
+       Geometry scaled 1.5× from header.svg so the mark and the wordmark keep the same
+       proportional width relationship as the original (~0.94 mark/text ratio). -->
   <rect width="512" height="512" rx="96" fill="#1A0B2E"/>
 
-  <!-- Mark · 1.2× scale of header.svg's wave geometry, centered on the upper third.
-       Same proportions as the original (2.4:1, thin stroke). -->
+  <!-- Mark · interlocked phase, 360×150 (240×100 × 1.5), centered on y=136. -->
   <g>
-    <path d="M 112 150
-             C 164 90, 204 90, 256 150
-             C 308 210, 348 210, 400 150"
-          fill="none" stroke="#FF2D7B" stroke-width="13" stroke-linecap="round"/>
-    <path d="M 112 150
-             C 164 210, 204 210, 256 150
-             C 308 90, 348 90, 400 150"
-          fill="none" stroke="#14F0E0" stroke-width="13" stroke-linecap="round"/>
-    <circle cx="256" cy="150" r="6" fill="#F0E4D0"/>
+    <path d="M 76 136
+             C 141 61, 192 61, 256 136
+             C 321 211, 372 211, 436 136"
+          fill="none" stroke="#FF2D7B" stroke-width="17" stroke-linecap="round"/>
+    <path d="M 76 136
+             C 141 211, 192 211, 256 136
+             C 321 61, 372 61, 436 136"
+          fill="none" stroke="#14F0E0" stroke-width="17" stroke-linecap="round"/>
+    <circle cx="256" cy="136" r="8" fill="#F0E4D0"/>
   </g>
 
-  <!-- Wordmark · RGB-shift glitch (pink offset left, cyan offset right, cream on top).
-       Same Inter/Helvetica chain + 900 weight + letter-spacing as header.svg. -->
+  <!-- Wordmark · RGB-shift glitch. Font-size 93 (62 × 1.5), letter-spacing 3 (2 × 1.5),
+       chromatic offset ±6 (4 × 1.5). All scale-locked to the mark. -->
   <g>
-    <text x="250" y="400" text-anchor="middle"
+    <text x="250" y="421" text-anchor="middle"
           font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
-          font-size="110" font-weight="900" letter-spacing="4"
+          font-size="93" font-weight="900" letter-spacing="3"
           fill="#FF2D7B">TRUCE</text>
-    <text x="262" y="400" text-anchor="middle"
+    <text x="262" y="421" text-anchor="middle"
           font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
-          font-size="110" font-weight="900" letter-spacing="4"
+          font-size="93" font-weight="900" letter-spacing="3"
           fill="#14F0E0">TRUCE</text>
-    <text x="256" y="400" text-anchor="middle"
+    <text x="256" y="421" text-anchor="middle"
           font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
-          font-size="110" font-weight="900" letter-spacing="4"
+          font-size="93" font-weight="900" letter-spacing="3"
           fill="#F0E4D0">TRUCE</text>
   </g>
 </svg>
