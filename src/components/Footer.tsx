@@ -2,11 +2,15 @@ import { framework } from "@/content/framework";
 
 export function Footer() {
   return (
-    <footer className="border-t border-[var(--border)] mt-24">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <span className="nav-link text-sm font-extrabold uppercase tracking-[0.18em] text-[var(--cream)]">
-          {framework.domain}
-        </span>
+    <footer className="mt-24 border-t border-[var(--border)]">
+      <div className="mx-auto flex max-w-6xl justify-center px-6 py-14">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/branding/wordmark.svg"
+          alt={framework.domain}
+          className="h-36 w-auto select-none opacity-90"
+          draggable={false}
+        />
       </div>
     </footer>
   );

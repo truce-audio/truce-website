@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="140 85 320 290" preserveAspectRatio="xMidYMid meet" role="img" aria-label="truce.audio">
+  <!-- Same composition as header.svg, but with the dark canvas rect removed so
+       the logo composites naturally onto whatever background it sits on. -->
+
+  <!-- ============================================================
+       MARK · interlocked phase, single cycle
+       ============================================================ -->
+  <g>
+    <path d="M 180 170
+             C 223 120, 257 120, 300 170
+             C 343 220, 377 220, 420 170"
+          fill="none" stroke="#FF2D7B" stroke-width="11" stroke-linecap="round"/>
+    <path d="M 180 170
+             C 223 220, 257 220, 300 170
+             C 343 120, 377 120, 420 170"
+          fill="none" stroke="#14F0E0" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="300" cy="170" r="5" fill="#F0E4D0"/>
+  </g>
+
+  <!-- ============================================================
+       WORDMARK · RGB-shift glitch
+       ============================================================ -->
+  <g>
+    <text x="296" y="360" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#FF2D7B">TRUCE</text>
+    <text x="304" y="360" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#14F0E0">TRUCE</text>
+    <text x="300" y="360" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#F0E4D0">TRUCE</text>
+  </g>
+
+</svg>
