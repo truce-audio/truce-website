@@ -28,7 +28,6 @@ html {
 body {
   background-color: var(--bg);
   color: var(--fg);
-  font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

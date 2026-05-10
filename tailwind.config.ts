@@ -19,7 +19,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        // Match the SVG wordmark's font stack. On macOS / iOS this resolves
+        // to Helvetica Neue; on Windows / Android it falls back to Arial.
+        sans: ['"Helvetica Neue"', "Helvetica", "Arial", "sans-serif"],
         mono: [
           "ui-monospace",
           "SFMono-Regular",
