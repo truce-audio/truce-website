@@ -288,9 +288,7 @@ impl PluginLogic for Synth {
         self.voices.retain(|v| !v.is_done());
         if self.voices.is_empty() { ProcessStatus::Tail(0) } else { ProcessStatus::Normal }
     }
-}
 
-impl PluginEditor for Synth {
     fn layout(&self) -> truce_gui::layout::GridLayout { /* ... */ }
 }
 ```

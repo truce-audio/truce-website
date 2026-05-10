@@ -96,9 +96,7 @@ impl PluginLogic for MyGain {
         }
         ProcessStatus::Normal
     }
-}
 
-impl PluginEditor for MyGain {
     fn layout(&self) -> truce_gui::layout::GridLayout {
         use truce_gui::layout::{GridLayout, knob, widgets};
         GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])])
@@ -106,14 +104,13 @@ impl PluginEditor for MyGain {
 }
 ```
 
-You implement two traits: `PluginLogic` for the audio thread
+`PluginLogic` is a single trait covering both the audio thread
 (`reset()` runs when the host knows the sample rate and block
-size; `process()` runs every block) and `PluginEditor` for the
-main thread (`layout()` returns a declarative description of the
-GUI). Only `reset` and `process` are required on `PluginLogic`;
-everything else has a default. Headless plugins write
-`impl PluginEditor for MyGain {}` — one trivial line. See
-[chapter 3 → plugin-anatomy.md](plugin-anatomy.md).
+size; `process()` runs every block) and the main thread
+(`layout()` returns a declarative description of the GUI). Only
+`reset` and `process` are required; everything else has a
+default — headless plugins just leave `layout()` at the default.
+See [chapter 3 → plugin-anatomy.md](plugin-anatomy.md).
 
 ### 3. The export macro — makes it a plugin
 
