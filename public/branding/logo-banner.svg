@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 100 600 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="truce">
+  <!-- Banner-shaped variant of logo-wordmark.svg.
+       Same content as wordmark-banner.svg, but with the dark plate baked in
+       so the asset is self-contained for social cards, READMEs on white
+       backgrounds, presentation slides, etc. -->
+
+  <!-- Dark plate covering the full viewBox -->
+  <rect x="0" y="100" width="600" height="200" fill="#1A0B2E"/>
+
+  <!-- Mark · interlocked phase, centered at x=300, y=170 (verbatim from header.svg) -->
+  <g>
+    <path d="M 180 170
+             C 223 120, 257 120, 300 170
+             C 343 220, 377 220, 420 170"
+          fill="none" stroke="#FF2D7B" stroke-width="11" stroke-linecap="round"/>
+    <path d="M 180 170
+             C 223 220, 257 220, 300 170
+             C 343 120, 377 120, 420 170"
+          fill="none" stroke="#14F0E0" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="300" cy="170" r="5" fill="#F0E4D0"/>
+  </g>
+
+  <!-- Wordmark · RGB-shift glitch, baseline y=280 -->
+  <g>
+    <text x="296" y="280" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#FF2D7B">TRUCE</text>
+    <text x="304" y="280" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#14F0E0">TRUCE</text>
+    <text x="300" y="280" text-anchor="middle"
+          font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
+          font-size="62" font-weight="900" letter-spacing="2"
+          fill="#F0E4D0">TRUCE</text>
+  </g>
+</svg>
