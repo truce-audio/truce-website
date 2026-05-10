@@ -1,12 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="140 85 320 350" preserveAspectRatio="xMidYMid meet" role="img" aria-label="truce">
-  <!-- Same composition and dimensions as header.svg, with two changes:
-       (1) the subtitle is dropped, (2) the dark canvas becomes a rounded badge.
-       Mark width and TRUCE wordmark width therefore stay in their original
-       relationship — neither has been re-scaled relative to the other. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 100 600 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="truce">
+  <!-- Banner-shaped variant of wordmark.svg.
+       Same geometry as the original mark and TRUCE wordmark, but:
+       (1) wider 3:1 viewBox (600×200) so it sits naturally as a README hero,
+           social-card title, or email header on any background.
+       (2) the wordmark is moved up from y=360 → y=280, leaving only a ~17-unit
+           gap between the mark's bottom and the TRUCE caps (vs. ~97 originally),
+           so the two elements read as one tight composition. -->
 
-  <rect x="140" y="85" width="320" height="350" rx="60" fill="#1A0B2E"/>
-
-  <!-- Mark · interlocked phase, single cycle -->
+  <!-- Mark · interlocked phase, centered at x=300, y=170 (verbatim from header.svg) -->
   <g>
     <path d="M 180 170
              C 223 120, 257 120, 300 170
@@ -19,17 +20,17 @@
     <circle cx="300" cy="170" r="5" fill="#F0E4D0"/>
   </g>
 
-  <!-- Wordmark · RGB-shift glitch -->
+  <!-- Wordmark · RGB-shift glitch, baseline y=280 (was y=360 in header.svg) -->
   <g>
-    <text x="296" y="360" text-anchor="middle"
+    <text x="296" y="280" text-anchor="middle"
           font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
           font-size="62" font-weight="900" letter-spacing="2"
           fill="#FF2D7B">TRUCE</text>
-    <text x="304" y="360" text-anchor="middle"
+    <text x="304" y="280" text-anchor="middle"
           font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
           font-size="62" font-weight="900" letter-spacing="2"
           fill="#14F0E0">TRUCE</text>
-    <text x="300" y="360" text-anchor="middle"
+    <text x="300" y="280" text-anchor="middle"
           font-family="'Inter','Helvetica Neue',Helvetica,Arial,sans-serif"
           font-size="62" font-weight="900" letter-spacing="2"
           fill="#F0E4D0">TRUCE</text>
