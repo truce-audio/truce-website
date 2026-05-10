@@ -1,0 +1,10 @@
+# Cloudflare Workers — static-assets-only deployment.
+# `next build` with output: "export" emits everything into ./out, and we let
+# Workers serve it directly. No server-side logic, no OpenNext adapter.
+
+name = "truce-website"
+compatibility_date = "2024-12-30"
+
+[assets]
+directory = "./out"
+not_found_handling = "404-page"
