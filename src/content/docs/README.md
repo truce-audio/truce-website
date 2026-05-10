@@ -48,9 +48,9 @@ backlog).
   been exercised with a real EV / OV cert end-to-end.
 - **Linux automation + preset round-trip testing in Bitwig and
   Ardour.** Reaper is verified; the others are pending.
-- **`cargo truce package` for Linux.** `.deb` / `.rpm` / AppImage
-  are not generated today. Linux distribution is "build the bundles
-  and ship them yourself" until this lands.
+- **`cargo truce package` for Linux distros.** Today's Linux
+  packaging emits a `.tar.gz` + `install.sh` per plugin/suite.
+  `.deb` / `.rpm` / AppImage / AUR are still on the backlog.
 ## Future
 
 - More example plugins (delay, compressor, reverb).

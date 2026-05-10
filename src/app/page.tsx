@@ -62,31 +62,7 @@ function Hero() {
   return (
     <section className="py-16 sm:py-24 grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center">
       <div>
-        <div className="flex items-center gap-3">
-          <svg viewBox="0 0 64 64" className="h-9 w-9" aria-hidden="true">
-            <path
-              d="M 8 32 C 14 16, 22 16, 32 32 C 42 48, 50 48, 56 32"
-              fill="none"
-              stroke="#FF2D7B"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 8 32 C 14 48, 22 48, 32 32 C 42 16, 50 16, 56 32"
-              fill="none"
-              stroke="#14F0E0"
-              strokeWidth="6"
-              strokeLinecap="round"
-            />
-            <circle cx="32" cy="32" r="3" fill="#F0E4D0" />
-          </svg>
-          <span className="font-mono text-sm tracking-wider text-[var(--cream)]">
-            truce<span className="text-[var(--cyan)]">::</span>audio
-            <span className="text-[var(--cyan)]">::</span>plugin
-          </span>
-        </div>
-
-        <h1 className="mt-6 text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-[var(--cream)]">
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-[var(--cream)]">
           {framework.tagline}
         </h1>
         <p className="mt-6 text-lg text-[var(--fg-muted)] leading-relaxed max-w-xl">

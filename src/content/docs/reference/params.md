@@ -84,8 +84,9 @@ The write is realtime-safe (atomic); the GUI reads the latest value every frame.
 ```
 range = "linear(-60, 6)"        # linear between min and max
 range = "log(20, 20000)"        # logarithmic — frequency, time constants
-range = "exp(20, 20000)"        # exponential
 range = "discrete(1, 16)"       # integer steps
+range = "enum(4)"               # N discrete cases (rarely written by hand;
+                                # EnumParam<T> infers this from the variant count)
 ```
 
 `BoolParam` ranges are implicit `0..1`. `EnumParam<T>` ranges are inferred from `T`'s variant count.

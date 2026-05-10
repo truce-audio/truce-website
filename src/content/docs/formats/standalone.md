@@ -248,11 +248,16 @@ clipping guards, and MIDI-recorded regression tests. See
 the full builder surface — input shapes, state-file loading,
 per-block meters, output-event capture.
 
+## Distribution
+
+`cargo truce package` includes the standalone binary in the macOS `.pkg`
+and the Windows `.exe` installer alongside the plug-in formats — no extra
+flag, no separate build step. On Linux the standalone ships in the
+`.tar.gz` produced by `cargo truce package`; AppImage is still on the
+backlog.
+
 ## Limitations
 
-- **Not a distributable**. Hosts don't load standalones, and there's
-  no `.app` / `.exe` / AppImage packaging yet — distribute from
-  `cargo build --release` output manually.
 - **Wayland** unparented top-level windows still lag X11; XWayland is
   the validated path.
 - **No parameter automation record / replay**.

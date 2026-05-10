@@ -54,15 +54,25 @@ Per-platform install destinations: see [`formats/README.md`](../formats/) for th
 
 ## `uninstall`
 
-Remove installed plugins. Mirrors `install`'s flags.
+Remove installed plugins.
 
 ```sh
 cargo truce uninstall                  # every format, both scopes
 cargo truce uninstall --clap --user
 cargo truce uninstall --au2 --au3 -p my-gain
+cargo truce uninstall --stale --dry-run    # preview cleanup of bundles whose
+                                           # source plugin is no longer in truce.toml
 ```
 
-By default it scans both user and system scopes (handy after switching scope mid-iteration). Pass `--user` / `--system` to limit.
+| Flag | Notes |
+|------|-------|
+| `--clap` / `--vst3` / `--vst2` / `--lv2` / `--au2` / `--au3` / `--aax` | Limit to one or more formats. |
+| `--user` / `--system` | Limit to one scope. By default scans both (handy when you've switched scope mid-iteration). |
+| `-p <crate>` | Single plugin in a workspace. |
+| `-n <name>` | Target a bundle by display name when `truce.toml` no longer lists it. |
+| `--stale` | Remove bundles whose `[[plugin]]` entry was deleted from `truce.toml`. |
+| `--dry-run` | Print what would be removed without touching disk. |
+| `--yes` | Skip the confirmation prompt. |
 
 ## `build`
 
@@ -107,14 +117,13 @@ cargo truce validate --vst2             # VST2 dlopen + AEffect smoke
 cargo truce validate --clap --pluginval -p my-gain
 ```
 
-Strict mode for CI — per-format flags fail the run if the validator binary is missing:
+Strict mode for CI — any per-format flag (`--clap`, `--pluginval`, `--auval`, `--auval3`, `--vst2`) fails the run if its validator is missing:
 
 | Invocation | Validator missing → |
 |---|---|
 | `cargo truce validate` (no flag) | warning, exit 0 |
 | `cargo truce validate --all` | warning, exit 0 |
-| `cargo truce validate --clap` | error, exit non-zero |
-| `cargo truce validate --pluginval` | error, exit non-zero |
+| `cargo truce validate --<format>` (any one) | error, exit non-zero |
 
 Override validator discovery via env: `CLAP_VALIDATOR`, `PLUGINVAL` (see [`cargo-config.md`](cargo-config.md)).
 
@@ -171,7 +180,24 @@ Run `doctor` whenever a build behaves oddly — usually faster than reading the 
 
 ## `screenshot`
 
-Generate reference and diff screenshots for visual regression testing of your GUI. Configured via `[[screenshot]]` entries in `truce.toml`. See [`gui/screenshot-testing.md`](../guide/gui/screenshot-testing.md) for the test workflow.
+Render a frame of the plugin's GUI to a PNG. Used by visual regression tests via the `truce_test::screenshot!` macro and ad-hoc for marketing assets.
+
+```sh
+cargo truce screenshot --out spectrum.png
+cargo truce screenshot --out spectrum.png --state preset.state
+cargo truce screenshot --out spectrum.png --check         # diff against on-disk reference
+cargo truce screenshot --out spectrum.png --scale 2       # @2× retina render
+```
+
+| Flag | Notes |
+|------|-------|
+| `--out <path>` | Output PNG path. **Required.** |
+| `--state <path>` | Load plugin state from a `.state` file before rendering. |
+| `--check` | Diff against the existing file at `--out` instead of overwriting; fail on mismatch. |
+| `--scale <n>` | DPI scale factor (1 / 2 / 3). |
+| `-p <crate>` | Target plugin in a workspace. |
+
+For the testing workflow, see [`gui/screenshot-testing.md`](../guide/gui/screenshot-testing.md).
 
 ## Cache resets
 

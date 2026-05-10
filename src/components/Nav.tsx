@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { framework } from "@/content/framework";
 
+const NAV_ITEM_CLASS =
+  "nav-link relative px-3 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--cream)] transition-colors";
+
 export function Nav() {
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/85 backdrop-blur">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         <Link
           href="/"
-          className="group flex items-center gap-2.5 font-semibold tracking-tight"
+          className="group flex items-center gap-2.5"
           aria-label={`${framework.domain} home`}
         >
-          {/* Inline mark — kept inline so we can recolor with currentColor if needed */}
           <svg
             viewBox="0 0 64 64"
             className="h-6 w-6 transition-transform duration-300 group-hover:rotate-[8deg]"
@@ -32,29 +34,31 @@ export function Nav() {
             />
             <circle cx="32" cy="32" r="3" fill="#F0E4D0" />
           </svg>
-          <span>{framework.domain}</span>
+          <span className="nav-link text-sm font-extrabold uppercase tracking-[0.18em] text-[var(--cream)]">
+            {framework.domain}
+          </span>
         </Link>
-        <div className="flex items-center gap-1">
-          <Link
-            href="/docs"
-            className="rounded-md px-3 py-2 text-sm hover:bg-[var(--bg-elevated)]"
-          >
+        <div className="flex items-center gap-2">
+          <Link href="/docs/guide/" className={NAV_ITEM_CLASS}>
             Docs
           </Link>
-          <Link
-            href="/plugins"
-            className="rounded-md px-3 py-2 text-sm hover:bg-[var(--bg-elevated)]"
-          >
+          <Link href="/plugins" className={NAV_ITEM_CLASS}>
             Plugins
           </Link>
           <a
             href={framework.github}
             target="_blank"
             rel="noreferrer"
-            className="rounded-md px-3 py-2 text-sm hover:bg-[var(--bg-elevated)]"
+            className={NAV_ITEM_CLASS}
           >
             GitHub
           </a>
+          <Link
+            href="/docs/guide/install/"
+            className="ml-2 inline-flex items-center rounded-md bg-accent px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-accent-fg transition-opacity hover:opacity-90"
+          >
+            Get started
+          </Link>
         </div>
       </nav>
     </header>
