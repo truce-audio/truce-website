@@ -60,15 +60,15 @@ export default function HomePage() {
 
 function Hero() {
   return (
-    <section className="py-16 sm:py-24 grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+    <section className="py-6 sm:py-10 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[1.05fr_1fr] lg:items-center">
       <div>
         <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-[var(--cream)]">
           {framework.tagline}
         </h1>
-        <p className="mt-6 text-lg text-[var(--fg-muted)] leading-relaxed max-w-xl">
+        <p className="mt-4 text-lg text-[var(--fg-muted)] leading-relaxed max-w-xl">
           {framework.description}
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/docs/guide/install"
             className="inline-flex items-center rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-fg hover:opacity-90 transition-opacity"
@@ -106,8 +106,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="py-12 sm:py-16 border-t border-[var(--border)]">
-      <div className="mb-8 max-w-2xl">
+    <section className="py-7 sm:py-9 border-t border-[var(--border)]">
+      <div className="mb-5 max-w-2xl">
         {eyebrow && (
           <p className="text-sm font-medium text-accent-muted mb-3">{eyebrow}</p>
         )}
