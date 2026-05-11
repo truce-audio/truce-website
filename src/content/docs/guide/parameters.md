@@ -172,8 +172,6 @@ impl MyPlugin {
 }
 ```
 
-One copy. No `RwLock`, no `Mutex`, no listener callbacks.
-
 ---
 
 Groups, nested structs, and custom formatting (`format` / `parse` methods) are documented in the [params reference](../reference/params.md).

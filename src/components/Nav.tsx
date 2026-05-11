@@ -138,7 +138,7 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
               </Link>
             </div>
 
-            {isDocsRoute && docsSections.length > 0 && (
+            {docsSections.length > 0 && (
               <div className="border-t border-[var(--border)] py-2">
                 {docsSections.map((section) => (
                   <div key={section.title} className="mb-2 last:mb-0">

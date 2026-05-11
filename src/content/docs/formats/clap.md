@@ -1,8 +1,8 @@
 # CLAP
 
 CLAP (CLever Audio Plug-in) is the open plugin standard from Bitwig
-and u-he, licensed under MIT. It's the format truce is most at home
-in — native Rust, no C++ shim, first-class parameter modulation.
+and u-he, licensed under MIT. truce's CLAP wrapper is native Rust
+(no C++ shim) and supports parameter modulation.
 
 ## Status
 

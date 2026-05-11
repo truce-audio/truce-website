@@ -350,10 +350,38 @@ arch and prints a note.
 
 ### Linux
 
-No signed-installer support yet. `.deb` / `.rpm` packaging is
-planned. Meanwhile, distribute via a tarball produced by
-`cargo truce build` plus a short `install.sh`, or have users run
-`cargo truce install` themselves after `git clone`.
+```sh
+cargo truce package
+```
+
+Produces `target/dist/{bundle_id}-{version}-linux-{arch}.tar.gz`
+— one tarball per `[[plugin]]` and one per `[[suite]]`. Each archive
+contains the staged bundles grouped by format (`clap/`, `vst3/`,
+`vst/`, `lv2/`), a `standalone/` directory if the plugin has the
+standalone feature enabled, an auto-generated `README.txt`, and an
+executable `install.sh`:
+
+```sh
+./install.sh                      # interactive
+./install.sh --all                # user scope, every plugin
+./install.sh --system             # /usr/lib/... + /usr/local/bin
+./install.sh --plugin my-gain     # one plugin (repeatable)
+./install.sh --help               # every option
+```
+
+Flags:
+
+| Flag | Default | Effect |
+|---|---|---|
+| `--target <triple>` | host triple | Repeatable. Reads `target/bundles/<triple>/` and tags the archive name with the matching arch slug. |
+| `--no-build` | off | Skip the implicit `cargo truce build` step. |
+| `--no-per-plugin` | off | Skip per-plugin tarballs; only emit the suite archives. |
+| `--suite <name>` / `--no-suite <name>` | every `[[suite]]` | Restrict which suite archives get produced. |
+
+No `.deb` / `.rpm` / AppImage / AUR support yet. No signed installers
+on Linux — the tarball + `install.sh` is the only path today.
+End users who'd rather build from source can `git clone` the project
+and run `cargo truce install` themselves.
 
 ## Secrets belong in `.cargo/config.toml`
 

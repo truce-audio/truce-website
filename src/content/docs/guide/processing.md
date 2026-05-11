@@ -169,7 +169,7 @@ if t.playing {
 ```
 
 Not every host fills every field every block. The
-[`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo) example shows the robust pattern:
+[`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo) example shows the pattern:
 fall back to a free-running internal clock at 120 BPM when the
 host doesn't provide transport.
 

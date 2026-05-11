@@ -213,5 +213,3 @@ impl MyPlugin {
     }
 }
 ```
-
-One copy. No `RwLock`, no `Mutex`, no listener callbacks.
