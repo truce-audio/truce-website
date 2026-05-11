@@ -25,10 +25,9 @@ Tools requires a PACE/iLok signature (untested with a retail
 account — see below).
 
 Hot-reload works on every cell except AAX (untested) and AU v3 (appex
-sandbox blocks `dlopen` of `target/`; tracked in the immediate
-backlog).
+sandbox blocks `dlopen` of `target/`).
 
-## Immediate backlog
+## Known gaps
 
 - **Retail iLok / PACE round-trip.** PACE wraptool is wired and
   exercised against a dev iLok account; we haven't yet round-tripped
@@ -37,19 +36,10 @@ backlog).
 - **Pro Tools shell-mode smoke test.** Manual: load a `--shell` AAX
   bundle in Pro Tools Developer, confirm hot-reload fires. Pro
   Tools' loader vs. dlopen behavior is the open question.
-- **AU v3 + `--shell` sandbox-disable entitlement.** Branch the
-  AUExt entitlements emitter on `shell_mode` and add
-  `com.apple.security.app-sandbox = false` for dev builds only;
-  production paths stay sandboxed. ~10 lines of code in
-  `crates/cargo-truce/src/commands/install/au_v3.rs`.
 - **Authenticode round-trip with a real cert.** The Azure Trusted
   Signing / SHA1 thumbprint / `.pfx` paths are wired but haven't
   been exercised with a real EV / OV cert end-to-end.
-- **Linux automation + preset round-trip testing in Bitwig and
-  Ardour.** Reaper is verified; the others are pending.
-- **`cargo truce package` for Linux distros.** Today's Linux
-  packaging emits a `.tar.gz` + `install.sh` per plugin/suite.
-  `.deb` / `.rpm` / AppImage / AUR are still on the backlog.
+
 ## Future
 
 - More example plugins (delay, compressor, reverb).
