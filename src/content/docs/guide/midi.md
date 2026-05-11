@@ -180,7 +180,7 @@ fit MIDI 1.0 (every MIDI 2.0 variant, `ParamChange`,
 `Transport`) are silently dropped at the wrapper. Use the MIDI
 1.0 variants for portable note effects.
 
-The arpeggiator example in `examples/truce-example-arpeggio/`
+The arpeggiator example in [`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)
 walks held-note tracking + step scheduling:
 
 ```rust
@@ -205,7 +205,7 @@ context.output_events.push(Event {
 | VST2 | ✅ | ✅ | — | MIDI 1.0 only; opt-in per VST2's `canDo("receiveVstMidiEvent")` |
 | AU v2 | ✅ | ✅ | — | MIDI 2.0 events landing on the input bus are silently dropped |
 | AU v3 | ✅ | ✅ | — | Same as AU v2 |
-| AAX | ✅ | ✅ | — | Pro Tools' MIDI tracks; see [`formats/aax.md`](../formats/aax.md) |
+| AAX | ✅ | ✅ | — | Pro Tools' MIDI tracks; see [`formats/aax`](../formats/aax.md) |
 | LV2 | ✅ | ✅ | — | Hosts deliver `atom:Sequence`; emits one in turn for note effects |
 
 † MIDI 2.0 *channel-voice* messages (`NoteOn2`, `ControlChange2`,
@@ -248,16 +248,17 @@ message — `note_on`, `note_off`, `cc`, `pitch_bend`,
 `channel_pressure`, plus `set_param` for automation. Need
 something else? `Script::push(EventBody)` takes anything.
 
-The arpeggiator example's tests (`examples/truce-example-arpeggio/
-src/lib.rs`) cover the full MIDI-in / MIDI-out shape end to end.
+The arpeggiator example's tests
+([`examples/truce-example-arpeggio/src/lib.rs`](https://github.com/truce-audio/truce/blob/main/examples/truce-example-arpeggio/src/lib.rs))
+cover the full MIDI-in / MIDI-out shape end to end.
 
 ## What's next
 
-- **[Chapter 7 → gui.md](gui.md)** — visualise note state,
+- **[Chapter 7 → gui](gui.md)** — visualise note state,
   expose CC mappings as parameters.
-- **[Chapter 8 → hot-reload.md](hot-reload.md)** — iterate on
+- **[Chapter 8 → hot-reload](hot-reload.md)** — iterate on
   arp logic without restarting the DAW.
-- **`examples/truce-example-arpeggio/`** in the repo — full
+- **[`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)** in the repo — full
   MIDI in → MIDI out plugin with state, transport, and tests.
-- **`examples/truce-example-synth/`** — MIDI in → audio out
+- **[`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth)** — MIDI in → audio out
   with sample-accurate event handling.

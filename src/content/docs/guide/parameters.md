@@ -180,7 +180,7 @@ Groups, nested structs, and custom formatting (`format` / `parse` methods) are d
 
 ## What's next
 
-- **[Chapter 5 → processing.md](processing.md)** — put these
+- **[Chapter 5 → processing](processing.md)** — put these
   parameters to work in `process()`.
-- **[Chapter 7 → gui.md](gui.md)** — wire parameters into widgets
+- **[Chapter 7 → gui](gui.md)** — wire parameters into widgets
   via typed `ParamId`s.

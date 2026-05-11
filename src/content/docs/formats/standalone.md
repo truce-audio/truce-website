@@ -244,7 +244,7 @@ truce-test = { workspace = true }
 
 Good for tail-silence / release-decay tests, sustained-load stability,
 clipping guards, and MIDI-recorded regression tests. See
-[`../guide/audio-testing.md`](../guide/audio-testing.md) for
+[`../guide/audio-testing`](../guide/audio-testing.md) for
 the full builder surface — input shapes, state-file loading,
 per-block meters, output-event capture.
 
@@ -268,4 +268,4 @@ backlog.
 
 - [Shipping](../guide/shipping.md) — packaging, signing, installers
 - [CLI reference](../reference/cli.md) — every `cargo truce` subcommand
-- [`README.md`](README.md) — format index
+- [`README`](README.md) — format index

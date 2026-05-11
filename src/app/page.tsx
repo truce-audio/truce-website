@@ -8,7 +8,7 @@ import { plugins } from "@/content/plugins";
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-6xl px-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <Hero />
 
       <Section
@@ -40,7 +40,7 @@ export default function HomePage() {
         eyebrow="Plugins"
         description="Open-source plugins built on the framework."
       >
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {plugins.map((p) => (
             <PluginCard key={p.slug} plugin={p} />
           ))}
@@ -60,7 +60,7 @@ export default function HomePage() {
 
 function Hero() {
   return (
-    <section className="py-16 sm:py-24 grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+    <section className="py-16 sm:py-24 grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center">
       <div>
         <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-[var(--cream)]">
           {framework.tagline}

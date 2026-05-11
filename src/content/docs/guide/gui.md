@@ -148,12 +148,12 @@ editor is used.
 
 | Backend | Crate | When |
 |---------|-------|------|
-| **egui** | `truce-egui` | Immediate-mode. Good for prototyping, CPU-graph-heavy debugging UIs, and dev tools. Full guide: [gui/egui.md](gui/egui.md). |
-| **iced** | `truce-iced` | Retained-mode with Elm architecture. Good for complex custom UIs where you want a proper widget tree and state machine. Auto-generated from `GridLayout` is also available. [gui/iced.md](gui/iced.md). |
-| **Slint** | `truce-slint` | Declarative markup (`.slint` files) with data binding. Good for visually rich UIs designed outside Rust. [gui/slint.md](gui/slint.md). |
-| **BYO** | `truce-core` + `RawWindowHandle` | Full control — Metal, OpenGL, Skia, anything. You handle painting, input, DPI, and lifecycle yourself. [gui/raw-window-handle.md](gui/raw-window-handle.md). |
+| **egui** | `truce-egui` | Immediate-mode. Good for prototyping, CPU-graph-heavy debugging UIs, and dev tools. Full guide: [gui/egui](gui/egui.md). |
+| **iced** | `truce-iced` | Retained-mode with Elm architecture. Good for complex custom UIs where you want a proper widget tree and state machine. Auto-generated from `GridLayout` is also available. [gui/iced](gui/iced.md). |
+| **Slint** | `truce-slint` | Declarative markup (`.slint` files) with data binding. Good for visually rich UIs designed outside Rust. [gui/slint](gui/slint.md). |
+| **BYO** | `truce-core` + `RawWindowHandle` | Full control — Metal, OpenGL, Skia, anything. You handle painting, input, DPI, and lifecycle yourself. [gui/raw-window-handle](gui/raw-window-handle.md). |
 
-See [gui/README.md](gui/README.md) for a side-by-side comparison
+See [gui/README](gui/README.md) for a side-by-side comparison
 of the backends.
 
 ## Screenshot tests
@@ -178,7 +178,7 @@ points at `cargo truce screenshot --out <ref-path>` to create
 the baseline. Works for every backend (built-in GUI, egui,
 iced, slint).
 
-See [gui/screenshot-testing.md](gui/screenshot-testing.md) for
+See [gui/screenshot-testing](gui/screenshot-testing.md) for
 the full flow — promoting new references, state-dependent shots
 via `setup` / `state_file`, cross-OS reference handling via
 `cfg(target_os = …)` gating, and the `cargo truce screenshot`
@@ -186,7 +186,7 @@ CLI for renders that don't need a `#[test]`.
 
 ## What's next
 
-- **[Chapter 8 → hot-reload.md](hot-reload.md)** — edit the
+- **[Chapter 8 → hot-reload](hot-reload.md)** — edit the
   layout, save, see the change in the running plugin without
   closing the DAW.
 - **[Built-in GUI reference](gui/built-in.md)** — every widget

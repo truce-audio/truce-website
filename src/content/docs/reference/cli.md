@@ -50,7 +50,7 @@ cargo truce install --clap --vst3 --lv2   # subset
 
 AAX, AU v3, and Windows VST2 are always system-scope — `--user` for those falls back to system with a one-line `note`.
 
-Per-platform install destinations: see [`formats/README.md`](../formats/) for the full table.
+Per-platform install destinations: see [`formats/README`](../formats/) for the full table.
 
 ## `uninstall`
 
@@ -100,7 +100,7 @@ cargo truce run -- --help          # pass flags through to the binary
 cargo truce run -- --list-devices  # standalone CLI flag
 ```
 
-The standalone binary's own flags (`--output`, `--sample-rate`, `--input-file`, ...) live in [`formats/standalone.md`](../formats/standalone.md).
+The standalone binary's own flags (`--output`, `--sample-rate`, `--input-file`, ...) live in [`formats/standalone`](../formats/standalone.md).
 
 ## `validate`
 
@@ -125,7 +125,7 @@ Strict mode for CI — any per-format flag (`--clap`, `--pluginval`, `--auval`, 
 | `cargo truce validate --all` | warning, exit 0 |
 | `cargo truce validate --<format>` (any one) | error, exit non-zero |
 
-Override validator discovery via env: `CLAP_VALIDATOR`, `PLUGINVAL` (see [`cargo-config.md`](cargo-config.md)).
+Override validator discovery via env: `CLAP_VALIDATOR`, `PLUGINVAL` (see [`cargo-config`](cargo-config.md)).
 
 ## `package`
 
@@ -154,7 +154,7 @@ Output: `target/dist/<Name>-<version>-{macos.pkg,windows.exe}`, with a `-user` /
 
 Defaults: universal architecture (macOS = fat Mach-O `x86_64` + `aarch64`; Windows = `x64` + `arm64` payloads).
 
-Signing identities and notary credentials come from env (`TRUCE_SIGNING_IDENTITY`, `APPLE_ID`, `AZURE_TENANT_ID`, etc.) — see [`cargo-config.md`](cargo-config.md).
+Signing identities and notary credentials come from env (`TRUCE_SIGNING_IDENTITY`, `APPLE_ID`, `AZURE_TENANT_ID`, etc.) — see [`cargo-config`](cargo-config.md).
 
 ## `doctor`
 
@@ -197,7 +197,7 @@ cargo truce screenshot --out spectrum.png --scale 2       # @2× retina render
 | `--scale <n>` | DPI scale factor (1 / 2 / 3). |
 | `-p <crate>` | Target plugin in a workspace. |
 
-For the testing workflow, see [`gui/screenshot-testing.md`](../guide/gui/screenshot-testing.md).
+For the testing workflow, see [`gui/screenshot-testing`](../guide/gui/screenshot-testing.md).
 
 ## Cache resets
 

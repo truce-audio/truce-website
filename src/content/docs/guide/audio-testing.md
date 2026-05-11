@@ -345,6 +345,6 @@ pub enum InputSource {
 ```
 
 For the screenshot equivalent (GUI regression tests), see
-[`gui/screenshot-testing.md`](gui/screenshot-testing.md). Both
+[`gui/screenshot-testing`](gui/screenshot-testing.md). Both
 builders share the same `state_file` / `set_param` / `setup`
 ordering so the same vocabulary works for audio + GUI.

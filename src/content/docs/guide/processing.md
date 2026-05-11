@@ -137,7 +137,7 @@ with a per-voice `note_id`). The `_ => {}` arm means the compiler
 can still warn if you forgot a variant that mattered.
 
 For MIDI input *and* output (arpeggiators, transposers, chord
-generators), see **[midi.md](midi.md)**.
+generators), see **[midi](midi.md)**.
 
 ## Sample-accurate event splitting
 
@@ -187,7 +187,7 @@ if t.playing {
 ```
 
 Not every host fills every field every block. The
-`examples/truce-example-tremolo` example shows the robust pattern:
+[`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo) example shows the robust pattern:
 fall back to a free-running internal clock at 120 BPM when the
 host doesn't provide transport.
 
@@ -233,7 +233,7 @@ A polyphonic synth is a combination of the patterns above:
 - **`ProcessStatus::Tail(0)`** when all voices are done so the host
   can idle.
 
-The full `examples/truce-example-synth/` plugin (in the repo) is
+The full [`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth) plugin (in the repo) is
 roughly this shape:
 
 ```rust
@@ -308,11 +308,11 @@ truce::plugin! {
 
 ## What's next
 
-- **[Chapter 6 → midi.md](midi.md)** — emitting MIDI, wire-format
+- **[Chapter 6 → midi](midi.md)** — emitting MIDI, wire-format
   helpers, MIDI 2.0 surface.
-- **[Chapter 7 → gui.md](gui.md)** — widgets, layout, meters in
+- **[Chapter 7 → gui](gui.md)** — widgets, layout, meters in
   the UI.
-- **[Chapter 8 → hot-reload.md](hot-reload.md)** — keep your DAW
+- **[Chapter 8 → hot-reload](hot-reload.md)** — keep your DAW
   open while you iterate on this code.
-- **`examples/truce-example-tremolo`** in the repo — host transport
+- **[`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo)** in the repo — host transport
   + egui UI in a small, real plugin.

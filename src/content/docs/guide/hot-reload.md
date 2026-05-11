@@ -158,5 +158,5 @@ The plugin falls back to defaults.
 
 ## What's next
 
-- **[Chapter 9 → shipping.md](shipping.md)** — when you're done
+- **[Chapter 9 → shipping](shipping.md)** — when you're done
   iterating, package a signed installer.

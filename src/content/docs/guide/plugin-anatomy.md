@@ -4,32 +4,13 @@ How the pieces of a truce plugin fit together: the `PluginLogic`
 trait, the `truce::plugin!` macro, bus layouts, and state
 persistence.
 
-If you've walked through [first-plugin.md](first-plugin.md) this
+If you've walked through [first-plugin](first-plugin.md) this
 chapter explains **why** the code you just wrote is shaped the way
 it is.
 
 ## The moving parts
 
-```
-                                    ┌─ truce.toml (metadata)
-                                    ↓
-                              truce::plugin! macro
-                              ────────────────────
-                              generates:
-                                ↓
-  YourParams ◄──Arc───── Shell (one of CLAP / VST3 / AU / …)
-  (atomic params)         │
-                          ├─ calls YourPlugin::new(params)       (inherent)
-                          ├─ calls PluginLogic::reset(sr, bs)    (your DSP)
-                          ├─ calls PluginLogic::process(…)       (audio thread)
-                          ├─ calls PluginLogic::layout(…)        (main thread)
-                          ├─ calls PluginLogic::save_state(…)    (main thread)
-                          ├─ calls PluginLogic::load_state(…)    (audio thread)
-                          ├─ calls PluginLogic::state_changed()  (audio thread)
-                          └─ drops when unloaded
-```
-
-Three things you write:
+Four things you write:
 
 1. A **params struct** with `#[derive(Params)]`.
 2. A **plugin struct** with an inherent `new(params: Arc<P>)`.
@@ -92,7 +73,7 @@ pub trait PluginLogic: Send + 'static {
 | Method | When called | Real-time? | Notes |
 |--------|-------------|------------|-------|
 | `reset` | Sample rate or block size changes; before the first `process` | no | Clear delay lines, reset filter state, call `params.set_sample_rate` + `snap_smoothers`. |
-| `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing.md](processing.md). |
+| `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing](processing.md). |
 | `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo in/out; instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
 | `save_state` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | no | **Extra** state only — params are serialized automatically. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. |
 | `state_changed` | After `load_state` returns | yes (audio thread, between blocks) | Plugin-side cache invalidation — re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
@@ -103,9 +84,9 @@ pub trait PluginLogic: Send + 'static {
 
 | Method | When called | Real-time? | Notes |
 |--------|-------------|------------|-------|
-| `layout` | Built-in GUI rebuild | no | Returns a `GridLayout` description of widgets. See [gui.md](gui.md). |
-| `render`, `uses_custom_render`, `hit_test` | Built-in GUI, when overridden | no | Escape hatches for custom visuals. See [gui.md](gui.md). |
-| `custom_editor` | Editor open | no | Return `Some(...)` to use egui / iced / Slint / raw window handle instead of the built-in widget set. See [gui.md](gui.md). |
+| `layout` | Built-in GUI rebuild | no | Returns a `GridLayout` description of widgets. See [gui](gui.md). |
+| `render`, `uses_custom_render`, `hit_test` | Built-in GUI, when overridden | no | Escape hatches for custom visuals. See [gui](gui.md). |
+| `custom_editor` | Editor open | no | Return `Some(...)` to use egui / iced / Slint / raw window handle instead of the built-in widget set. See [gui](gui.md). |
 
 Headless plugins (no editor) just leave the GUI methods at their
 defaults — the framework draws nothing. Post-load-state cache
@@ -144,37 +125,21 @@ into GUI closures. One source of truth, no synchronization.
 
 ## Lifecycle
 
-```
-Host loads plugin binary
-    │
-    │   truce::plugin! has already:
-    │     - read truce.toml via plugin_info!()
-    │     - emitted format entry points
-    │     - wrapped MyPlugin into a format-specific shell
-    │
-    ▼
-Shell creates Arc<MyParams>, clones it into:
-    ├── the host-visible parameter tree
-    └── MyPlugin::new(arc_clone)
-    │
-    ▼
-PluginLogic::reset(sr, max_block)      ◄── sample rate and block size known
-    │
-    │   ┌──────────── playback loop ────────────┐
-    │   │  process(buffer, events, ctx)  (audio thread)
-    │   │  process(buffer, events, ctx)  (audio thread)
-    │   │  layout() / render()           (main thread)
-    │   │  host writes automation        (atomics)
-    │   │  …                                    │
-    │   └─────────────────────────────────────────┘
-    │
-    │   (user changes sample rate → reset called again)
-    │   (host saves session → params auto-serialized + save_state called)
-    │   (host loads session → load_state called, then reset, then process resumes)
-    │
-    ▼
-MyPlugin dropped
-```
+1. **Host loads the plugin binary.** By this point `truce::plugin!`
+   has already read `truce.toml` via `plugin_info!()`, emitted the
+   format entry points, and wrapped `MyPlugin` in a format-specific
+   shell.
+2. **Shell creates `Arc<MyParams>`** and clones it into both the
+   host-visible parameter tree and `MyPlugin::new(arc_clone)`.
+3. **`PluginLogic::reset(sr, max_block)`** runs once the sample rate
+   and block size are known.
+4. **Playback loop.** The shell drives `process(buffer, events, ctx)`
+   on the audio thread, `layout()` / `render()` on the main thread,
+   and the host writes automation through atomics. If the sample
+   rate changes, `reset` is called again. Saving a session triggers
+   automatic parameter serialization plus `save_state`; loading one
+   calls `load_state`, then `reset`, then resumes `process`.
+5. **`MyPlugin` is dropped** when the host unloads the plugin.
 
 ## Per-format display names
 
@@ -389,11 +354,11 @@ every frame for free.
 
 ## What's next
 
-- **[Chapter 4 → parameters.md](parameters.md)** — every attribute
+- **[Chapter 4 → parameters](parameters.md)** — every attribute
   the derive macro accepts, plus meters and parameter groups.
-- **[Chapter 5 → processing.md](processing.md)** — the shapes
+- **[Chapter 5 → processing](processing.md)** — the shapes
   `process()` takes for effects, MIDI processors, and synths.
-- **[Chapter 6 → midi.md](midi.md)** — reading and emitting MIDI
+- **[Chapter 6 → midi](midi.md)** — reading and emitting MIDI
   events; per-format support; testing MIDI plugins.
-- **[Chapter 7 → gui.md](gui.md)** — the built-in widget set and
+- **[Chapter 7 → gui](gui.md)** — the built-in widget set and
   when to reach for a framework backend.

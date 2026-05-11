@@ -7,9 +7,9 @@
     "sync-assets": "tsx scripts/sync-assets.ts",
     "predev": "npm run sync-assets",
     "prebuild": "npm run sync-assets",
-    "dev": "next dev",
+    "dev": "next dev -p 3536",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3536",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },

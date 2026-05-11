@@ -84,7 +84,6 @@ pre.shiki {
   color: var(--fg);
   font-size: 1rem;
   line-height: 1.75;
-  max-width: 72ch;
 }
 
 .prose-doc > * + * {
@@ -242,3 +241,12 @@ pre.shiki {
   border-radius: 0.5rem;
   border: 1px solid var(--border);
 }
+
+/* Strip the default ▶ disclosure marker from our custom <details> menus */
+.docs-sidebar > summary::-webkit-details-marker,
+.nav-menu > summary::-webkit-details-marker { display: none; }
+
+/* Hide the scrollbar on the sticky desktop docs sidebar — it scrolls
+   independently of the page, but the bar shouldn't be visible. */
+.docs-sidebar-aside { scrollbar-width: none; }
+.docs-sidebar-aside::-webkit-scrollbar { display: none; }

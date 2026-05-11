@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { framework } from "@/content/framework";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { getSidebar } from "@/lib/docs";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,15 +26,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const docsSections = await getSidebar();
   return (
     <html lang="en" style={{ colorScheme: "dark" }}>
       <body className="font-sans min-h-screen flex flex-col">
-        <Nav />
+        <Nav docsSections={docsSections} />
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

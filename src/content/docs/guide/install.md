@@ -65,7 +65,7 @@ cargo truce doctor
 
 Reports what's present and what's missing — Rust version, compiler, optional SDKs, validator binaries. Green rows are ready; yellow are optional; red block something. Run `doctor` any time a build behaves oddly — it's usually faster than reading the error.
 
-You're ready for [chapter 2 → first-plugin.md](first-plugin.md).
+You're ready for [chapter 2 → first-plugin](first-plugin.md).
 
 ---
 
@@ -99,16 +99,16 @@ Needs **full Xcode** (not just CLI tools) — `xcodebuild` builds the `.appex`. 
 sudo xcode-select -s /Applications/Xcode.app
 ```
 
-AU v3 also requires a real Developer ID for Apple to load the appex — see [`cargo-config.md`](../reference/cargo-config.md).
+AU v3 also requires a real Developer ID for Apple to load the appex — see [`cargo-config`](../reference/cargo-config.md).
 
 ### AAX
 
-Needs the Avid AAX SDK (point `AAX_SDK_PATH` at it) plus PACE/iLok for retail Pro Tools releases. macOS and Windows only. Details in [formats/aax.md](../formats/aax.md).
+Needs the Avid AAX SDK (point `AAX_SDK_PATH` at it) plus PACE/iLok for retail Pro Tools releases. macOS and Windows only. Details in [formats/aax](../formats/aax.md).
 
 ### Signed installers (`cargo truce package`)
 
-- **macOS:** signing identities + Apple notary credentials. See [`cargo-config.md`](../reference/cargo-config.md).
-- **Windows:** [Inno Setup 6](https://jrsoftware.org/isinfo.php) for `ISCC.exe`, plus an Authenticode source (Azure Trusted Signing, cert thumbprint, or `.pfx`). See [`cargo-config.md`](../reference/cargo-config.md).
+- **macOS:** signing identities + Apple notary credentials. See [`cargo-config`](../reference/cargo-config.md).
+- **Windows:** [Inno Setup 6](https://jrsoftware.org/isinfo.php) for `ISCC.exe`, plus an Authenticode source (Azure Trusted Signing, cert thumbprint, or `.pfx`). See [`cargo-config`](../reference/cargo-config.md).
 - **Linux:** no signed-installer support yet.
 
 ### sccache
@@ -122,3 +122,13 @@ cargo install cargo-truce --version X.Y.Z              # exact version from crat
 cargo install --git https://github.com/truce-audio/truce \
               --tag vX.Y.Z cargo-truce                 # exact git tag
 ```
+
+## What's next
+
+- **[Chapter 2 → first-plugin](first-plugin.md)** —
+  `cargo truce new`, a tour of the generated files, install into
+  your DAW, hear it work.
+- **Format details** — per-format prerequisites, host coverage,
+  and gotchas in [formats/](../formats/).
+- **Environment variables** — every signing, SDK, notary, and
+  hot-reload variable in [`cargo-config`](../reference/cargo-config.md).

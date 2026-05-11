@@ -40,7 +40,7 @@ export default async function PluginPage({
   if (!plugin) notFound();
 
   return (
-    <article className="mx-auto max-w-4xl px-6 py-12 sm:py-16">
+    <article className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
       <Link
         href="/plugins"
         className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]"
@@ -88,7 +88,7 @@ export default async function PluginPage({
         <ScreenshotFigure key={i} src={s.src} alt={s.alt} caption={s.caption} />
       ))}
 
-      <section className="mt-12 grid gap-4 sm:grid-cols-2">
+      <section className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Formats">
           <div className="flex flex-wrap gap-1.5">
             {plugin.formats.map((f) => (

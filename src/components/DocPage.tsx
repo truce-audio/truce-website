@@ -1,4 +1,5 @@
 import type { DocPage as DocPageType } from "@/lib/docs";
+import { TitleWithCode } from "@/components/TitleWithCode";
 
 export function DocPage({ page }: { page: DocPageType }) {
   return (
@@ -10,7 +11,10 @@ export function DocPage({ page }: { page: DocPageType }) {
           </p>
         )}
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[var(--cream)]">
-          {page.title}
+          <TitleWithCode
+            text={page.title}
+            codeClassName="rounded bg-[var(--bg-code)] px-2 py-0.5 font-mono text-[0.85em] text-[var(--cream)]"
+          />
         </h1>
       </header>
 

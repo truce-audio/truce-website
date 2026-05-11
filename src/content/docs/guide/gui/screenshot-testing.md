@@ -268,7 +268,7 @@ fn gui_screenshot_windows() {
 rasterizer drift can't fail the wrong test. `pixel_threshold(2)`
 on the non-baseline runs absorbs sub-perceptual driver / GPU
 drift without masking visible regressions. The in-tree examples
-(`examples/truce-example-*`) use this pattern.
+([`examples/truce-example-*`](https://github.com/truce-audio/truce/tree/main/examples)) use this pattern.
 
 ## API reference
 

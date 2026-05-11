@@ -4,10 +4,10 @@ Look-up material for the most-touched parts of truce. Not exhaustive — for the
 
 | Page | What's in it |
 |------|--------------|
-| [cli.md](cli.md) | Every `cargo truce` subcommand and flag — `new`, `install`, `build`, `validate`, `package`, `run`, `doctor`, `uninstall`, `screenshot`. |
-| [params.md](params.md) | `#[derive(Params)]` and `#[param(...)]` — every attribute key, range syntax, smoothing modes, meters, custom formatting. |
-| [truce-toml.md](truce-toml.md) | Project-level `truce.toml` schema. `[vendor]`, `[[plugin]]`, `[[suite]]`, packaging, signing. |
-| [cargo-config.md](cargo-config.md) | Per-developer `.cargo/config.toml` `[env]` table — every environment variable truce reads (signing identities, SDK paths, validator paths, hot-reload). |
+| [cli](cli.md) | Every `cargo truce` subcommand and flag — `new`, `install`, `build`, `validate`, `package`, `run`, `doctor`, `uninstall`, `screenshot`. |
+| [params](params.md) | `#[derive(Params)]` and `#[param(...)]` — every attribute key, range syntax, smoothing modes, meters, custom formatting. |
+| [truce-toml](truce-toml.md) | Project-level `truce.toml` schema. `[vendor]`, `[[plugin]]`, `[[suite]]`, packaging, signing. |
+| [cargo-config](cargo-config.md) | Per-developer `.cargo/config.toml` `[env]` table — every environment variable truce reads (signing identities, SDK paths, validator paths, hot-reload). |
 
 ## See also
 

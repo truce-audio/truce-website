@@ -267,5 +267,5 @@ terms.
 
 ## Example
 
-`examples/truce-example-gain-slint/` has a complete plugin with knobs, XY pad, meter,
+[`examples/truce-example-gain-slint`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain-slint) has a complete plugin with knobs, XY pad, meter,
 formatted values, and screenshot test.

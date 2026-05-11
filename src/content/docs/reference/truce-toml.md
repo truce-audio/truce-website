@@ -9,7 +9,7 @@ Per-developer credentials and machine-specific paths (signing
 identities, AAX SDK location, notarization Apple ID / team ID,
 Authenticode certs) live in `.cargo/config.toml`'s `[env]` table
 or shell env vars instead. See
-[`cargo-config.md`](cargo-config.md) for that surface.
+[`cargo-config`](cargo-config.md) for that surface.
 
 ## `[vendor]` — required
 
@@ -72,14 +72,14 @@ still ship in parallel; use `--no-per-plugin` to drop them, or
 
 | Field | Default | Notes |
 |-------|---------|-------|
-| `notarize` | `false` | `true` → submit to Apple notary and staple. `--no-notarize` on the CLI skips it. The credentials it uses come from env (see [`cargo-config.md`](cargo-config.md)). |
+| `notarize` | `false` | `true` → submit to Apple notary and staple. `--no-notarize` on the CLI skips it. The credentials it uses come from env (see [`cargo-config`](cargo-config.md)). |
 
 There is no `[macos.signing]` table — signing identities are per-developer and live in env. See [`cargo-config.md` § macOS code signing](cargo-config.md#macos-code-signing).
 
 ## `[windows.packaging]` — optional, Windows only
 
 Project-level installer appearance. Per-developer Authenticode
-credentials live in env (see [`cargo-config.md`](cargo-config.md)).
+credentials live in env (see [`cargo-config`](cargo-config.md)).
 
 | Field | Default | Notes |
 |-------|---------|-------|
@@ -145,7 +145,7 @@ description = "Gain and Synth in one installer."
 
 These all used to be `truce.toml` fields and are now per-developer
 env vars instead. Setting them in `truce.toml` does nothing; see
-[`cargo-config.md`](cargo-config.md) for where they live.
+[`cargo-config`](cargo-config.md) for where they live.
 
 - `[macos].aax_sdk_path` → `AAX_SDK_PATH`
 - `[macos.signing].application_identity` → `TRUCE_SIGNING_IDENTITY`

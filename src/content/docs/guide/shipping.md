@@ -76,7 +76,7 @@ Windows VST2 is also system-only on Windows. The install scope is
 a per-invocation developer choice — `cargo truce install` has no
 `truce.toml` override, only the CLI flag.
 
-Full per-platform table in [formats/README.md](../formats/).
+Full per-platform table in [formats/README](../formats/).
 
 `cargo truce uninstall` mirrors the same flags. By default it scans
 both scopes (handy when you switched scope mid-iteration); pass

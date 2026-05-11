@@ -6,15 +6,15 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 
 | # | Chapter | What you get |
 |---|---------|--------------|
-| 1 | [install.md](install.md) | Rust + the platform compiler + `cargo install cargo-truce` + `cargo truce doctor`. CLAP+VST3 minimum-friction setup; AU/AAX/packaging deferred. |
-| 2 | [first-plugin.md](first-plugin.md) | `cargo truce new`, a tour of the generated files, `install`, load in a DAW |
-| 3 | [plugin-anatomy.md](plugin-anatomy.md) | `PluginLogic` trait, bus layouts, state persistence |
-| 4 | [parameters.md](parameters.md) | `#[derive(Params)]`, smoothing patterns, meters. Attribute reference lives in [reference/params.md](../reference/params.md). |
-| 5 | [processing.md](processing.md) | `process()` patterns for effects, MIDI, sample-accurate events, synths |
-| 6 | [midi.md](midi.md) | Reading and emitting MIDI events; per-format support; testing MIDI plugins |
-| 7 | [gui.md](gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, raw window handle) |
-| 8 | [hot-reload.md](hot-reload.md) | ~2 second edit → hear loop with `--shell` |
-| 9 | [shipping.md](shipping.md) | `cargo truce install / build / validate / package`, signing, installers |
+| 1 | [install](install.md) | Rust + the platform compiler + `cargo install cargo-truce` + `cargo truce doctor`. CLAP+VST3 minimum-friction setup; AU/AAX/packaging deferred. |
+| 2 | [first-plugin](first-plugin.md) | `cargo truce new`, a tour of the generated files, `install`, load in a DAW |
+| 3 | [plugin-anatomy](plugin-anatomy.md) | `PluginLogic` trait, bus layouts, state persistence |
+| 4 | [parameters](parameters.md) | `#[derive(Params)]`, smoothing patterns, meters. Attribute reference lives in [reference/params](../reference/params.md). |
+| 5 | [processing](processing.md) | `process()` patterns for effects, MIDI, sample-accurate events, synths |
+| 6 | [midi](midi.md) | Reading and emitting MIDI events; per-format support; testing MIDI plugins |
+| 7 | [gui](gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, raw window handle) |
+| 8 | [hot-reload](hot-reload.md) | ~2 second edit → hear loop with `--shell` |
+| 9 | [shipping](shipping.md) | `cargo truce install / build / validate / package`, signing, installers |
 
 ## See also
 

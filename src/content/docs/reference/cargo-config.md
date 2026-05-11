@@ -168,5 +168,5 @@ PACE_ACCOUNT = "acme-ilok-account"
 PACE_SIGN_ID = "..."
 ```
 
-Companion file: [`truce-toml.md`](truce-toml.md) for the
+Companion file: [`truce-toml`](truce-toml.md) for the
 project-level config that does live in the tracked file.

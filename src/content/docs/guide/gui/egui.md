@@ -235,7 +235,7 @@ See [screenshot testing](screenshot-testing.md) for more.
 
 ## Examples
 
-`examples/truce-example-gain-egui/` — complete plugin with knobs, XY pad, meter,
+[`examples/truce-example-gain-egui`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain-egui) — complete plugin with knobs, XY pad, meter,
 header, custom font, and screenshot test.
 
 [truce-analyzer](https://github.com/truce-audio/truce-analyzer) — non-trivial

@@ -3,7 +3,7 @@
 Scaffold, build, install, load, iterate. End state: a stereo gain
 plugin with a GUI loaded in your DAW.
 
-Prerequisites: [chapter 1 → install.md](install.md).
+Prerequisites: [chapter 1 → install](install.md).
 
 ## Scaffold
 
@@ -65,7 +65,7 @@ One line of attributes per parameter. `#[derive(Params)]` generates
 the `new()` constructor, a `MyGainParamsParamId` enum with typed
 variants, and the `Params` trait impl. Parameter IDs auto-assign by
 field order (`Gain = 0`, then 1, 2, ...). See
-[chapter 4 → parameters.md](parameters.md) for the full attribute
+[chapter 4 → parameters](parameters.md) for the full attribute
 reference.
 
 ### 2. Plugin logic — what happens to the audio
@@ -110,7 +110,7 @@ size; `process()` runs every block) and the main thread
 (`layout()` returns a declarative description of the GUI). Only
 `reset` and `process` are required; everything else has a
 default — headless plugins just leave `layout()` at the default.
-See [chapter 3 → plugin-anatomy.md](plugin-anatomy.md).
+See [chapter 3 → plugin-anatomy](plugin-anatomy.md).
 
 ### 3. The export macro — makes it a plugin
 
@@ -149,7 +149,7 @@ fourcc = "MyG1"
 across every format. The `truce::plugin_info!()` macro reads it at
 compile time so `truce::plugin!` doesn't need any of this in code.
 Full schema in
-[`reference/truce-toml.md`](../reference/truce-toml.md).
+[`reference/truce-toml`](../reference/truce-toml.md).
 
 Per-developer secrets (signing identity, AAX SDK path, notary
 credentials) go in `.cargo/config.toml` (gitignored), **not** here.
@@ -209,7 +209,7 @@ cargo truce install --system          # system-scope install (sudo / admin)
 ```
 
 Install destinations per platform live in
-[docs/formats/README.md](../formats/README.md).
+[docs/formats/README](../formats/README.md).
 
 To stage bundles into `target/bundles/` without writing to the
 system plug-in directories — useful for CI, packaging dry-runs, or
@@ -239,7 +239,7 @@ Expected:
 
 (Rendered headlessly with `cargo truce screenshot --out screenshots/default.png`
 — the same path the screenshot regression tests in
-[gui/screenshot-testing.md](gui/screenshot-testing.md) use.)
+[gui/screenshot-testing](gui/screenshot-testing.md) use.)
 
 ## Edit and rebuild
 
@@ -295,17 +295,17 @@ Close and reopen the plugin in your DAW. You now have two knobs.
 ## What's next
 
 - **Other parameter kinds** — boolean, int, enum, groups, meters,
-  custom formatting → [chapter 4 → parameters.md](parameters.md).
+  custom formatting → [chapter 4 → parameters](parameters.md).
 - **Non-trivial processing** — transport, sample-accurate events,
-  instruments → [chapter 5 → processing.md](processing.md).
+  instruments → [chapter 5 → processing](processing.md).
 - **MIDI** — reading and emitting MIDI events, note effects →
-  [chapter 6 → midi.md](midi.md).
+  [chapter 6 → midi](midi.md).
 - **A richer UI** — more widgets, `section()`, switching to
-  egui/iced/Slint → [chapter 7 → gui.md](gui.md).
+  egui/iced/Slint → [chapter 7 → gui](gui.md).
 - **Shipping to users** — signed `.pkg` / `.exe` installers →
-  [chapter 9 → shipping.md](shipping.md).
-- **Real examples** — `examples/truce-example-gain`,
-  `examples/truce-example-eq`, `examples/truce-example-synth`,
-  `examples/truce-example-transpose`,
-  `examples/truce-example-arpeggio`,
-  `examples/truce-example-tremolo` in the repo.
+  [chapter 9 → shipping](shipping.md).
+- **Real examples** — [`examples/truce-example-gain`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain),
+  [`examples/truce-example-eq`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-eq), [`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth),
+  [`examples/truce-example-transpose`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-transpose),
+  [`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio),
+  [`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo) in the repo.
