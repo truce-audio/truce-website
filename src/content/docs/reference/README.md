@@ -1,6 +1,6 @@
 # Reference
 
-Look-up material for the most-touched parts of truce. Not exhaustive — for the full Rust API surface, see the [rustdoc](https://truce-audio.github.io/truce/). For learning the framework end-to-end, start with the [guide](../guide/).
+Not exhaustive — for the full Rust API surface, see the [rustdoc](https://truce-audio.github.io/truce/). For learning the framework end-to-end, start with the [guide](../guide/).
 
 | Page | What's in it |
 |------|--------------|

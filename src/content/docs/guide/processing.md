@@ -26,54 +26,36 @@ do not copy input into output: read from `buffer.input(ch)` and write
 to `buffer.output(ch)`. For instruments, output starts wherever the
 host left it (typically zero, but don't assume — write every sample).
 
-## In-place I/O (advanced; opt-in)
-
-Some hosts (Reaper, pluginval) pass the same buffer for both input
-and output of a given channel. By default truce handles this for you
-— the wrapper detects the alias and copies the input into per-channel
-scratch so `buffer.input(ch)` and `buffer.output(ch)` are always
-disjoint slices. The cost is one memcpy per aliased channel per block
-(a few hundred KB/sec at audio rates) and it never shows up unless
-you go looking. **Most plugins should ignore this section.**
-
-If you profile and the wrapper memcpy is meaningful for your DSP,
-override `supports_in_place()` on your `PluginLogic` impl to
-return `true`. The wrapper then skips the copy and you
-read+write the shared buffer directly:
-
 ```rust
-impl PluginLogic for MyEffect {
-    fn supports_in_place() -> bool { true }
-    // ...
-    fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
-               _: &mut ProcessContext) -> ProcessStatus {
-        for ch in 0..buffer.num_output_channels() {
-            if buffer.is_in_place(ch) {
-                // Host shares one buffer for in+out; read each
-                // sample, then overwrite it.
-                let inout = buffer.in_out_mut(ch);
-                for s in inout.iter_mut() { *s = self.process_sample(*s); }
-            } else {
-                let inp = buffer.input(ch);
-                let out = buffer.output(ch);
-                for i in 0..inp.len() { out[i] = self.process_sample(inp[i]); }
-            }
-        }
-        ProcessStatus::Normal
-    }
+impl<'a> AudioBuffer<'a> {
+    // Sizes
+    fn num_samples(&self) -> usize;
+    fn num_input_channels(&self) -> usize;
+    fn num_output_channels(&self) -> usize;
+    fn channels(&self) -> usize;             // min(in, out)
+
+    // Channel access
+    fn input(&self, ch: usize) -> &[f32];
+    fn output(&mut self, ch: usize) -> &mut [f32];
+    fn io(&mut self, ch: usize) -> (&[f32], &mut [f32]);
+    fn io_pair(&mut self, in_ch: usize, out_ch: usize)
+        -> (&[f32], &mut [f32]);
+
+    // Sub-block view (for sample-accurate event splitting)
+    fn slice(&mut self, start: usize, len: usize) -> AudioBuffer<'_>;
+
+    // In-place I/O (opt-in; see below)
+    fn is_in_place(&self, ch: usize) -> bool;
+    fn in_out_mut(&mut self, ch: usize) -> &mut [f32];
+
+    // Diagnostics
+    fn output_peak(&self, ch: usize) -> f32;
 }
 ```
 
-The contract:
-
-- With `supports_in_place() = true`, `buffer.input(ch)` returns an empty
-  slice for in-place channels — the data only exists in the shared
-  buffer. You **must** check `buffer.is_in_place(ch)` and use
-  `buffer.in_out_mut(ch)` for those channels.
-- With `SUPPORTS_IN_PLACE = false` (default), `buffer.input(ch)` and
-  `buffer.output(ch)` are always safe and disjoint, even when the
-  host requested in-place. `is_in_place` still reflects the host's
-  choice — but you can ignore it.
+`input`, `output`, `io`, and `in_out_mut` all return slices of length
+`num_samples()` — the current block, or the current sub-block if
+you've called `slice()`.
 
 ## Per-sample effect
 
@@ -305,6 +287,55 @@ truce::plugin! {
     params: SynthParams,
 }
 ```
+
+## In-place I/O (advanced; opt-in)
+
+Some hosts (Reaper, pluginval) pass the same buffer for both input
+and output of a given channel. By default truce handles this for you
+— the wrapper detects the alias and copies the input into per-channel
+scratch so `buffer.input(ch)` and `buffer.output(ch)` are always
+disjoint slices. The cost is one memcpy per aliased channel per block
+(a few hundred KB/sec at audio rates) and it never shows up unless
+you go looking. **Most plugins should ignore this section.**
+
+If you profile and the wrapper memcpy is meaningful for your DSP,
+override `supports_in_place()` on your `PluginLogic` impl to
+return `true`. The wrapper then skips the copy and you
+read+write the shared buffer directly:
+
+```rust
+impl PluginLogic for MyEffect {
+    fn supports_in_place() -> bool { true }
+    // ...
+    fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
+               _: &mut ProcessContext) -> ProcessStatus {
+        for ch in 0..buffer.num_output_channels() {
+            if buffer.is_in_place(ch) {
+                // Host shares one buffer for in+out; read each
+                // sample, then overwrite it.
+                let inout = buffer.in_out_mut(ch);
+                for s in inout.iter_mut() { *s = self.process_sample(*s); }
+            } else {
+                let inp = buffer.input(ch);
+                let out = buffer.output(ch);
+                for i in 0..inp.len() { out[i] = self.process_sample(inp[i]); }
+            }
+        }
+        ProcessStatus::Normal
+    }
+}
+```
+
+The contract:
+
+- With `supports_in_place() = true`, `buffer.input(ch)` returns an empty
+  slice for in-place channels — the data only exists in the shared
+  buffer. You **must** check `buffer.is_in_place(ch)` and use
+  `buffer.in_out_mut(ch)` for those channels.
+- With `SUPPORTS_IN_PLACE = false` (default), `buffer.input(ch)` and
+  `buffer.output(ch)` are always safe and disjoint, even when the
+  host requested in-place. `is_in_place` still reflects the host's
+  choice — but you can ignore it.
 
 ## What's next
 

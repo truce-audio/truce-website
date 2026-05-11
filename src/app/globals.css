@@ -157,6 +157,18 @@ pre.shiki {
   color: #5cf6ec;
 }
 
+/* When an inline <code> sits inside a link, the code's own color/border
+   would otherwise hide the link affordance. Inherit link styling. */
+.prose-doc a:not(.heading-anchor) code {
+  color: var(--cyan);
+  border-color: rgba(20, 240, 224, 0.35);
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.prose-doc a:not(.heading-anchor):hover code {
+  color: #5cf6ec;
+  border-color: var(--cyan);
+}
+
 .prose-doc strong { color: var(--cream); font-weight: 600; }
 .prose-doc em { color: var(--cream); }
 
