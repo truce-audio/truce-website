@@ -1,60 +1,66 @@
-# Status
+# truce
 
-Updated 2026-05-12. Version 0.38. **Pre-1.0 — active development.**
+Build audio plugins in Rust. CLAP, VST3, LV2, AU v2, AU v3, AAX, and
+standalone — from a single crate, on macOS, Windows, and Linux.
 
-Plugin authors can build, install, validate, and package across CLAP,
-VST3, VST2, LV2, AU v2, AU v3, and AAX from a single Rust crate, on
-macOS, Windows, and Linux. Standalone host + signed installers (.pkg
-on macOS, .exe on Windows) work today. Hot-reload via `--shell` works
-for every format except AU v3 and AAX, which have known caveats below.
+## Quick start
 
-## What works today
+```sh
+# One-time install
+cargo install cargo-truce
 
-| Format | macOS | Windows | Linux | Hosts smoke-tested |
-|---|---|---|---|---|
-| CLAP | ✅ | ✅ | ✅ | Reaper (all three OSes) |
-| VST3 | ✅ | ✅ | ✅ | Reaper, Ableton, FL Studio (macOS / Windows) |
-| VST2 | ✅ | ✅ | ✅ | Reaper, Ableton, FL Studio (macOS / Windows) |
-| LV2  | ✅ | ✅ | ✅ | Reaper (all three); Ardour / Carla pending |
-| AU v2 | ✅ | — | — | Reaper, Logic, GarageBand, Ableton |
-| AU v3 | ✅ | — | — | Reaper, Logic, Ableton |
-| AAX  | ✅ | ✅† | — | Pro Tools Developer |
+# Scaffold a plugin
+cargo truce new my-plugin
+cd my-plugin
 
-† Windows AAX builds and loads in Pro Tools Developer; retail Pro
-Tools requires a PACE/iLok signature (untested with a retail
-account — see below).
+# Run standalone — no DAW needed
+cargo truce run
 
-Hot-reload works on every cell except AAX (untested) and AU v3 (appex
-sandbox blocks `dlopen` of `target/`).
+# Build and install for your DAW
+cargo truce install --clap
+cargo truce install --vst3
+```
 
-## Known gaps
+Open your DAW, scan for plugins, load `MyPlugin`. For a chapter-by-chapter
+walkthrough, follow the [Guide](guide/) from [install](guide/install.md)
+through [shipping](guide/shipping.md).
 
-- **Retail iLok / PACE round-trip.** PACE wraptool is wired and
-  exercised against a dev iLok account; we haven't yet round-tripped
-  through a retail iLok + retail Pro Tools install. Needed before
-  documenting AAX as production-ready.
-- **Pro Tools shell-mode smoke test.** Manual: load a `--shell` AAX
-  bundle in Pro Tools Developer, confirm hot-reload fires. Pro
-  Tools' loader vs. dlopen behavior is the open question.
-- **Authenticode round-trip with a real cert.** The Azure Trusted
-  Signing / SHA1 thumbprint / `.pfx` paths are wired but haven't
-  been exercised with a real EV / OV cert end-to-end.
+## Docs
 
-## Future
+**[Guide](guide/)** — walkthrough
 
-- More example plugins (delay, compressor, reverb).
-- WebView GUI backend.
-- Distribution-grade dynamic shell (today's `--shell` is dev-loop
-  only; making it a shipping mechanism is a phase-2 question).
+- 1. [Install](guide/install.md) — Rust + platform compiler + `cargo truce doctor`
+- 2. [First plugin](guide/first-plugin.md) — scaffold and load in a DAW
+- 3. [Plugin anatomy](guide/plugin-anatomy.md) — `PluginLogic`, bus layouts, state
+- 4. [Parameters](guide/parameters.md) — `#[derive(Params)]`, smoothing, meters
+- 5. [Processing](guide/processing.md) — `process()` patterns for effects and synths
+- 6. [MIDI](guide/midi.md) — read and emit events; per-format support
+- 7. [GUI](guide/gui.md) — built-in widgets + alternative backends
+- 8. [Hot reload](guide/hot-reload.md) — `--shell` and the ~2 s edit loop
+- 9. [Shipping](guide/shipping.md) — signing, installers, validation
 
-## See also
+**[GUI backends](guide/gui/)** — pick your toolkit
 
-- [Guide](guide/) — narrative walkthrough: install, first plugin,
-  parameters, processing, MIDI, GUI, hot reload, shipping.
-- [Reference](reference/) — `cargo truce` CLI, `truce.toml`, env
-  vars, `#[param(...)]`. Look-up material for the most-touched
-  surfaces.
-- [Formats](formats/) — per-format pages (CLAP, VST3, VST2, LV2,
-  AU, AAX) with install paths and gotchas.
-- [Hot reload](guide/hot-reload.md) — how `--shell` and the dynamic
-  loader work end-to-end.
+- [Built-in widgets](guide/gui/built-in.md)
+- [egui](guide/gui/egui.md)
+- [iced](guide/gui/iced.md)
+- [Slint](guide/gui/slint.md)
+- [Raw window handle](guide/gui/raw-window-handle.md)
+- [Screenshot testing](guide/gui/screenshot-testing.md)
+
+**[Reference](reference/)**
+
+- [`cargo truce`](reference/cli.md)
+- [`#[param(...)]`](reference/params.md)
+- [`truce.toml`](reference/truce-toml.md)
+- [Cargo config](reference/cargo-config.md)
+
+**[Formats](formats/)** — per-format install paths and gotchas
+
+- [CLAP](formats/clap.md) · [VST3](formats/vst3.md) · [VST2](formats/vst2.md) · [LV2](formats/lv2.md) · [AU](formats/au.md) · [AAX](formats/aax.md) · [Standalone](formats/standalone.md)
+
+**Advanced**
+
+- [Audio testing](guide/audio-testing.md) — `truce_test::PluginDriver` for in-process audio + MIDI tests
+
+**[Changelog](changelog.md)** — release notes, plus the [backlog](changelog.md#backlog) of known gaps and what's next

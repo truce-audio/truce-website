@@ -295,10 +295,11 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     {
       title: "Overview",
       items: [
-        { title: "Status", href: "/docs", eyebrow: undefined },
+        { title: "Quick start", href: "/docs", eyebrow: undefined },
         ...(find("guide/README.md") ? [{ title: "Guide index", href: "/docs/guide" }] : []),
         ...(find("reference/README.md") ? [{ title: "Reference index", href: "/docs/reference" }] : []),
         ...(find("formats/README.md") ? [{ title: "Format index", href: "/docs/formats" }] : []),
+        ...collect(["changelog.md"]),
       ],
     },
     { title: "Guide", items: collect(guideOrder) },
@@ -306,7 +307,6 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     { title: "Reference", items: collect(referenceOrder) },
     { title: "Formats", items: collect(formatOrder) },
     { title: "Advanced", items: collect(advancedOrder) },
-    { title: "Releases", items: collect(["changelog.md"]) },
   ].filter((s) => s.items.length > 0);
 }
 

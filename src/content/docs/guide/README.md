@@ -24,4 +24,4 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 - [Built-in GUI reference](gui/built-in.md) — the `GridLayout` builder, every widget constructor, theming.
 - [Audio testing](audio-testing.md) — `truce_test::PluginDriver` for in-process audio + MIDI tests.
 - [Screenshot testing](gui/screenshot-testing.md) — visual regression tests for the GUI.
-- [Status](../README.md) — what's shipped, what's next.
+- [Changelog](../changelog.md) — what's shipped, plus the [backlog](../changelog.md#backlog) of what's next.
