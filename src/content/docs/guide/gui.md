@@ -14,7 +14,7 @@ the built-in and reach for a framework when you hit its limits.
 ### Declaring a layout
 
 ```rust
-use truce_gui::layout::{GridLayout, knob, slider, toggle,
+use truce_gui_types::layout::{GridLayout, knob, slider, toggle,
                         dropdown, meter, xy_pad, widgets, section};
 use MyParamsParamId as P;
 
@@ -119,7 +119,7 @@ a custom palette:
 ```rust
 GridLayout::build(sections)
     .with_title("MY PLUGIN")
-    .theme(truce_gui::theme::Theme::light())
+    .theme(truce_gui_types::theme::Theme::light())
 ```
 
 Text renders via fontdue with JetBrains Mono Regular embedded at

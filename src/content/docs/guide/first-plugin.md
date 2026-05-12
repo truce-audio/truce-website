@@ -88,7 +88,7 @@ impl PluginLogic for MyGain {
     fn process(&mut self, buffer: &mut AudioBuffer, _events: &EventList,
                _ctx: &mut ProcessContext) -> ProcessStatus {
         for i in 0..buffer.num_samples() {
-            let gain = db_to_linear(self.params.gain.smoothed_next() as f64) as f32;
+            let gain = db_to_linear(self.params.gain.read());
             for ch in 0..buffer.channels() {
                 let (inp, out) = buffer.io(ch);
                 out[i] = inp[i] * gain;
@@ -97,8 +97,8 @@ impl PluginLogic for MyGain {
         ProcessStatus::Normal
     }
 
-    fn layout(&self) -> truce_gui::layout::GridLayout {
-        use truce_gui::layout::{GridLayout, knob, widgets};
+    fn layout(&self) -> truce_gui_types::layout::GridLayout {
+        use truce_gui_types::layout::{GridLayout, knob, widgets};
         GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])])
     }
 }
@@ -262,8 +262,8 @@ Use it in `process()`:
 
 ```rust
 for i in 0..buffer.num_samples() {
-    let gain = db_to_linear(self.params.gain.smoothed_next() as f64) as f32;
-    let pan  = self.params.pan.smoothed_next();
+    let gain = db_to_linear(self.params.gain.read());
+    let pan  = self.params.pan.read();
     let l = gain * (1.0 - pan.max(0.0));
     let r = gain * (1.0 + pan.min(0.0));
     buffer.output(0)[i] *= l;

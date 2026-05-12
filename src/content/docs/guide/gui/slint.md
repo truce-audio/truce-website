@@ -203,8 +203,8 @@ state.end_edit(P::Gain)           // gesture: end
 
 `PluginContext<P>` is `Clone`-able (cheap — internally an
 `Arc<dyn EditorBridge>`), so Slint callbacks can capture copies.
-`Deref` to `&P` is also available, so `state.gain.smoothed_next()`
-works directly when you need to peek at param metadata or smoothed
+`Deref` to `&P` is also available, so `state.gain.read()` works
+directly when you need to peek at param metadata or smoothed
 values inside the sync closure.
 
 ## Custom state

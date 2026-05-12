@@ -306,6 +306,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     { title: "Reference", items: collect(referenceOrder) },
     { title: "Formats", items: collect(formatOrder) },
     { title: "Advanced", items: collect(advancedOrder) },
+    { title: "Releases", items: collect(["changelog.md"]) },
   ].filter((s) => s.items.length > 0);
 }
 

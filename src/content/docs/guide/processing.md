@@ -65,7 +65,7 @@ The most common shape — one multiplication per sample per channel:
 fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
            _: &mut ProcessContext) -> ProcessStatus {
     for i in 0..buffer.num_samples() {
-        let gain = db_to_linear(self.params.gain.smoothed_next());
+        let gain = db_to_linear(self.params.gain.read());
         for ch in 0..buffer.channels() {
             let (inp, out) = buffer.io(ch);
             out[i] = inp[i] * gain;
@@ -248,11 +248,15 @@ impl PluginLogic for Synth {
                 next += 1;
             }
 
-            // 2. Read per-sample smoothed params.
+            // 2. Read per-sample smoothed params. With
+            //    `use truce::prelude64::*` at the top of the file,
+            //    `param.read()` returns `f64` directly via the
+            //    `FloatParamReadF64` extension trait — no
+            //    per-call-site `_f64` suffix needed.
             let wave    = self.params.waveform.index();
-            let cutoff  = self.params.cutoff.smoothed_next_f64();
-            let reso    = self.params.resonance.smoothed_next_f64();
-            let volume  = db_to_linear(self.params.volume.smoothed_next_f64());
+            let cutoff  = self.params.cutoff.read();
+            let reso    = self.params.resonance.read();
+            let volume  = db_to_linear(self.params.volume.read());
 
             // 3. Sum the voices.
             let mut sample = 0.0f64;
@@ -261,7 +265,10 @@ impl PluginLogic for Synth {
             }
             sample *= volume;
 
-            let out = (sample as f32).clamp(-1.0, 1.0);
+            // The audio buffer is also `f64` under `prelude64`
+            // (the wrapper widens host `f32` → plugin `f64` at the
+            // block boundary), so no narrowing at the write site.
+            let out = sample.clamp(-1.0, 1.0);
             buffer.output(0)[i] = out;
             buffer.output(1)[i] = out;
         }
@@ -271,7 +278,7 @@ impl PluginLogic for Synth {
         if self.voices.is_empty() { ProcessStatus::Tail(0) } else { ProcessStatus::Normal }
     }
 
-    fn layout(&self) -> truce_gui::layout::GridLayout { /* ... */ }
+    fn layout(&self) -> truce_gui_types::layout::GridLayout { /* ... */ }
 }
 ```
 

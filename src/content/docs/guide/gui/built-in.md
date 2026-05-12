@@ -11,7 +11,7 @@ is the reference for every option.
 ## `GridLayout::build`
 
 ```rust
-use truce_gui::layout::{GridLayout, knob, slider, toggle, widgets};
+use truce_gui_types::layout::{GridLayout, knob, slider, toggle, widgets};
 use MyParamsParamId as P;
 
 fn layout(&self) -> GridLayout {
@@ -75,7 +75,7 @@ Group widgets under labelled headers with `section()`. Use
 `widgets()` for the ungrouped rows.
 
 ```rust
-use truce_gui::layout::{GridLayout, knob, section, widgets};
+use truce_gui_types::layout::{GridLayout, knob, section, widgets};
 
 GridLayout::build(vec![
     section("LOW", vec![
@@ -151,7 +151,7 @@ Colours come from a named theme. Dark is the default. Switch
 themes or override individual colours:
 
 ```rust
-use truce_gui::theme::{Theme, Color};
+use truce_gui_types::theme::{Theme, Color};
 
 GridLayout::build(sections)
     .with_title("MY PLUGIN")
@@ -193,7 +193,7 @@ don't wire any of it by hand:
 
 ```rust
 use GainParamsParamId as P;
-use truce_gui::layout::{GridLayout, knob, meter, widgets, xy_pad};
+use truce_gui_types::layout::{GridLayout, knob, meter, widgets, xy_pad};
 
 fn layout(&self) -> GridLayout {
     GridLayout::build(vec![widgets(vec![

@@ -84,7 +84,7 @@ cargo truce install --vst3
 # Open your DAW, scan for plugins, load "MyPlugin"`;
 
 export const minimalExample = `use truce::prelude::*;
-use truce_gui::layout::{knob, widgets, GridLayout};
+use truce_gui_types::layout::{knob, widgets, GridLayout};
 
 #[derive(Params)]
 pub struct GainParams {
@@ -109,7 +109,7 @@ impl PluginLogic for Gain {
     fn process(&mut self, buffer: &mut AudioBuffer, _events: &EventList,
                _ctx: &mut ProcessContext) -> ProcessStatus {
         for i in 0..buffer.num_samples() {
-            let gain = db_to_linear(self.params.gain.smoothed_next());
+            let gain = db_to_linear(self.params.gain.read());
             for ch in 0..buffer.channels() {
                 let (inp, out) = buffer.io(ch);
                 out[i] = inp[i] * gain;

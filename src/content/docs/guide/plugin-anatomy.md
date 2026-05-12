@@ -60,7 +60,7 @@ pub trait PluginLogic: Send + 'static {
     fn tail(&self) -> u32 { 0 }
 
     // --- GUI (main thread) ---
-    fn layout(&self) -> truce_gui::layout::GridLayout { ... }
+    fn layout(&self) -> truce_gui_types::layout::GridLayout { ... }
     fn render(&self, backend: &mut dyn RenderBackend) {}
     fn uses_custom_render(&self) -> bool { false }
     fn hit_test(&self, widgets: &[WidgetRegion], x: f32, y: f32) -> Option<usize> { ... }

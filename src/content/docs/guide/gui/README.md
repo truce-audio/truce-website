@@ -64,7 +64,7 @@ The gesture protocol tells the DAW that the user is dragging a control,
 so it records smooth automation. For single-click actions (toggles),
 `automate()` handles everything (begin + set + end in one call).
 `PluginContext<P>` also `Deref`s to `&P`, so
-`state.gain.smoothed_next()` works directly when you need to peek at
+`state.gain.read()` works directly when you need to peek at
 parameter metadata.
 
 ## Screenshot testing

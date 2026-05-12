@@ -40,7 +40,7 @@ impl PluginLogic for MyPlugin {
 The closure is your egui frame function — it runs every frame, same as
 `eframe::App::update`. `(400, 300)` is the window size in logical points.
 `PluginContext<MyParams>` is typed for direct `Deref` access to the
-plugin's `Params` fields (`state.gain.smoothed_next()` etc.) inside the
+plugin's `Params` fields (`state.gain.read()` etc.) inside the
 closure.
 
 ## PluginContext

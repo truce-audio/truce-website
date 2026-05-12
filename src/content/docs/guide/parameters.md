@@ -134,7 +134,11 @@ smooth = "exp(5)"          // exponential one-pole, 5 ms. Right for gain and fil
 ```
 
 Call `params.set_sample_rate(sr)` + `params.snap_smoothers()` in
-`reset()`. Pull a smoothed value per sample with `smoothed_next()`:
+`reset()`. Pull a smoothed value per sample with `.read()` —
+the precision (f32 or f64) follows the prelude (`prelude` /
+`prelude32` → `f32`; `prelude64` / `prelude64m` → `f64`), routed
+through the `FloatParamReadF32` / `FloatParamReadF64` extension
+trait that the prelude brings into scope:
 
 ```rust
 fn reset(&mut self, sample_rate: f64, _: usize) {
@@ -145,15 +149,15 @@ fn reset(&mut self, sample_rate: f64, _: usize) {
 fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
            _: &mut ProcessContext) -> ProcessStatus {
     for i in 0..buffer.num_samples() {
-        let g = self.params.gain.smoothed_next();
+        let g = self.params.gain.read();
         // ...
     }
     ProcessStatus::Normal
 }
 ```
 
-Smoother methods take `&self` (atomics inside), so they work
-through `Arc<Params>` without `&mut`.
+`.read()` takes `&self` (the atomic smoother state is interior-
+mutable), so it works through `Arc<Params>` without `&mut`.
 
 ## Shared ownership (`Arc<Params>`)
 
