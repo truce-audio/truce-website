@@ -33,6 +33,46 @@ surface (`layout`, `render`, `custom_editor`, …); the framework
 guarantees the threading split — `process()` only runs on the
 audio thread, `layout()` only on the main thread.
 
+## Precision (preludes)
+
+DSP precision is a per-file choice. `f32` is the host wire format
+and the cheaper option; `f64` buys mantissa bits for long delay-line
+accumulators, biquad cascades, and modulation math that drifts at
+single precision. You pick by choosing a prelude at the top of the
+file:
+
+```rust
+use truce::prelude::*;     // f32 — the default
+// use truce::prelude64::*; // f64 end-to-end
+```
+
+The four variants follow fundsp's naming:
+
+| Prelude | Buffer | `param.read()` | Notes |
+|---------|--------|----------------|-------|
+| `prelude`    | `f32` | `f32` | Default. Alias for `prelude32`. |
+| `prelude32`  | `f32` | `f32` | Explicit form. |
+| `prelude64`  | `f64` | `f64` | End-to-end `f64`. The wrapper widens the host's audio buffer to `f64` at the block boundary and narrows on the way out. |
+| `prelude64m` | `f32` | `f64` | Mixed precision: the buffer stays at host `f32` (no boundary widening) while reads and intermediate math run in `f64`. Write `.to_f32()` at the buffer-write site. |
+
+Each prelude swaps three things in lockstep: a `Sample` type alias,
+the `FloatParamReadF32` / `FloatParamReadF64` extension trait that
+`param.read()` resolves through, and the `PluginLogic` /
+`PluginLogic64` leaf trait (re-exported as `PluginLogic` either way,
+so `impl PluginLogic for X { ... }` is the same line regardless of
+precision).
+
+Reach for `prelude64m` when you want to handle the `f32` buffer
+yourself; reach for `prelude64` when you want the framework to widen
+and narrow at the block boundary for you.
+
+**Don't import two of these in the same file.** The `read` / `value` /
+`current` extension traits collide on method dispatch — that's the
+right error if the file hasn't committed to a precision. If a helper
+genuinely needs both (e.g., it processes both `AudioBuffer<f32>` and
+`AudioBuffer<f64>`), name `truce_core::buffer::AudioBuffer<S>`
+explicitly there and keep the prelude out of that scope.
+
 ## The `PluginLogic` trait
 
 Only `reset` and `process` are required. Everything else has a

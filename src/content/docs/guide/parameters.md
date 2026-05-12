@@ -135,10 +135,8 @@ smooth = "exp(5)"          // exponential one-pole, 5 ms. Right for gain and fil
 
 Call `params.set_sample_rate(sr)` + `params.snap_smoothers()` in
 `reset()`. Pull a smoothed value per sample with `.read()` —
-the precision (f32 or f64) follows the prelude (`prelude` /
-`prelude32` → `f32`; `prelude64` / `prelude64m` → `f64`), routed
-through the `FloatParamReadF32` / `FloatParamReadF64` extension
-trait that the prelude brings into scope:
+the return type (f32 or f64) follows your prelude choice; see
+[Precision (preludes)](plugin-anatomy.md#precision-preludes).
 
 ```rust
 fn reset(&mut self, sample_rate: f64, _: usize) {

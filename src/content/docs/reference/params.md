@@ -116,12 +116,10 @@ In `process()`, pull a smoothed value per sample with `.read()`:
 let g = self.params.gain.read();
 ```
 
-`.read()` returns `f32` under `prelude` / `prelude32` and `f64`
-under `prelude64` / `prelude64m`, routed through the
-`FloatParamReadF32` / `FloatParamReadF64` extension trait the
-prelude brings into scope. The method takes `&self` (the
-smoother state is atomic), so it works through `Arc<Params>`
-without `&mut`.
+`.read()` returns `f32` or `f64` depending on the prelude in scope —
+see [Precision (preludes)](../guide/plugin-anatomy.md#precision-preludes).
+The method takes `&self` (the smoother state is atomic), so it
+works through `Arc<Params>` without `&mut`.
 
 ## Flags
 

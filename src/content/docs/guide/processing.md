@@ -20,11 +20,17 @@ Everything in this chapter is a different shape for that function.
 
 ## Buffer model
 
-`AudioBuffer` exposes one `&[f32]` per input channel and one
-`&mut [f32]` per output channel, both borrowing host memory. Wrappers
-do not copy input into output: read from `buffer.input(ch)` and write
+`AudioBuffer` exposes one slice per input channel and one mutable
+slice per output channel, both borrowing host memory. Wrappers do
+not copy input into output: read from `buffer.input(ch)` and write
 to `buffer.output(ch)`. For instruments, output starts wherever the
 host left it (typically zero, but don't assume — write every sample).
+
+The slice element type is `f32` under `truce::prelude` and `f64`
+under `truce::prelude64`; the wrapper widens at the block boundary
+and narrows on the way back out. See
+[Precision (preludes)](plugin-anatomy.md#precision-preludes). The
+signatures below assume the default `prelude`:
 
 ```rust
 impl<'a> AudioBuffer<'a> {
@@ -248,26 +254,20 @@ impl PluginLogic for Synth {
                 next += 1;
             }
 
-            // 2. Read per-sample smoothed params. With
-            //    `use truce::prelude64::*` at the top of the file,
-            //    `param.read()` returns `f64` directly via the
-            //    `FloatParamReadF64` extension trait — no
-            //    per-call-site `_f64` suffix needed.
+            // 2. Read per-sample smoothed params. This synth uses
+            //    `use truce::prelude64::*`, so `.read()` returns
+            //    `f64` and the audio buffer slices are `&[f64]`.
             let wave    = self.params.waveform.index();
             let cutoff  = self.params.cutoff.read();
             let reso    = self.params.resonance.read();
             let volume  = db_to_linear(self.params.volume.read());
 
-            // 3. Sum the voices.
-            let mut sample = 0.0f64;
+            // 3. Sum the voices and write.
+            let mut sample = 0.0;
             for voice in &mut self.voices {
                 sample += voice.render(wave, cutoff, reso, self.sample_rate);
             }
             sample *= volume;
-
-            // The audio buffer is also `f64` under `prelude64`
-            // (the wrapper widens host `f32` → plugin `f64` at the
-            // block boundary), so no narrowing at the write site.
             let out = sample.clamp(-1.0, 1.0);
             buffer.output(0)[i] = out;
             buffer.output(1)[i] = out;
