@@ -81,7 +81,7 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
         <div
           className={`hidden items-center gap-2 ${isDocsRoute ? "lg:flex" : "sm:flex"}`}
         >
-          <Link href="/docs/guide/" className={NAV_ITEM_CLASS}>
+          <Link href="/docs/" className={NAV_ITEM_CLASS}>
             Docs
           </Link>
           <Link href="/plugins" className={NAV_ITEM_CLASS}>
@@ -116,7 +116,7 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
             {/* Site nav items inside the dropdown. Mirrors the visibility of the
                 inline desktop nav — shown until that nav takes over. */}
             <div className={`py-1 ${isDocsRoute ? "lg:hidden" : "sm:hidden"}`}>
-              <Link href="/docs/guide/" className={MOBILE_ITEM_CLASS}>
+              <Link href="/docs/" className={MOBILE_ITEM_CLASS}>
                 Docs
               </Link>
               <Link href="/plugins" className={MOBILE_ITEM_CLASS}>

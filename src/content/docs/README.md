@@ -1,9 +1,4 @@
-# truce
-
-Build audio plugins in Rust. CLAP, VST3, LV2, AU v2, AU v3, AAX, and
-standalone — from a single crate, on macOS, Windows, and Linux.
-
-## Quick start
+# Quick start
 
 ```sh
 # One-time install
