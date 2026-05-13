@@ -21,9 +21,6 @@ moves the Time knob*:
   finished graph in via lock-free queues. `process()` stays
   allocation-free.
 
-The why-this-pattern reasoning is the bulk of the chapter; the
-mechanics fall out of it.
-
 ## The shared topology
 
 Both crates wire the same stereo plate reverb: a dry path bussed
@@ -107,8 +104,7 @@ writes are atomic stores, which the audio thread is fine with.
 ## When do you have to rebuild?
 
 Most fundsp parameters can be plumbed through `Shared` and live
-without rebuilding the graph. A few cannot, and those drive the
-whole worker-thread story:
+without rebuilding the graph. A few cannot:
 
 - **Sample rate.** `set_sample_rate` recomputes filter
   coefficients top-down through the graph. `reset()` is called
