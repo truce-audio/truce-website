@@ -1,7 +1,7 @@
 # `cargo truce` CLI reference
 
-Every `cargo truce` subcommand and the flags it accepts. For the narrative shape of the dev loop, see the [guide](../guide/); for per-format
-gotchas, see [formats](../formats/).
+Every `cargo truce` subcommand and the flags it accepts. For the narrative shape of the dev loop, see the [guide](../#guide); for per-format
+gotchas, see [formats](../#formats).
 
 ## Conventions
 
@@ -50,7 +50,7 @@ cargo truce install --clap --vst3 --lv2   # subset
 
 AAX, AU v3, and Windows VST2 are always system-scope — `--user` for those falls back to system with a one-line `note`.
 
-Per-platform install destinations: see [`formats/README`](../formats/) for the full table.
+Per-platform install destinations: see [`formats/README`](../#formats) for the full table.
 
 ## `uninstall`
 

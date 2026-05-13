@@ -186,7 +186,10 @@ CLI for renders that don't need a `#[test]`.
 
 ## What's next
 
-- **[Chapter 8 → hot-reload](hot-reload.md)** — edit the
+- **[Chapter 8 → audio-testing](audio-testing.md)** — pair
+  GUI screenshot tests with audio regression tests so DSP +
+  layout both stay green.
+- **[Chapter 10 → hot-reload](hot-reload.md)** — edit the
   layout, save, see the change in the running plugin without
   closing the DAW.
 - **[Built-in GUI reference](gui/built-in.md)** — every widget

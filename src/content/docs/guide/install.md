@@ -2,11 +2,11 @@
 
 Set up your machine to build truce plugins. Three things: Rust, a system C/C++ compiler, and the `cargo truce` CLI.
 
-> **First-timer path.** This chapter covers the minimum needed to build CLAP and VST3 — the two formats that work on every OS, that every modern host loads, and that scaffolded plugins enable by default. Other formats (AU, AAX, signed installers, hot-reload sccache) layer on top; their setup lives in [extra setup](#extra-setup) at the bottom and in the [reference](../reference/).
+> **First-timer path.** This chapter covers the minimum needed to build CLAP and VST3 — the two formats that work on every OS, that every modern host loads, and that scaffolded plugins enable by default. Other formats (AU, AAX, signed installers, hot-reload sccache) layer on top; their setup lives in [extra setup](#extra-setup) at the bottom and in the [reference](../#reference).
 
 ## Rust
 
-Install Rust **1.88+** via [rustup.rs]. If you already have it, `rustup update`.
+Install Rust **1.90+** via [rustup.rs]. If you already have it, `rustup update`.
 
 [rustup.rs]: https://rustup.rs
 
@@ -129,6 +129,6 @@ cargo install --git https://github.com/truce-audio/truce \
   `cargo truce new`, a tour of the generated files, install into
   your DAW, hear it work.
 - **Format details** — per-format prerequisites, host coverage,
-  and gotchas in [formats/](../formats/).
+  and gotchas in [formats/](../#formats).
 - **Environment variables** — every signing, SDK, notary, and
   hot-reload variable in [`cargo-config`](../reference/cargo-config.md).

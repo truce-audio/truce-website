@@ -1,8 +1,16 @@
-# 8. Hot reload
+# 10. Hot reload
 
 Edit DSP or layout code, rebuild, hear the change in ~2 seconds.
 No DAW restart. No plugin window close. Same source file, same
 `truce::plugin!` macro — just a Cargo feature.
+
+> **Experimental.** Hot reload is a dev-loop convenience, not a
+> shipping mechanism. It works well day-to-day for most plugins,
+> but state-format migrations, GUI backend reloads, and certain
+> host edge cases (Pro Tools / AU v3 sandboxing) can still break
+> reload mid-session. If you hit one of those, restart the DAW.
+> Always sanity-check final builds without `--shell` before
+> shipping.
 
 ## Setup
 
@@ -158,5 +166,6 @@ The plugin falls back to defaults.
 
 ## What's next
 
-- **[Chapter 9 → shipping](shipping.md)** — when you're done
-  iterating, package a signed installer.
+You've reached the end of the guide. Browse the
+[reference](../#reference) when you need to look something up, or
+the [formats](../#formats) pages for per-format gotchas.

@@ -11,7 +11,7 @@ cargo truce package   # produce a signed distributable installer (.pkg / .exe)
 ```
 
 Per-format requirements (SDKs, env vars, install paths, signing
-specifics) live in [docs/formats/](../formats/). This chapter
+specifics) live in [docs/formats/](../#formats). This chapter
 covers the cross-format `cargo truce` workflow and signing.
 
 ## Enabling formats
@@ -76,7 +76,7 @@ Windows VST2 is also system-only on Windows. The install scope is
 a per-invocation developer choice — `cargo truce install` has no
 `truce.toml` override, only the CLI flag.
 
-Full per-platform table in [formats/README](../formats/).
+Full per-platform table in [formats/README](../#formats).
 
 `cargo truce uninstall` mirrors the same flags. By default it scans
 both scopes (handy when you switched scope mid-iteration); pass
@@ -525,4 +525,4 @@ to point at a local checkout during development.
 
 ## What's next
 
-You've shipped a plugin. Browse the [formats](../formats/) for per-format gotchas, or jump back to the [reference](../reference/) when you need to look something up.
+You've shipped a plugin. Browse the [formats](../#formats) for per-format gotchas, or jump back to the [reference](../#reference) when you need to look something up.

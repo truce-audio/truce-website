@@ -172,7 +172,7 @@ shell      = ["truce/shell"]
 Scaffolded plugins enable CLAP + VST3 + standalone by default. Add more formats
 to `default`, or opt in per-command (`cargo truce install --vst2`).
 Per-format detail (SDKs, env vars, install paths, signing) is in
-[docs/formats/](../formats/).
+[docs/formats/](../#formats).
 
 ## Build and install
 

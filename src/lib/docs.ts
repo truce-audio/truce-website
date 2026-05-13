@@ -256,8 +256,9 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "guide/processing.md",
     "guide/midi.md",
     "guide/gui.md",
-    "guide/hot-reload.md",
+    "guide/audio-testing.md",
     "guide/shipping.md",
+    "guide/hot-reload.md",
   ];
 
   const guiOrder = [
@@ -277,16 +278,17 @@ export async function getSidebar(): Promise<SidebarSection[]> {
   ];
 
   const formatOrder = [
+    // Standalone first — it's the no-DAW path most newcomers hit
+    // before they have a host configured, so it leads the section.
+    "formats/standalone.md",
     "formats/clap.md",
     "formats/vst3.md",
-    "formats/vst2.md",
     "formats/lv2.md",
     "formats/au.md",
     "formats/aax.md",
-    "formats/standalone.md",
+    // VST2 last — legacy / niche.
+    "formats/vst2.md",
   ];
-
-  const advancedOrder = ["guide/audio-testing.md"];
 
   const collect = (paths: string[]) =>
     paths.map(ref).filter((x): x is NonNullable<typeof x> => Boolean(x));
@@ -296,9 +298,6 @@ export async function getSidebar(): Promise<SidebarSection[]> {
       title: "Overview",
       items: [
         { title: "Quick start", href: "/docs", eyebrow: undefined },
-        ...(find("guide/README.md") ? [{ title: "Guide index", href: "/docs/guide" }] : []),
-        ...(find("reference/README.md") ? [{ title: "Reference index", href: "/docs/reference" }] : []),
-        ...(find("formats/README.md") ? [{ title: "Format index", href: "/docs/formats" }] : []),
         ...collect(["changelog.md"]),
       ],
     },
@@ -306,7 +305,6 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     { title: "GUI backends", items: collect(guiOrder) },
     { title: "Reference", items: collect(referenceOrder) },
     { title: "Formats", items: collect(formatOrder) },
-    { title: "Advanced", items: collect(advancedOrder) },
   ].filter((s) => s.items.length > 0);
 }
 

@@ -1,4 +1,4 @@
-# Audio Testing
+# 8. Audio testing
 
 Audio tests catch DSP regressions by running your plugin against
 scripted input — silence, a constant tone, a buffer you generated,
@@ -348,3 +348,8 @@ For the screenshot equivalent (GUI regression tests), see
 [`gui/screenshot-testing`](gui/screenshot-testing.md). Both
 builders share the same `state_file` / `set_param` / `setup`
 ordering so the same vocabulary works for audio + GUI.
+
+## What's next
+
+- **[Chapter 9 → shipping](shipping.md)** — once the DSP is
+  green under audio tests, package + sign + notarize a release.
