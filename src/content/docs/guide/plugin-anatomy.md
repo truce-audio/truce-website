@@ -398,7 +398,9 @@ every frame for free.
   the derive macro accepts, plus meters and parameter groups.
 - **[Chapter 5 → processing](processing.md)** — the shapes
   `process()` takes for effects, MIDI processors, and synths.
-- **[Chapter 6 → midi](midi.md)** — reading and emitting MIDI
+- **[Chapter 6 → fundsp](fundsp.md)** — using the fundsp DSL
+  inside `process()` and rebuilding off the audio thread.
+- **[Chapter 7 → midi](midi.md)** — reading and emitting MIDI
   events; per-format support; testing MIDI plugins.
-- **[Chapter 7 → gui](gui.md)** — the built-in widget set and
+- **[Chapter 8 → gui](gui.md)** — the built-in widget set and
   when to reach for a framework backend.

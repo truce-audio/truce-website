@@ -1,4 +1,4 @@
-# 8. Audio testing
+# 9. Audio testing
 
 Audio tests catch DSP regressions by running your plugin against
 scripted input — silence, a constant tone, a buffer you generated,
@@ -351,5 +351,5 @@ ordering so the same vocabulary works for audio + GUI.
 
 ## What's next
 
-- **[Chapter 9 → shipping](shipping.md)** — once the DSP is
+- **[Chapter 10 → shipping](shipping.md)** — once the DSP is
   green under audio tests, package + sign + notarize a release.

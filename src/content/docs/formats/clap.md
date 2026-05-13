@@ -36,9 +36,13 @@ system-wide path (sudo on macOS, Administrator on Windows).
 | Windows  | `%LOCALAPPDATA%\Programs\Common\CLAP\{Name}.clap` | `%COMMONPROGRAMFILES%\CLAP\{Name}.clap` (admin) |
 | Linux    | `~/.clap/{Name}.clap` | same (Linux is user-only) |
 
-On every platform the `.clap` bundle is just the built cdylib
-renamed with a `.clap` extension. No `Contents/` hierarchy, no
-`Info.plist`, no resources.
+On Linux and Windows the `.clap` bundle is just the built cdylib
+renamed with a `.clap` extension — no `Contents/` hierarchy, no
+`Info.plist`, no resources. On macOS the `.clap` is a proper
+loadable bundle directory (`{Name}.clap/Contents/MacOS/{Name}` +
+`Contents/Info.plist`), which is what Apple's bundle conventions
+require and what strict CLAP hosts (Bitwig Studio in particular)
+look for.
 
 ## Signing
 
@@ -75,7 +79,7 @@ state round-trips, and buffer polarity.
 | Host | Status |
 |------|--------|
 | Reaper (macOS / Windows / Linux) | primary testbed |
-| Bitwig Studio | should work (native CLAP support); validation pending |
+| Bitwig Studio | tested on macOS (loads the bundle-layout `.clap` directly) |
 | MultitrackStudio | should work; validation pending |
 
 ## Gotchas

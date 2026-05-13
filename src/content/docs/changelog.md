@@ -28,10 +28,30 @@ include breaking changes — those are called out under **Breaking**.
 - **Authenticode round-trip with a real cert.** The Azure Trusted
   Signing / SHA1 thumbprint / `.pfx` paths are wired but haven't
   been exercised with a real EV / OV cert end-to-end.
+- **LV2 hosts beyond Reaper.** Ardour, Qtractor, Carla, Jalv, and
+  Zrythm are expected to work but haven't been validated. Reaper
+  on Linux is the only host currently exercised end-to-end.
+- **LV2 in `cargo truce validate`.** No first-party LV2 check is
+  wired in yet — validate currently covers CLAP, VST3, and AU.
+  Manual loads in Carla or Jalv are the fallback for catching TTL
+  or bundle-layout errors.
+- **LV2 X11UI in stricter hosts.** truce's X11UI reports the
+  parent window as its own widget rather than creating a distinct
+  child. Works in Reaper; hosts that enforce a separate child
+  window may reject it and need a follow-up.
+- **MIDI 2.0 over LV2.** LV2 Atom carries MIDI 1.0 byte streams,
+  so plugins emitting MIDI 2.0 channel-voice, per-note, or
+  ParamChange events drop those messages when loaded as LV2.
+- **Resizable GUIs.** Editors today report a fixed size; CLAP's
+  `gui_can_resize` returns `false` and the VST3 / AU / LV2
+  paths assume a static frame. Host-driven resize negotiation
+  (`gui_adjust_size` / `gui_set_size`, `IPlugViewContentScaleSupport`,
+  AU view-frame change notifications, LV2 ui:resize) needs to be
+  wired through truce-gui so user code can opt in.
 
 ### Future
 
-- More example plugins (delay, compressor, reverb).
+- More example plugins (delay, compressor).
 - WebView GUI backend.
 - Distribution-grade dynamic shell (today's `--shell` is dev-loop
   only; making it a shipping mechanism is a phase-2 question).

@@ -298,14 +298,18 @@ Close and reopen the plugin in your DAW. You now have two knobs.
   custom formatting → [chapter 4 → parameters](parameters.md).
 - **Non-trivial processing** — transport, sample-accurate events,
   instruments → [chapter 5 → processing](processing.md).
+- **fundsp graphs in `process()`** — combinator DSL plus a
+  worker-thread rebuild pattern → [chapter 6 → fundsp](fundsp.md).
 - **MIDI** — reading and emitting MIDI events, note effects →
-  [chapter 6 → midi](midi.md).
+  [chapter 7 → midi](midi.md).
 - **A richer UI** — more widgets, `section()`, switching to
-  egui/iced/Slint → [chapter 7 → gui](gui.md).
+  egui/iced/Slint → [chapter 8 → gui](gui.md).
 - **Shipping to users** — signed `.pkg` / `.exe` installers →
-  [chapter 9 → shipping](shipping.md).
+  [chapter 10 → shipping](shipping.md).
 - **Real examples** — [`examples/truce-example-gain`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain),
   [`examples/truce-example-eq`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-eq), [`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth),
   [`examples/truce-example-transpose`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-transpose),
   [`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio),
-  [`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo) in the repo.
+  [`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo),
+  [`examples/truce-example-fundsp-reverb-simple`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-fundsp-reverb-simple),
+  [`examples/truce-example-fundsp-reverb-worker`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-fundsp-reverb-worker) in the repo.
