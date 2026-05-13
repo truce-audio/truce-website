@@ -222,14 +222,17 @@ project-wide default with `[packaging] preferred_scope = "user" |
 "system" | "ask"` in `truce.toml`; the CLI flag wins when both
 are set.
 
-System-only formats (AAX, AU v3, Windows VST2) stay in the
-package under every scope. In `--user` mode they print a one-line
-note in the `cargo truce package` log and the resulting installer
-still drops them in the system path (one admin / sudo prompt at
-install time on Windows; on macOS the installer widens to
-`localSystem` when AAX or AU v3 is present, so the whole pkg
-lands at `/Library/...` — drop those formats with `--formats
-clap,vst3,...` if you need a pure no-sudo macOS pkg).
+System-only formats (AAX, AU v3, Windows VST2, the standalone
+`.app`) stay in the package under every scope. On macOS, the
+Distribution XML marks those choices with `auth="Root"` while
+user-viable formats stay `auth="None"` in `--user` mode — so a
+`--user` install drops CLAP / VST3 / LV2 / AU v2 in `~/Library/`
+without an admin prompt, and asks for admin only when the user
+keeps AAX / AU v3 / standalone selected (those land in
+`/Library/...` / `/Applications/` as they must). On Windows the
+equivalent is one elevation prompt at install time when system-
+only formats are included. Drop the system-only formats with
+`--formats clap,vst3,...` if you want a no-admin installer.
 
 **Defaults to universal.** macOS bundles are `lipo`'d fat Mach-O
 (`x86_64` + `aarch64`). Windows installers carry both `x64` and
@@ -245,8 +248,13 @@ cargo truce package (on macOS)
 3. Stage into target/package/  (one fat bundle per format)
 4. Codesign bundles            Developer ID Application + hardened runtime + timestamp
 5. pkgbuild per format         → components/<name>-<format>.pkg
+                                 (--ownership preserve + per-format Scripts/preinstall
+                                  that wipes any stale install at the destination
+                                  before shove writes the new payload)
 6. productbuild                → target/dist/<Name>-<version>-macos.pkg
-                                 (signed with Developer ID Installer)
+                                 (signed with Developer ID Installer; Distribution
+                                  marks system-only choices auth="Root" so the
+                                  installer escalates only for those)
 7. notarytool + staple         (if [macos.packaging].notarize = true)
 ```
 

@@ -34,6 +34,8 @@ or shell env vars instead. See
 | `au3_subtype` | string | no | 4-char subtype for AU v3 only. Set if v2/v3 must differ. |
 | `au_tag` | string | no | AU category tag. Defaults to `"Effects"`. Common: `"Synthesizer"`, `"Dynamics"`, `"EQ"`, `"MIDI"`. |
 | `{format}_name` | string | no | Per-format display-name override: `clap_name`, `vst3_name`, `vst2_name`, `au_name`, `au3_name`, `aax_name`, `lv2_name`. |
+| `windows_icon` | string | no | Path to `.ico` (workspace-root-relative). Embedded as `RT_GROUP_ICON` in the standalone `.exe`. Distinct from `[windows.packaging] installer_icon` — that one's the Inno-wizard chrome; this one's the per-product app icon. |
+| `macos_icon` | string | no | Path to `.icns` (workspace-root-relative). Copied into the standalone `.app`'s `Contents/Resources/` and referenced via `CFBundleIconFile`. Generate one with `iconutil -c icns <iconset>` from a directory of 16/32/128/256/512px (and `@2x`) PNGs. |
 
 † One of `fourcc` / `au_subtype` is required.
 
@@ -73,6 +75,8 @@ still ship in parallel; use `--no-per-plugin` to drop them, or
 | Field | Default | Notes |
 |-------|---------|-------|
 | `notarize` | `false` | `true` → submit to Apple notary and staple. `--no-notarize` on the CLI skips it. The credentials it uses come from env (see [`cargo-config`](cargo-config.md)). |
+| `welcome_html` | — | Path to HTML shown on the productbuild wizard's welcome page. |
+| `license_html` | — | Path to HTML shown on the wizard's license page. |
 
 There is no `[macos.signing]` table — signing identities are per-developer and live in env. See [`cargo-config.md` § macOS code signing](cargo-config.md#macos-code-signing).
 
@@ -90,14 +94,16 @@ credentials live in env (see [`cargo-config`](cargo-config.md)).
 | `license_rtf` | — | Path to `.rtf` or `.txt` license. |
 | `app_id` | `{vendor.id}.{plugin.bundle_id}` | Inno Setup stable identifier. Only change on rename. |
 
-## `[packaging]` — both platforms
+## `[packaging]` — cross-platform
 
 | Field | Default | Notes |
 |-------|---------|-------|
-| `formats` | plugin's default features | Formats to include when packaging. Valid: `clap`, `vst3`, `vst2`, `lv2`, `au2`, `au3`, `aax`. `--formats` on the CLI overrides. |
-| `welcome_html` | — | **macOS only** — welcome screen HTML in the `.pkg`. |
-| `license_html` | — | **macOS only** — license HTML in the `.pkg`. |
+| `formats` | plugin's default features | Formats to include when packaging. Valid: `clap`, `vst3`, `vst2`, `lv2`, `au2`, `au3`, `aax`, `standalone`. `--formats` on the CLI overrides. macOS `.pkg` and Windows Inno Setup both honour this; Linux's tarball pipeline ships every default-feature format unconditionally. |
 | `preferred_scope` | `"ask"` | Project-wide default for `cargo truce package`. `"user"`, `"system"`, or `"ask"`. CLI flags (`--user` / `--system` / `--ask`) override. `cargo truce install` has no toml override — pass `--user` / `--system` per invocation. |
+
+Welcome/license screens are OS-specific (macOS uses HTML, Windows
+uses BMP + RTF) and live under their per-platform `[macos.packaging]`
+/ `[windows.packaging]` tables.
 
 ## Full example
 
@@ -110,14 +116,18 @@ au_manufacturer = "Acme"
 
 [macos.packaging]
 notarize = true
+welcome_html = "branding/welcome.html"
+license_html = "branding/license.html"
 
 [windows.packaging]
 publisher = "Acme Audio, LLC"
 installer_icon = "branding/installer.ico"
 welcome_bmp = "branding/welcome.bmp"
+license_rtf = "branding/license.rtf"
 
 [packaging]
 formats = ["clap", "vst3", "aax"]
+preferred_scope = "ask"
 
 [[plugin]]
 name = "Acme Gain"
