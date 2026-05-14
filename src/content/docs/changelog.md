@@ -3,6 +3,23 @@
 Notable changes per release. Pre-1.0, so minor version bumps may
 include breaking changes — those are called out under **Breaking**.
 
+## 0.40.2 — 2026-05-14
+
+- Move example READMEs out to truce-website (no code impact).
+- Wrap VST3 / VST2 / AU / AAX state-save and state-load callbacks
+  in `catch_unwind`. A panic from user `save_state` / `load_state`
+  used to unwind across the `extern "C"` FFI boundary back into the
+  host — UB on most toolchains, abort on others. The save paths
+  now pre-zero the host's out pointers so a panic mid-write leaves
+  the host seeing an empty blob rather than a stale buffer.
+
+## 0.40.1 — 2026-05-14
+
+- AU v3: Wire `macos_icon` through the bundle template. When set
+  in `truce.toml`, the per-plugin `.icns` is copied into the
+  `.app`'s `Contents/Resources/` and `CFBundleIconFile` is added
+  to the outer Info.plist, matching the standalone-host behavior.
+
 ## 0.40.0 — 2026-05-13
 
 - CLAP: Use the macOS bundle layout (`Contents/MacOS` +
@@ -89,7 +106,7 @@ include breaking changes — those are called out under **Breaking**.
 
 ### Future
 
-- More example plugins (delay, compressor).
+- More example plugins (delay).
 - WebView GUI backend.
 - Distribution-grade dynamic shell (today's `--shell` is dev-loop
   only; making it a shipping mechanism is a phase-2 question).
