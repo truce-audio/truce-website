@@ -37,16 +37,13 @@ include breaking changes — those are called out under **Breaking**.
 
 ## 0.39.0 — 2026-05-13
 
+- LV2: Add packaging support.
 - Enable notarization for example plugins.
 - Installer: Harden against permission issues from prior installs.
 - Wire `macos_icon`, `windows_icon`, `welcome_bmp`,
   `welcome_html` for example plugins.
 - Installer / packaging bug fixes.
-- **Breaking:** Bump MSRV to 1.90.
-
-## 0.38.1 — 2026-05-12
-
-- LV2: Add packaging support.
+- Bump MSRV to 1.90.
 
 ## 0.38.0 — 2026-05-12
 
