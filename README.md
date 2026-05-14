@@ -1,49 +1,50 @@
 # truce-website
 
-Documentation site for [truce.audio](https://truce.audio) — the [truce](https://github.com/truce-audio/truce) Rust audio-plugin framework and the plugins built with it.
+Documentation site for [truce.audio](https://truce.audio) — the
+[truce](https://github.com/truce-audio/truce) Rust audio-plugin
+framework and the plugins built with it.
 
-See [DESIGN.md](DESIGN.md) for the full design.
-
-## Stack
-
-- Next.js 15 (App Router) with `output: "export"`
-- TypeScript, Tailwind CSS
-- shiki for build-time syntax highlighting
-- `next/og` for the per-plugin Open Graph images
+Next.js 15 (App Router, static export) + Tailwind + shiki.
 
 ## Local development
 
 ```sh
-nvm use            # Node 20+
+nvm use            # Node 20
 npm install
-npm run dev        # http://localhost:3000
+npm run dev        # http://localhost:3536
 ```
 
-`predev` and `prebuild` run `scripts/sync-assets.ts`, which copies plugin screenshots from sibling repos (`../truce-analyzer/screenshots/...`) into `public/screenshots/<slug>/`. Source files in those repos must exist or you'll get warnings (and missing images at runtime).
+`predev` and `prebuild` run `scripts/sync-assets.ts` which copies
+screenshots from sibling repos (`../truce/examples/...`,
+`../truce-analyzer/screenshots/...`) into `public/screenshots/`.
+Source files in those repos must exist or you'll get warnings and
+missing images at runtime.
 
-## Build
+## Build / typecheck
 
 ```sh
-npm run build      # static export to ./out
+npm run build       # static export to ./out
+npm run typecheck
 ```
 
-Type-check separately with `npm run typecheck`.
+## Deploy
 
-## Deploy (Cloudflare Pages)
+Cloudflare Pages, Git-connected:
 
-The site is fully static — drop `out/` on any static host. We use **Cloudflare Pages**:
+- Build: `npm run build`
+- Output: `out/`
+- Node: `20` (from `.nvmrc`)
+- Custom domain: `truce.audio`
 
-- Connect the repo to Pages
-- Build command: `npm run build`
-- Build output directory: `out`
-- Node version: `20` (read from `.nvmrc`)
-- Custom domain: `truce.audio` (already on Cloudflare DNS)
+## Editing content
 
-## Adding a plugin
-
-1. Add an entry to `src/content/plugins.ts` (`Plugin` type — slug, name, tagline, formats, screenshots, repo, releases URL)
-2. Add the source screenshots to the plugin's repo
-3. Map them in `scripts/sync-assets.ts` so the build copies them into `public/screenshots/<slug>/`
-4. `npm run build` — the catalog page, the detail route, and the per-plugin OG image are generated automatically from the entry
-
-No new files or routes needed.
+- **Docs pages** — markdown under `src/content/docs/`. Files are
+  picked up automatically; ordering inside the sidebar is the
+  explicit arrays in `src/lib/docs.ts`.
+- **Plugin catalog** — add an entry to `src/content/plugins.ts`,
+  drop screenshots in the source repo, then map them in
+  `scripts/sync-assets.ts`. The catalog page, detail route, and
+  per-plugin OG image generate from the entry.
+- **Example pages** — markdown under `src/content/docs/examples/`.
+  Each example's macOS default screenshot is mirrored to
+  `public/screenshots/examples/<short>.png` by `sync-assets.ts`.
