@@ -2,7 +2,7 @@
 
 ## Goal
 
-A small marketing/landing site for **truce.audio** that:
+A small documentation site for **truce.audio** that:
 
 1. Pitches the **truce** Rust audio-plugin framework (`../truce/`)
 2. Shows off plugins built with it — currently just **truce-analyzer** (`../truce-analyzer/`)

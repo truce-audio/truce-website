@@ -1,6 +1,6 @@
 # truce-website
 
-Marketing site for [truce.audio](https://truce.audio) — the [truce](https://github.com/truce-audio/truce) Rust audio-plugin framework and the plugins built with it.
+Documentation site for [truce.audio](https://truce.audio) — the [truce](https://github.com/truce-audio/truce) Rust audio-plugin framework and the plugins built with it.
 
 See [DESIGN.md](DESIGN.md) for the full design.
 

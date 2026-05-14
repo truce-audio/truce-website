@@ -12,6 +12,34 @@ type AssetMap = {
   files: Array<{ from: string; to: string }>;
 };
 
+// Each example's macOS default screenshot lives at
+//   truce/examples/truce-example-<short>/screenshots/<short_with_underscores>_default_macos.png
+// We mirror it to public/screenshots/examples/<short>.png so the
+// docs `examples/` pages reference one stable URL across local
+// dev and the deployed site.
+const EXAMPLE_SHORT_NAMES = [
+  "gain",
+  "eq",
+  "synth",
+  "transpose",
+  "arpeggio",
+  "tremolo",
+  "state",
+  "gain-egui",
+  "gain-iced",
+  "gain-slint",
+  "fundsp-reverb-simple",
+  "fundsp-reverb-worker",
+];
+
+const exampleScreenshot = (short: string): AssetMap["files"][number] => {
+  const file = `${short.replaceAll("-", "_")}_default_macos.png`;
+  return {
+    from: `truce/examples/truce-example-${short}/screenshots/${file}`,
+    to: `public/screenshots/examples/${short}.png`,
+  };
+};
+
 const assetMaps: AssetMap[] = [
   {
     plugin: "truce-analyzer",
@@ -25,6 +53,10 @@ const assetMaps: AssetMap[] = [
         to: "public/screenshots/truce-analyzer/diff.png",
       },
     ],
+  },
+  {
+    plugin: "truce-examples",
+    files: EXAMPLE_SHORT_NAMES.map(exampleScreenshot),
   },
 ];
 

@@ -278,6 +278,22 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "reference/cargo-config.md",
   ];
 
+  const examplesOrder = [
+    "examples/README.md",
+    "examples/gain.md",
+    "examples/eq.md",
+    "examples/synth.md",
+    "examples/transpose.md",
+    "examples/arpeggio.md",
+    "examples/tremolo.md",
+    "examples/state.md",
+    "examples/fundsp-reverb-simple.md",
+    "examples/fundsp-reverb-worker.md",
+    "examples/gain-egui.md",
+    "examples/gain-iced.md",
+    "examples/gain-slint.md",
+  ];
+
   const formatOrder = [
     // Standalone first — it's the no-DAW path most newcomers hit
     // before they have a host configured, so it leads the section.
@@ -304,6 +320,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     },
     { title: "Guide", items: collect(guideOrder) },
     { title: "GUI backends", items: collect(guiOrder) },
+    { title: "Examples", items: collect(examplesOrder) },
     { title: "Reference", items: collect(referenceOrder) },
     { title: "Formats", items: collect(formatOrder) },
   ].filter((s) => s.items.length > 0);
