@@ -3,6 +3,47 @@
 Notable changes per release. Pre-1.0, so minor version bumps may
 include breaking changes — those are called out under **Breaking**.
 
+## 0.40.0 — 2026-05-13
+
+- CLAP: Use the macOS bundle layout (`Contents/MacOS` +
+  `Info.plist`). Fixes load in Bitwig
+  ([#51](https://github.com/truce-audio/truce/issues/51)).
+- CLAP: Wire stubs for `get_resize_hints`, `set_transient`,
+  `suggest_title`, `set_size`, `adjust_size` so the custom-editor
+  button appears in Bitwig.
+- fundsp: New `truce-example-fundsp-reverb-worker` showing a
+  background-thread graph rebuild with a lock-free swap into the
+  audio thread — `process()` stays allocation-free.
+- fundsp: Rename the inline-rebuild example to
+  `truce-example-fundsp-reverb-simple` (pedagogical, rt-unsafe).
+- Follow stable Rust toolchain (unpin from 1.90).
+- Dead-code removal, stylistic fixes.
+
+## 0.39.3 — 2026-05-13
+
+- New example integrating with fundsp; added small helpers.
+- AU v2: Fix GUI bug.
+- LV2: Fix URI mismatch between manifest and runtime.
+
+## 0.39.2 — 2026-05-13
+
+- Consistent naming scheme for package installers across macOS,
+  Windows, and Linux.
+
+## 0.39.1 — 2026-05-13
+
+- Standalone on macOS: Fix audio input after install — was
+  missing the audio-input entitlement.
+
+## 0.39.0 — 2026-05-13
+
+- Enable notarization for example plugins.
+- Installer: Harden against permission issues from prior installs.
+- Wire `macos_icon`, `windows_icon`, `welcome_bmp`,
+  `welcome_html` for example plugins.
+- Installer / packaging bug fixes.
+- **Breaking:** Bump MSRV to 1.90.
+
 ## 0.38.1 — 2026-05-12
 
 - LV2: Add packaging support.
