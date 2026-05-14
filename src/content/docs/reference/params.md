@@ -121,6 +121,37 @@ see [Precision (preludes)](../guide/plugin-anatomy.md#precision-preludes).
 The method takes `&self` (the smoother state is atomic), so it
 works through `Arc<Params>` without `&mut`.
 
+### `.read()` vs `.value()`
+
+`FloatParam` exposes three read accessors:
+
+| Method | What it returns | When to use |
+|---|---|---|
+| `.read()` | Next smoothed sample; advances the smoother. | Per-sample DSP loop. |
+| `.current()` | Current smoothed value without advancing. | Peeking at the smoother without consuming a tick — e.g. a per-block snapshot. |
+| `.value()` | The raw target value (last write from host automation / `set_normalized`), with no smoothing. | Threshold checks, structural decisions, anything that shouldn't react to the smoother's crawl. |
+
+The canonical case for `.value()` is a parameter that drives a
+*discrete* downstream decision rather than a continuous gain. The
+[fundsp reverb](../examples/fundsp-reverb-worker) example reads
+`Time` with `.value()` and triggers a graph rebuild when the raw
+target drifts past a 5% threshold:
+
+```rust
+let time_s = self.params.time.value();
+if (time_s - self.last_built_time_s).abs() > REBUILD_THRESHOLD {
+    request_rebuild(time_s);
+}
+```
+
+If that code used `.read()` instead, a single knob move would
+crawl across the threshold over the smoother's ~200 ms ramp and
+request a rebuild on every block until it settled — audible as an
+unstable tail. The same principle applies to anything else gated
+on "did the user actually change this?": filter mode switches,
+voice-count changes, oversampling toggles wired through a float
+param.
+
 ## Flags
 
 `flags` is a `|`-separated combination of bit flags:
