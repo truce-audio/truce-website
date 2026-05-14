@@ -319,9 +319,9 @@ export async function getSidebar(): Promise<SidebarSection[]> {
       ],
     },
     { title: "Guide", items: collect(guideOrder) },
+    { title: "Reference", items: collect(referenceOrder) },
     { title: "GUI backends", items: collect(guiOrder) },
     { title: "Examples", items: collect(examplesOrder) },
-    { title: "Reference", items: collect(referenceOrder) },
     { title: "Formats", items: collect(formatOrder) },
   ].filter((s) => s.items.length > 0);
 }
