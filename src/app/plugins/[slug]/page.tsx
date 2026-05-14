@@ -56,10 +56,14 @@ export default async function PluginPage({
           {plugin.tagline}
         </p>
         <div className="mt-6 space-y-3">
-          <DownloadButtons
-            platforms={plugin.platforms}
-            downloads={plugin.downloads}
-          />
+          {!plugin.downloads && plugin.buildCommand ? (
+            <BuildFromSource command={plugin.buildCommand} />
+          ) : (
+            <DownloadButtons
+              platforms={plugin.platforms}
+              downloads={plugin.downloads}
+            />
+          )}
           <div>
             <a
               href={plugin.repo}
@@ -76,6 +80,8 @@ export default async function PluginPage({
       <ScreenshotFigure
         src={plugin.heroScreenshot.src}
         alt={plugin.heroScreenshot.alt}
+        width={plugin.heroScreenshot.width}
+        height={plugin.heroScreenshot.height}
       />
 
       <section className="prose-truce mt-10 max-w-none">
@@ -85,7 +91,14 @@ export default async function PluginPage({
       </section>
 
       {plugin.screenshots.map((s, i) => (
-        <ScreenshotFigure key={i} src={s.src} alt={s.alt} caption={s.caption} />
+        <ScreenshotFigure
+          key={i}
+          src={s.src}
+          alt={s.alt}
+          caption={s.caption}
+          width={s.width}
+          height={s.height}
+        />
       ))}
 
       <section className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -122,28 +135,56 @@ function ScreenshotFigure({
   src,
   alt,
   caption,
+  width,
+  height,
 }: {
   src: string;
   alt: string;
   caption?: string;
+  width?: number;
+  height?: number;
 }) {
+  // `max-w-full` (vs `w-full`) lets small editor screenshots
+  // render at their natural size instead of upscaling to the
+  // article column width. The figure stays centered via
+  // `mx-auto` and the surrounding box hugs the image rather
+  // than the column.
+  const w = width ?? 1600;
+  const h = height ?? 900;
   return (
     <figure className="mt-8">
-      <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-code)]">
+      <div
+        className="mx-auto overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-code)]"
+        style={{ maxWidth: `${w}px` }}
+      >
         <Image
           src={src}
           alt={alt}
-          width={1600}
-          height={900}
+          width={w}
+          height={h}
           className="h-auto w-full"
         />
       </div>
       {caption && (
-        <figcaption className="mt-3 text-sm text-[var(--fg-muted)]">
+        <figcaption className="mx-auto mt-3 text-sm text-[var(--fg-muted)]" style={{ maxWidth: `${w}px` }}>
           {caption}
         </figcaption>
       )}
     </figure>
+  );
+}
+
+function BuildFromSource({ command }: { command: string }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-[var(--fg-muted)]">
+        Build-from-source example — no installer. Clone the repo
+        and run:
+      </p>
+      <pre className="overflow-x-auto rounded-md border border-[var(--border)] bg-[var(--bg-code)] px-4 py-3 text-sm">
+        <code>{command}</code>
+      </pre>
+    </div>
   );
 }
 

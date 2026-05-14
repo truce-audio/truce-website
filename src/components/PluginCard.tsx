@@ -8,13 +8,19 @@ export function PluginCard({ plugin }: { plugin: Plugin }) {
       href={`/plugins/${plugin.slug}`}
       className="group block overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] transition-colors hover:border-[var(--border-strong)]"
     >
+      {/*
+        `object-contain` instead of `object-cover` so portrait
+        editor screenshots show the whole UI (knobs + headers)
+        with side bars from the card background, rather than
+        getting cropped to a horizontal strip across the middle.
+      */}
       <div className="aspect-[16/9] overflow-hidden bg-[var(--bg-code)]">
         <Image
           src={plugin.heroScreenshot.src}
           alt={plugin.heroScreenshot.alt}
           width={1200}
           height={675}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
         />
       </div>
       <div className="p-5">
