@@ -1,7 +1,6 @@
 # Changelog
 
-Notable changes per release. Pre-1.0, so minor version bumps may
-include breaking changes — those are called out under **Breaking**.
+Notable changes per release.
 
 ## 0.41.0 — 2026-05-15
 
