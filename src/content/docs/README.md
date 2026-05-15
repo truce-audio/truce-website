@@ -16,7 +16,7 @@ cargo truce install --clap
 cargo truce install --vst3
 ```
 
-Open your DAW, scan for plugins, load `MyPlugin`. For a chapter-by-chapter walkthrough, follow the [Guide](#guide) from [install](guide/install.md) through [hot reload](guide/hot-reload.md). For look-up material — every CLI flag, every `#[param(...)]` key, every `truce.toml` field — jump to the [Reference](#reference).
+Open your DAW, scan for plugins, load `MyPlugin`. For a chapter-by-chapter walkthrough, follow the [Guide](#guide) from [install](guide/install.md) through [hot reload](guide/hot-reload.md). For look-up material — every CLI flag, every `#[param(...)]` key, every `truce.toml` field — jump to the [Reference](#reference). For working code to read top-to-bottom, browse the [Examples](#examples).
 
 > **Build profile.** Every `cargo truce` command (`install`, `build`, `package`, `run`, `screenshot`) defaults to the cargo **release** profile — plugins are typically loaded into a DAW where debug-build DSP can spike CPU under load. Pass `--debug` to opt into the cargo dev profile for fast-compile iteration.
 
@@ -31,11 +31,12 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 | 3 | [plugin-anatomy](guide/plugin-anatomy.md) | `PluginLogic` trait, bus layouts, state persistence. |
 | 4 | [parameters](guide/parameters.md) | `#[derive(Params)]`, smoothing patterns, meters. Attribute reference in [reference/params](reference/params.md). |
 | 5 | [processing](guide/processing.md) | `process()` patterns for effects, MIDI, sample-accurate events, synths. |
-| 6 | [midi](guide/midi.md) | Reading and emitting MIDI events; per-format support; testing MIDI plugins. |
-| 7 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, raw window handle). |
-| 8 | [audio-testing](guide/audio-testing.md) | `truce_test::PluginDriver` for in-process audio + MIDI regression tests — no DAW required. |
-| 9 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
-| 10 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
+| 6 | [fundsp](guide/fundsp.md) | Drop a `fundsp` graph into `process()` — combinator DSL, `Shared` cells for sample-accurate automation, RT60 rebuild patterns. |
+| 7 | [midi](guide/midi.md) | Reading and emitting MIDI events; per-format support; testing MIDI plugins. |
+| 8 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, raw window handle). |
+| 9 | [audio-testing](guide/audio-testing.md) | `truce_test::PluginDriver` for in-process audio + MIDI regression tests — no DAW required. |
+| 10 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
+| 11 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
 
 ### GUI backends
 
@@ -55,6 +56,33 @@ Not exhaustive — for the full Rust API surface, see the [rustdoc](https://truc
 | [params](reference/params.md) | `#[derive(Params)]` and `#[param(...)]` — every attribute key, range syntax, smoothing modes, meters, custom formatting. |
 | [truce-toml](reference/truce-toml.md) | Project-level `truce.toml` schema: `[vendor]`, `[[plugin]]`, `[[suite]]`, packaging, signing. |
 | [cargo-config](reference/cargo-config.md) | Per-developer `.cargo/config.toml` `[env]` table — every environment variable truce reads (signing identities, SDK paths, validator paths, hot-reload). |
+
+## Examples
+
+Short, one-file plugin examples that double as canonical references
+for parameter shapes, processing patterns, GUI layouts, and MIDI.
+Full list with screenshots: [examples](examples/README.md).
+
+| Plugin | Type | GUI | What it shows |
+|--------|------|-----|---------------|
+| [gain](examples/gain.md) | Effect | Built-in | Minimal plugin: one `FloatParam`, a single-channel multiply. |
+| [eq](examples/eq.md) | Effect | Built-in | Multi-band biquad EQ with smoothed coefficients. |
+| [synth](examples/synth.md) | Instrument | Built-in | MIDI-driven polyphonic synth with per-voice envelopes. |
+| [transpose](examples/transpose.md) | MIDI | Built-in | MIDI effect — rewrite note numbers in `process()`. |
+| [arpeggio](examples/arpeggio.md) | MIDI | Built-in | Sample-accurate MIDI scheduling against the host transport. |
+| [tremolo](examples/tremolo.md) | Effect | egui | Tempo-synced LFO + the egui backend wired in. |
+| [state](examples/state.md) | Effect | egui | Custom `#[derive(State)]` for persistent extra state. |
+| [fundsp-reverb-simple](examples/fundsp-reverb-simple.md) | Effect | Built-in | Stereo plate reverb on a fundsp graph (pedagogical, inline rebuild). |
+| [fundsp-reverb-worker](examples/fundsp-reverb-worker.md) | Effect | Built-in | Same reverb with a background-thread graph rebuild + lock-free swap — `process()` stays alloc-free. |
+| [gain-egui](examples/gain-egui.md) | Effect | egui | Same plugin as `gain`, rendered with [egui](https://github.com/emilk/egui). |
+| [gain-iced](examples/gain-iced.md) | Effect | Iced | Same plugin, rendered with [Iced](https://github.com/iced-rs/iced). |
+| [gain-slint](examples/gain-slint.md) | Effect | Slint | Same plugin, rendered with [Slint](https://slint.dev/). |
+
+The four `gain*` variants implement the same plugin against
+different GUI frameworks — compare them side-by-side to pick a
+toolkit. The two `fundsp-reverb-*` crates share a topology and
+signal flow but differ only in *how* the fundsp graph gets
+rebuilt; [chapter 6 → fundsp](guide/fundsp.md) walks through both.
 
 ## Formats
 

@@ -3,6 +3,21 @@
 Notable changes per release. Pre-1.0, so minor version bumps may
 include breaking changes — those are called out under **Breaking**.
 
+## 0.41.0 — 2026-05-15
+
+- AAX: Fix knobs sync bug on log-ranged parameters. The C++
+  shim defaulted to a linear taper for every param's normalize /
+  denormalize, so AAX would round-trip a log-ranged knob through
+  `RenderAudio` into a different plain value than the editor
+  wrote. Wire `range_type` through `TruceAaxParamInfo` so the shim
+  picks the matching `AAX_ITaperDelegate` per param. ABI bump:
+  `TRUCE_AAX_ABI_VERSION` 1 → 2.
+- Standalone: Drop the "(standalone)" suffix from the window title.
+- baseview: bump to the latest revision.
+- Workspace: README status updated to **stable**; `repository` /
+  `homepage` metadata added to every crate's Cargo.toml for
+  crates.io publishing readiness.
+
 ## 0.40.2 — 2026-05-14
 
 - Move example READMEs out to truce-website (no code impact).
