@@ -2,6 +2,25 @@
 
 Notable changes per release.
 
+## 0.42.0 — 2026-05-16
+
+- **iOS support.** AU v3 plug-ins now build, install, and run on
+  both the iOS Simulator (`cargo truce install --ios`) and tethered
+  devices (`cargo truce install --ios-device`). Truce ships a Swift
+  container app template with embedded editor, Play button, status
+  label, info sheet, and a hamburger-menu landscape layout. New
+  `[[plugin]]` knobs in `truce.toml`: `ios_icon_set`,
+  `ios_orientations`, `ios_scale_editor_to_fit` (default `true`),
+  `ios_minimum_os_version`, `ios_app_group`, `ios_url`. Touch input
+  is pinned per-finger so multi-touch doesn't hijack an in-progress
+  drag. `mute_preview_output` works on both standalone and the iOS
+  container for analyzer-style plug-ins. Custom container apps and
+  iced's iOS backend remain unsupported (latter blocked upstream).
+  See the new [iOS chapter](/docs/guide/ios).
+- iOS screenshot regression: `cargo truce screenshot --ios` captures
+  the simulator's actual rendered output (the only path that sees
+  iOS-specific compositing); `--check` gates baselines in CI.
+
 ## 0.41.0 — 2026-05-15
 
 - AAX: Fix knobs sync bug on log-ranged parameters. The C++
