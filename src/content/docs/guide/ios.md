@@ -71,30 +71,165 @@ examples is several minutes. Pick a plugin with `-p` for iteration.
 cargo truce install --ios-device -p my-plugin
 ```
 
-Same pipeline but signs against a real Apple Developer identity
-and installs through `xcrun devicectl`. The device path needs three
-environment variables — set them in `.cargo/config.toml` (gitignored;
-never in `truce.toml`):
+Same pipeline as `--ios` but signs against a real Apple Developer
+identity and installs through `xcrun devicectl`. Three env vars are
+required (`TRUCE_IOS_TEAM_ID`, `TRUCE_IOS_SIGNING_IDENTITY`,
+`TRUCE_IOS_PROVISIONING_PROFILE`) and one is optional
+(`TRUCE_IOS_APPEX_PROVISIONING_PROFILE`). Set them in
+`.cargo/config.toml` (always gitignored; never put profile paths
+or identities in `truce.toml` — that file is checked in):
 
 ```toml
 # .cargo/config.toml
 [env]
-TRUCE_IOS_TEAM_ID = "ABCD1234EF"
+TRUCE_IOS_TEAM_ID              = "ABCD1234EF"
+TRUCE_IOS_SIGNING_IDENTITY     = "Apple Development: Your Name (ABCD1234EF)"
 TRUCE_IOS_PROVISIONING_PROFILE = "/abs/path/to/MyPlugin.mobileprovision"
-TRUCE_IOS_SIGNING_IDENTITY = "Apple Development: Your Name (TEAMID)"
+# Optional — only when you use one profile per bundle ID rather
+# than a wildcard profile that covers both container + appex:
+TRUCE_IOS_APPEX_PROVISIONING_PROFILE = "/abs/path/to/MyPluginAppex.mobileprovision"
 ```
 
-Provisioning profile and team ID are per-developer secrets. The
-signing identity defaults to `TRUCE_SIGNING_IDENTITY` if unset —
-override only when device builds want a different identity than
-your macOS desktop installs.
+The simulator path (`--ios`) ad-hoc signs with `-` and ignores all
+four — none of this matters until you want to push to a real
+device or build a `.ipa`.
+
+### Bootstrap from scratch
+
+If you've never done iOS device signing before, here's the full
+end-to-end. Skip whichever steps you've already done. Everything
+below lives at
+[developer.apple.com/account](https://developer.apple.com/account/) →
+**Certificates, Identifiers & Profiles** (the same UI Apple calls
+"developer portal"). A paid Apple Developer Program membership
+($99/year) unlocks device installs and App Store distribution;
+the free tier ("personal team") only signs to your own devices
+and refreshes profiles every 7 days.
+
+**1. Generate a Certificate Signing Request (CSR).** This is the
+public half of a key pair you generate locally; the Apple portal
+signs it to create a certificate you can use for code signing.
+You only need one CSR per cert type (development vs. distribution).
+
+Easiest path — Keychain Access:
+
+```text
+Keychain Access → menu Certificate Assistant →
+Request a Certificate from a Certificate Authority…
+```
+
+Enter your email + a common name (e.g. `Your Name iOS Dev`),
+select **Saved to disk**, and **Key Pair Information** → RSA →
+2048 bits. The wizard drops a `.certSigningRequest` file on disk
+and the matching private key into your login keychain.
+
+CLI equivalent (if you'd rather not use the GUI):
+
+```sh
+openssl req -new -newkey rsa:2048 -nodes \
+    -keyout iosdev.key -out iosdev.certSigningRequest
+```
+
+Keep the `.key` file safe — if you lose it, the corresponding
+certificate is unrecoverable and you start over.
+
+**2. Find your `TRUCE_IOS_TEAM_ID`.** On the developer portal,
+**Membership Details** → **Team ID** — 10 chars, mixed
+alphanumeric (e.g. `ABCD1234EF`). For personal teams, the ID is
+auto-generated and shown in **Xcode → Settings → Accounts →
+Manage Certificates** instead.
+
+**3. Create the signing certificate.** Portal → **Certificates →
++**. Pick:
+
+- **Apple Development** for `cargo truce install --ios-device`
+  during iteration.
+- **Apple Distribution** for `cargo truce package` `.ipa`
+  releases (App Store, TestFlight, Ad Hoc).
+
+Upload the `.certSigningRequest` from step 1. The portal returns
+a `.cer` file — double-click it to install into your login
+keychain, where it pairs up with the private key you generated.
+
+Verify it landed:
+
+```sh
+security find-identity -p codesigning -v
+```
+
+You should see a line like
+`"Apple Development: Your Name (ABCD1234EF)"`. That whole quoted
+string (minus the quotes) is your `TRUCE_IOS_SIGNING_IDENTITY`.
+
+**4. Register an App ID.** Portal → **Identifiers → +** →
+**App IDs** → **App**. Two choices for the bundle ID:
+
+- **Explicit** (`com.acme.my-plugin`) — covers exactly that one
+  bundle. You'll need a second App ID + profile for the appex
+  (`com.acme.my-plugin.AUExt`).
+- **Wildcard** (`com.acme.*`) — covers both the container `.app`
+  and the bundled extension with one App ID + one profile. The
+  simpler setup for development; the App Store may require
+  explicit IDs at submission time.
+
+Tick any **Capabilities** the plug-in needs (commonly App Groups
+if you set `ios_app_group` in `truce.toml`, plus
+Inter-App Audio is generally not required for AU v3).
+
+**5. Register the test device's UDID.** Portal → **Devices → +**.
+Get the UDID from the device:
+
+```sh
+xcrun devicectl list devices                  # paired devices
+# or, with Xcode running and the device connected:
+# Xcode → Window → Devices and Simulators → Identifier
+```
+
+Paste the 25-char (or 40-char on older devices) UDID into the
+portal and give it a name. Skip this step if you're only
+creating an **App Store** distribution profile (no UDID list
+needed).
+
+**6. Create the provisioning profile.** Portal → **Profiles → +**.
+Pick:
+
+- **iOS App Development** for device installs.
+- **App Store** for `.ipa` releases (no UDIDs).
+- **Ad Hoc** for installing a `.ipa` directly to listed UDIDs
+  without going through the App Store.
+
+Select the App ID from step 4, the certificate from step 3, and
+(for development / ad hoc) the device(s) from step 5. Download
+the resulting `.mobileprovision`. Save it somewhere outside the
+repo (e.g. `~/AppleProfiles/MyPlugin.mobileprovision`) and use
+that absolute path as `TRUCE_IOS_PROVISIONING_PROFILE`.
+
+**7. (Optional) Separate appex profile.** Only if step 4 used an
+**explicit** App ID. Repeat steps 4–6 for
+`com.acme.my-plugin.AUExt` and point
+`TRUCE_IOS_APPEX_PROVISIONING_PROFILE` at the second
+`.mobileprovision`. Wildcard App IDs skip this step entirely —
+the same profile covers both bundles.
+
+**8. Wire the env vars.** Drop the four values into
+`.cargo/config.toml` as shown above, double-check
+`.cargo/config.toml` is in your `.gitignore`, and run:
+
+```sh
+cargo truce install --ios-device -p my-plugin
+```
+
+The full env-var table — including the desktop signing variables
+(`TRUCE_SIGNING_IDENTITY`, notarization,
+Authenticode) — lives at
+[cargo-config reference](/docs/reference/cargo-config).
 
 After a device install, the container `.app` shows up on the home
-screen under "Apps from Developer *<your name>*" in Settings →
-General → VPN & Device Management. Plug-in authors using an
-individual Apple Developer account see their personal name there —
-this is iOS's behaviour for personal-team certificates, nothing
-truce sets.
+screen under **Apps from Developer *<your name>*** in
+**Settings → General → VPN & Device Management**. Plug-in authors
+using an individual (personal-team) Apple Developer account see
+their personal name there — this is iOS's behaviour for
+personal-team certificates, nothing truce sets.
 
 ## Per-plugin iOS knobs in `truce.toml`
 
