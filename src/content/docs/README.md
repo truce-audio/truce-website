@@ -36,7 +36,8 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 | 8 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, raw window handle). |
 | 9 | [audio-testing](guide/audio-testing.md) | `truce_test::PluginDriver` for in-process audio + MIDI regression tests — no DAW required. |
 | 10 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
-| 11 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
+| 11 | [ios](guide/ios.md) | iOS-specific workflow: simulator iteration, device + `.ipa` signing, per-plugin `truce.toml` knobs, preview-audio mute, screenshot regression. |
+| 12 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
 
 ### GUI backends
 
@@ -54,7 +55,7 @@ Not exhaustive — for the full Rust API surface, see the [rustdoc](https://truc
 |------|--------------|
 | [cli](reference/cli.md) | Every `cargo truce` subcommand and flag — `new`, `install`, `build`, `validate`, `package`, `run`, `doctor`, `uninstall`, `screenshot`. |
 | [params](reference/params.md) | `#[derive(Params)]` and `#[param(...)]` — every attribute key, range syntax, smoothing modes, meters, custom formatting. |
-| [truce-toml](reference/truce-toml.md) | Project-level `truce.toml` schema: `[vendor]`, `[[plugin]]`, `[[suite]]`, packaging, signing. |
+| [truce-toml](reference/truce-toml.md) | Project-level `truce.toml` schema: `[vendor]`, `[[plugin]]`, `[[suite]]`, packaging. Signing identities and other secrets live in env — see [`cargo-config`](reference/cargo-config.md). |
 | [cargo-config](reference/cargo-config.md) | Per-developer `.cargo/config.toml` `[env]` table — every environment variable truce reads (signing identities, SDK paths, validator paths, hot-reload). |
 
 ## Examples
@@ -96,6 +97,7 @@ Truce compiles a single plugin crate into up to seven plugin formats, plus an ap
 | [LV2](formats/lv2.md) | `lv2` | ✅ | ✅ | ✅ | opt-in | — |
 | [AU v2](formats/au.md) | `au` | ✅ | — | — | opt-in | Xcode CLI tools |
 | [AU v3](formats/au.md) | `au` | ✅ | — | — | opt-in | full Xcode, Developer ID signing |
+| [AU v3 (iOS)](formats/au-ios.md) | `au` | ✅ (iOS) | — | — | opt-in | Xcode, Apple Developer team ID for device / `.ipa` |
 | [AAX](formats/aax.md) | `aax` | ✅ | ✅ | — | opt-in | AAX SDK (+ PACE wraptool for retail) |
 | [Standalone](formats/standalone.md) | `standalone` | ✅ | ✅ | ✅ | ✅ | — (app mode, not a host-loaded format) |
 

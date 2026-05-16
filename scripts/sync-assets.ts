@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +10,7 @@ const workspaceRoot = resolve(repoRoot, "..");
 
 type AssetMap = {
   plugin: string;
-  files: Array<{ from: string; to: string }>;
+  files: Array<{ from: string; to: string; resizeWidth?: number }>;
 };
 
 // Each example's macOS default screenshot lives at
@@ -40,6 +41,23 @@ const exampleScreenshot = (short: string): AssetMap["files"][number] => {
   };
 };
 
+// iOS container baselines are full simulator framebuffers
+// (1206x2436 portrait, 2622x1206 landscape) — way larger than the
+// docs prose column. Resize on copy so the rendered page doesn't
+// ship multi-megapixel PNGs for a 280-px wide display slot.
+const IOS_SCREENSHOTS: AssetMap["files"] = [
+  {
+    from: "truce/examples/truce-example-gain/screenshots/gain_container_ios.png",
+    to: "public/screenshots/ios/gain_container.png",
+    resizeWidth: 360,
+  },
+  {
+    from: "truce/examples/truce-example-state/screenshots/state_container_ios.png",
+    to: "public/screenshots/ios/state_container.png",
+    resizeWidth: 720,
+  },
+];
+
 const assetMaps: AssetMap[] = [
   {
     plugin: "truce-analyzer",
@@ -58,13 +76,17 @@ const assetMaps: AssetMap[] = [
     plugin: "truce-examples",
     files: EXAMPLE_SHORT_NAMES.map(exampleScreenshot),
   },
+  {
+    plugin: "truce-ios",
+    files: IOS_SCREENSHOTS,
+  },
 ];
 
 let copied = 0;
 let missing = 0;
 
 for (const asset of assetMaps) {
-  for (const { from, to } of asset.files) {
+  for (const { from, to, resizeWidth } of asset.files) {
     const src = resolve(workspaceRoot, from);
     const dst = resolve(repoRoot, to);
 
@@ -75,9 +97,25 @@ for (const asset of assetMaps) {
     }
 
     mkdirSync(dirname(dst), { recursive: true });
-    copyFileSync(src, dst);
+    if (resizeWidth) {
+      // Copy first, then resize in place. `sips` is macOS-only;
+      // fall back to a plain copy on other platforms so the build
+      // doesn't fail — the page will just render a larger image.
+      copyFileSync(src, dst);
+      try {
+        execFileSync("sips", ["--resampleWidth", String(resizeWidth), dst], {
+          stdio: "ignore",
+        });
+      } catch {
+        console.warn(
+          `[sync-assets] sips unavailable; ${to} kept at source resolution.`,
+        );
+      }
+    } else {
+      copyFileSync(src, dst);
+    }
     copied++;
-    console.log(`[sync-assets] ${from} → ${to}`);
+    console.log(`[sync-assets] ${from} → ${to}${resizeWidth ? ` (resized to ${resizeWidth}px)` : ""}`);
   }
 }
 

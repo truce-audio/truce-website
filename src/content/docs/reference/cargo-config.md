@@ -41,6 +41,19 @@ preferred, explicit credentials are the fallback.
 | `TEAM_ID` | Apple Developer Team ID — pair with `APPLE_ID`. |
 | `APP_SPECIFIC_PASSWORD` | App-specific password from appleid.apple.com — pair with `APPLE_ID` + `TEAM_ID`. Never put this in `truce.toml`. |
 
+## iOS code signing
+
+Required for `cargo truce install --ios-device` and
+`cargo truce package --ios` (.ipa). Simulator installs
+(`--ios`) ad-hoc sign with `-` and ignore all four.
+
+| Variable | Purpose |
+|----------|---------|
+| `TRUCE_IOS_TEAM_ID` | Apple Developer Team ID (10-character mixed alphanumeric, e.g. `ABCD1234EF`). Required for device + `.ipa`. |
+| `TRUCE_IOS_SIGNING_IDENTITY` | iOS-specific `codesign -s` identity — `"Apple Development: Name (TEAMID)"` for device installs, `"Apple Distribution: Vendor (TEAMID)"` for App Store / TestFlight `.ipa`. Defaults to `TRUCE_SIGNING_IDENTITY` (the macOS identity) when unset — wrong for device installs, fine for simulator. |
+| `TRUCE_IOS_PROVISIONING_PROFILE` | Absolute path to a `.mobileprovision` downloaded from developer.apple.com. Must match the bundle ID (or be a wildcard covering it) and the team you're signing with. Required for device + `.ipa`. |
+| `TRUCE_IOS_APPEX_PROVISIONING_PROFILE` | Optional separate profile for the `.appex` extension. Use when `TRUCE_IOS_PROVISIONING_PROFILE` is bound to the container's exact bundle ID rather than a wildcard covering both container and appex. Unset → the appex reuses the container's profile. |
+
 ## AAX SDK
 
 | Variable | Purpose |
@@ -155,6 +168,11 @@ TRUCE_SIGNING_IDENTITY           = "Developer ID Application: Acme Audio, LLC (T
 TRUCE_INSTALLER_SIGNING_IDENTITY = "Developer ID Installer: Acme Audio, LLC (TEAM123)"
 
 # macOS notarization (keychain profile preferred; xcrun notarytool store-credentials TRUCE_NOTARY)
+
+# iOS code signing (device installs + .ipa packaging)
+TRUCE_IOS_TEAM_ID              = "TEAM123"
+TRUCE_IOS_SIGNING_IDENTITY     = "Apple Distribution: Acme Audio, LLC (TEAM123)"
+TRUCE_IOS_PROVISIONING_PROFILE = "/Users/you/profiles/AcmeGain.mobileprovision"
 
 # AAX SDK
 AAX_SDK_PATH = "/Users/you/aax-sdk-2-9-0"

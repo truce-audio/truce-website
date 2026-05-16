@@ -259,6 +259,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "guide/gui.md",
     "guide/audio-testing.md",
     "guide/shipping.md",
+    "guide/ios.md",
     "guide/hot-reload.md",
   ];
 
@@ -302,6 +303,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "formats/vst3.md",
     "formats/lv2.md",
     "formats/au.md",
+    "formats/au-ios.md",
     "formats/aax.md",
     // VST2 last — legacy / niche.
     "formats/vst2.md",
