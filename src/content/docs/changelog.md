@@ -136,6 +136,20 @@ Notable changes per release.
   (`gui_adjust_size` / `gui_set_size`, `IPlugViewContentScaleSupport`,
   AU view-frame change notifications, LV2 ui:resize) needs to be
   wired through truce-gui so user code can opt in.
+- **Bring-your-own iOS container.** `cargo truce install --ios`
+  always emits the bundled Swift container template (title, Play,
+  status, hamburger overlay). Plug-ins that need a bespoke shell
+  hand-author it outside the pipeline and load the `.appex` truce
+  builds. First-class support for swapping in a custom container
+  is on the roadmap.
+- **iced on iOS.** iced's `iced_winit` calls a desktop-only `winit`
+  trait inside a non-iOS-gated branch, so `truce-example-gain-iced`
+  doesn't build for `aarch64-apple-ios*`. Blocked upstream.
+- **MIDI SysEx.** truce's MIDI surface today covers channel-voice
+  + MIDI 2.0 UMP; raw SysEx messages aren't plumbed through the
+  per-format event lists. Plug-ins needing SysEx (preset dumps,
+  bulk parameter exchange, MTC) need to wait for the SysEx event
+  variants to land.
 
 ### Future
 

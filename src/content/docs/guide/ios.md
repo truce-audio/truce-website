@@ -223,7 +223,7 @@ simulator your CI matrix uses.
 | Feature | Why |
 |---------|-----|
 | `--shell` hot reload | iOS App Extensions reject `dlopen` of anything outside the signed bundle's `Frameworks/` |
-| `truce-iced` | iced 0.13's `iced_winit` dependency calls a desktop-only `winit` trait inside a non-iOS-gated branch — blocked upstream until iced 0.14 |
+| `truce-iced` | iced's `iced_winit` dependency calls a desktop-only `winit` trait inside a non-iOS-gated branch — blocked upstream |
 | CLAP / VST3 / VST2 / LV2 / AAX | Platform contract — iOS only hosts AU v3 |
 | Universal `.ipa` | Device + simulator slices have distinct Mach-O platform IDs and can't lipo together; use `--xcframework` packaging if you need both slices in one artifact |
 

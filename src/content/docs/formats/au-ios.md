@@ -220,16 +220,16 @@ au3_subtype = "MyF3"           # optional; iOS reuses au3_subtype
   their backend's pointer-event shape. `truce-iced` is the lone
   hold-out (see the iced gotcha below).
 - **`truce-iced` is desktop-only on iOS today, upstream blocker.**
-  iced 0.13's `iced` umbrella crate has a non-optional dependency
-  on `iced_winit`, and iced_winit calls
+  iced's `iced` umbrella crate has a non-optional dependency on
+  `iced_winit`, and iced_winit calls
   `winit::platform::modifier_supplement::KeyEventExtModifierSupplement`
   methods inside a `cfg(not(target_arch = "wasm32"))` branch.
   winit only ships that trait on desktop, so the branch fires on
   iOS and fails to compile — and there's no feature flag to opt
-  out of iced_winit. Until iced 0.14 lands with the iOS gate,
-  plugins built on `truce-iced` skip the iOS build with a clear
-  cfg gate. Use the built-in editor, `truce-egui`, or
-  `truce-slint` for iOS coverage in the meantime.
+  out of iced_winit. Plugins built on `truce-iced` skip the iOS
+  build with a clear cfg gate until the upstream issue lands. Use
+  the built-in editor, `truce-egui`, or `truce-slint` for iOS
+  coverage in the meantime.
 
 ## iOS screenshot regression
 
