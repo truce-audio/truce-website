@@ -2,6 +2,19 @@
 
 Notable changes per release.
 
+## 0.42.1 — 2026-05-17
+
+- Params: `IntParam` value displays no longer pick up the
+  `FloatParam` `{:.1}` / `{:.2}` formatters, so transpose's
+  semitone knob now reads `0 st` instead of `0.0 st`. Internally,
+  `ParamInfo` gained a `kind: ParamValueKind` field set by
+  `#[derive(Params)]` from the field type — hand-rolled `Params`
+  impls building `ParamInfo` literally need to add `kind: …`
+  (Float / Int / Bool / Enum).
+- Example tidy: the `Mix` knobs on both fundsp reverbs and the
+  `Depth` knob on tremolo now declare `unit = "%"`, so they render
+  as `25%` / `0%` instead of `0.25` / `0.00`.
+
 ## 0.42.0 — 2026-05-16
 
 - **iOS support.** AU v3 plug-ins now build, install, and run on
