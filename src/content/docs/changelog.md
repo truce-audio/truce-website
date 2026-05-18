@@ -2,6 +2,45 @@
 
 Notable changes per release.
 
+## 0.44.0 — 2026-05-18
+
+- **VST3 + CLAP on macOS now link as `MH_BUNDLE` instead of
+  `MH_DYLIB`.** Fixes load under hosts that take the strict
+  `CFBundleLoadExecutable` path (DawDreamer's JUCE-based VST3
+  host is the one we validated against). Most desktop DAWs have
+  more forgiving loaders and weren't affected, but the strict
+  path is the correct Mach-O shape for a bundle. Built from a
+  Rust `staticlib` via `clang -bundle`. **Breaking change for
+  pre-0.44.0 plugins:** the plugin crate's `[lib]` block needs
+  `crate-type = ["cdylib", "staticlib", "rlib"]` (was `["cdylib",
+  "rlib"]`). `cargo truce install` / `package` fails loudly with
+  the exact one-line edit if the staticlib is missing.
+- AU v3: Fix installs broken since 0.42.0.
+- AU v2: Fix `PresentPreset` handler broken since 0.40.0 — auval
+  passes again across all bundled examples.
+- `cargo truce package --formats <list>` now works on Linux, matching
+  the existing macOS / Windows behavior. Internally drives the
+  underlying `cargo truce build` invocation.
+- CI hardening: every `cargo truce` subcommand (install, validate,
+  package, uninstall, doctor, status, reset-au) now runs on macOS,
+  Linux, and Windows on every PR. New scaffold-and-round-trip
+  workflow exercises `cargo truce new` against single-effect,
+  single-instrument, and mixed-workspace shapes.
+- Doc sweep across the in-tree comments and rustdoc.
+
+## 0.43.0 — 2026-05-17
+
+- **SysEx + UMP support (work in progress).** Initial plumbing
+  for System Exclusive messages and MIDI 2.0 UMPs is landing
+  across the CLAP, VST3, VST2, AU v2, AU v3, AAX, and LV2
+  wrappers. SysEx bytes flow through `EventBody::SysEx` on the
+  existing `EventList`, backed by a pre-allocated pool so
+  `process()` stays allocation-free. A new `truce::ump` module
+  decodes channel-voice-2 messages and reassembles fragmented
+  SysEx7 / SysEx8 packets. APIs are not stable yet and host
+  coverage is still being shaken out — expect breaking changes
+  in the next few patches.
+
 ## 0.42.1 — 2026-05-17
 
 - Params: `IntParam` value displays no longer pick up the
