@@ -47,6 +47,7 @@ cargo truce install --clap --vst3 --lv2   # subset
 | `--debug` | Cargo dev profile (faster compile, slower DSP). |
 | `--no-build` | Install existing bundles from `target/bundles/`; skip rebuild. |
 | `-p <crate>` | Single plugin in a workspace. |
+| `--target-cpu <value>` | Override the x86_64 SIMD baseline. See [`--target-cpu`](#--target-cpu) below. |
 
 AAX, AU v3, and Windows VST2 are always system-scope — `--user` for those falls back to system with a one-line `note`.
 
@@ -85,9 +86,38 @@ cargo truce build --au3            # AU v3 .app, fully signed
 cargo truce build --aax            # AAX .aaxplugin, fully signed
 cargo truce build --shell          # hot-reload shell build
 cargo truce build --debug          # cargo dev profile
+cargo truce build --target-cpu v4  # AVX-512 baseline (x86_64)
 ```
 
 Every format flag produces a complete, signed bundle in `target/bundles/`.
+
+### `--target-cpu`
+
+Override the SIMD baseline the build targets. Threaded into
+`RUSTFLAGS=-C target-cpu=<value>` so `truce_simd`'s compile-time
+`cfg(target_feature)` dispatch picks the right `f32x8` / `f32x16`
+path. Applied per cargo target triple, so the same setting is safe
+for multi-arch invocations (the x86 setting never leaks onto an
+aarch64 slice of a universal macOS build, and vice versa).
+
+Accepted values:
+
+| Value | Expands to | Notes |
+|-------|------------|-------|
+| *(omitted)* | `x86-64-v3` on x86_64; nothing on aarch64 | Default. AVX2 + FMA + BMI2 — the floor modern DAW hosts already require, so the perf win is free in practice. |
+| `baseline` | *(no flag passed)* | rustc's base target (`x86-64` on x86_64 = SSE2-only). Use when you need maximum CPU compatibility. |
+| `v2` | `x86-64-v2` | SSE4.2 baseline. |
+| `v3` | `x86-64-v3` | Same as the default; spell it out when scripting. |
+| `v4` | `x86-64-v4` | AVX-512 baseline. |
+| `native` | `native` | Local dev only — the resulting binary won't run on machines without the build host's exact feature set. |
+| Any other literal | passed verbatim | e.g. `apple-m1`, `znver4`. Anything rustc accepts. |
+
+aarch64 builds always emit NEON (it's the ARMv8 baseline); the
+flag is a no-op there unless you pass a CPU-specific value like
+`apple-m1`.
+
+The flag is accepted by `install`, `build`, `package`, and `run`
+with identical semantics.
 
 ## `run`
 
@@ -99,6 +129,12 @@ cargo truce run -p my-gain         # specific plugin in workspace
 cargo truce run -- --help          # pass flags through to the binary
 cargo truce run -- --list-devices  # standalone CLI flag
 ```
+
+| Flag | Notes |
+|------|-------|
+| `--debug` | Cargo dev profile (default for `run` since you're at a terminal, not in a DAW). |
+| `--target-cpu <value>` | Same semantics as [`build`](#--target-cpu). |
+| `-- <args>` | Pass everything after `--` to the standalone binary. |
 
 The standalone binary's own flags (`--output`, `--sample-rate`, `--input-file`, ...) live in [`formats/standalone`](../formats/standalone.md).
 
@@ -149,6 +185,7 @@ cargo truce package --formats clap,vst3,aax  # subset
 | `--no-installer` | Windows: stage files but skip the Inno Setup compile step. |
 | `--no-per-plugin` / `--no-suite` | Drop per-plugin or suite installers when both would otherwise be produced. |
 | `-p <crate>` | Single plugin. |
+| `--target-cpu <value>` | Same semantics as [`build`](#--target-cpu). |
 
 Output: `target/dist/<Name>-<version>-{macos.pkg,windows.exe}`, with a `-user` / `-system` suffix when scope is hard-locked.
 
