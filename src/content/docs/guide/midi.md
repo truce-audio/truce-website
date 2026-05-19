@@ -74,6 +74,9 @@ pub enum EventBody {
     ParamChange { id, value },
     ParamMod    { id, note_id, value },                         // CLAP per-voice
     Transport   (TransportInfo),
+
+    // System layer
+    SysEx       { pool_offset, len },                           // bytes in EventList::sysex_bytes()
 }
 ```
 
@@ -108,8 +111,20 @@ fn process(&mut self, buffer: &mut AudioBuffer, events: &EventList,
 
 The `_ => {}` arm catches MIDI 2.0 / per-note variants you don't
 care about. Drop it and you'll get a non-exhaustive-match error
-that lists everything you missed — useful when you want the
+that lists everything you missed — use it if you want the
 compiler to flag a forgotten case.
+
+SysEx payloads aren't stored inline on the event (a worst-case
+~64 KiB body per event would blow up the audio thread's memory
+footprint). Resolve them via the list:
+
+```rust
+EventBody::SysEx { .. } => {
+    let bytes = events.sysex_bytes(&event.body);
+    self.handle_sysex(bytes); // bytes are the inner payload,
+                              // no leading 0xF0 / trailing 0xF7
+}
+```
 
 For sample-accurate handling (synths, transient shapers),
 interleave the event walk with the sample loop instead:
@@ -175,10 +190,7 @@ context.output_events.push(Event {
 
 Sample offsets must fall within the current block
 (`0..num_samples`). The framework forwards each event to the
-host's MIDI output as a MIDI 1.0 byte stream. Variants that don't
-fit MIDI 1.0 (every MIDI 2.0 variant, `ParamChange`,
-`Transport`) are silently dropped at the wrapper. Use the MIDI
-1.0 variants for portable note effects.
+host's MIDI output as a MIDI 1.0 byte stream.
 
 The arpeggiator example in [`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)
 walks held-note tracking + step scheduling:
@@ -198,22 +210,22 @@ context.output_events.push(Event {
 
 ## Format coverage
 
-| Format | MIDI 1.0 in | MIDI 1.0 out | MIDI 2.0 in | Notes |
-|---|---|---|---|---|
-| CLAP | ✅ | ✅ | partial† | Per-note expression mapped to `PerNoteCC` / `PerNotePitchBend` |
-| VST3 | ✅ | ✅ | partial† | Per-note expression (volume, pan, tuning, vibrato, expression, brightness) → MIDI 2.0 events |
-| VST2 | ✅ | ✅ | — | MIDI 1.0 only; opt-in per VST2's `canDo("receiveVstMidiEvent")` |
-| AU v2 | ✅ | ✅ | — | MIDI 2.0 events landing on the input bus are silently dropped |
-| AU v3 | ✅ | ✅ | — | Same as AU v2 |
-| AAX | ✅ | ✅ | — | Pro Tools' MIDI tracks; see [`formats/aax`](../formats/aax.md) |
-| LV2 | ✅ | ✅ | — | Hosts deliver `atom:Sequence`; emits one in turn for note effects |
+| Format | MIDI 1.0 in | MIDI 1.0 out | MIDI 2.0 in | SysEx in/out | Notes |
+|---|---|---|---|---|---|
+| CLAP | ✅ | ✅ | — | ✅ / ✅ | Host MIDI 2.0 events arrive downconverted by the host as MIDI 1.0; truce-clap doesn't currently demux `CLAP_EVENT_MIDI2` or `CLAP_EVENT_NOTE_EXPRESSION` |
+| VST3 | ✅ | ✅ | partial† | ✅ / ✅ | Per-note expression (volume, pan, tuning, vibrato, expression, brightness) is mapped into `PerNoteCC` / `PerNotePitchBend` |
+| VST2 | ✅ | ✅ | — | ✅ / ✅ | MIDI 1.0 only; opt-in per VST2's `canDo("receiveVstMidiEvent")` |
+| AU v2 | ✅ | ✅ | — | — | `MusicDeviceMIDIEvent` is MIDI 1.0 only; no host path exists for MIDI 2.0 |
+| AU v3 | ✅ | ✅ | ✅† | ✅ / ✅ | Decodes UMP channel-voice MT 0x4 + reassembles SysEx-7 (MT 0x3) / SysEx-8 (MT 0x5). Requires the AU v3 host's `MIDIEventList` path (iOS 17+ / macOS 14+) |
+| AAX | ✅ | ✅ | — | ✅ / ✅ | Pro Tools' MIDI tracks; see [`formats/aax`](../formats/aax.md) |
+| LV2 | ✅ | ✅ | — | ✅ / ✅ | Hosts deliver `atom:Sequence`; emits one in turn for note effects |
 
-† MIDI 2.0 *channel-voice* messages (`NoteOn2`, `ControlChange2`,
-etc.) are not currently demuxed by any wrapper. If you receive a
-MIDI 2.0 host event your plugin sees it as a MIDI 1.0
-`NoteOn` / `ControlChange` after the host's own downconvert.
-Emitting MIDI 2.0 variants from a plugin is also not wired
-end-to-end yet.
+† Demux of MIDI 2.0 *channel-voice* messages (`NoteOn2`,
+`ControlChange2`, …) is wired up for AU v3 and as VST3 per-note
+expression today. CLAP / VST2 / AAX / LV2 either don't expose a
+MIDI 2.0 input path or rely on the host's own downconvert to
+MIDI 1.0. Emitting MIDI 2.0 variants from a plugin back to the
+host is not wired end-to-end on any wrapper yet.
 
 ## Testing MIDI plugins
 
@@ -246,7 +258,8 @@ fn arp_emits_step_per_quarter_at_120bpm() {
 The `Script` builder exposes one method per common MIDI 1.0
 message — `note_on`, `note_off`, `cc`, `pitch_bend`,
 `channel_pressure`, plus `set_param` for automation. Need
-something else? `Script::push(EventBody)` takes anything.
+something else? `Script::raw(EventBody)` is the escape hatch and
+takes any variant including MIDI 2.0 ones.
 
 The arpeggiator example's tests
 ([`examples/truce-example-arpeggio/src/lib.rs`](https://github.com/truce-audio/truce/blob/main/examples/truce-example-arpeggio/src/lib.rs))
