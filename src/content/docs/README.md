@@ -30,7 +30,7 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 | 2 | [first-plugin](guide/first-plugin.md) | `cargo truce new`, a tour of the generated files, `install`, load in a DAW. |
 | 3 | [plugin-anatomy](guide/plugin-anatomy.md) | `PluginLogic` trait, bus layouts, state persistence. |
 | 4 | [parameters](guide/parameters.md) | `#[derive(Params)]`, smoothing patterns, meters. Attribute reference in [reference/params](reference/params.md). |
-| 5 | [processing](guide/processing.md) | `process()` patterns for effects, MIDI, sample-accurate events, synths. |
+| 5 | [processing](guide/processing.md) | `process()` patterns for effects, MIDI, sample-accurate events, synths. Includes the `truce_simd` per-block ops + math helpers for hot paths. |
 | 6 | [fundsp](guide/fundsp.md) | Drop a `fundsp` graph into `process()` — combinator DSL, `Shared` cells for sample-accurate automation, RT60 rebuild patterns. |
 | 7 | [midi](guide/midi.md) | Reading and emitting MIDI events; per-format support; testing MIDI plugins. |
 | 8 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, raw window handle). |

@@ -101,6 +101,220 @@ for ch in 0..buffer.num_output_channels() {
 ProcessStatus::Normal
 ```
 
+## SIMD block operations
+
+For a single gain knob on a stereo channel strip the per-sample
+shape above is fine — LLVM autovectorizes the simple cases and the
+cost is invisible. The `truce_simd` crate exists for the rest:
+many channels, many smoothed knobs, transcendentals in the inner
+loop. Its per-block primitives compile down to packed SIMD (NEON
+on aarch64; SSE / AVX / AVX-512 on x86_64) and unlock a 4x–16x
+throughput win on the shapes that need it. Reach for it when
+you've measured a hot spot, or when you know up-front the workload
+will hit one of those triggers.
+
+### The ops catalog
+
+```rust
+use truce_simd::{ops, math};
+```
+
+`truce_simd::ops` — the building blocks, all `f32`:
+
+```rust
+ops::scale_block(out: &mut [f32], src: &[f32], scale: f32);
+ops::gain_block(buf: &mut [f32], gain: f32);
+ops::mul_block(out: &mut [f32], a: &[f32], b: &[f32]);
+ops::mac_block(out: &mut [f32], src: &[f32], scale: f32);  // out += src * scale
+ops::mix_block(out: &mut [f32], a: &[f32], gain_a: f32,
+                                b: &[f32], gain_b: f32);    // dry/wet workhorse
+ops::copy_block(out: &mut [f32], src: &[f32]);
+ops::zero_block(buf: &mut [f32]);
+ops::abs_max_block(buf: &[f32]) -> f32;                    // peak detector
+```
+
+Each has a `*_scalar` twin (`scale_block_scalar`, …) that does the
+same work without SIMD — useful as a reference for tests. The
+`f64` versions live under `truce_simd::ops64` with identical names.
+
+`truce_simd::math` — vectorized transcendentals, also `f32`:
+
+```rust
+math::tanh_block(out: &mut [f32], src: &[f32]);
+math::db_to_linear_block(out: &mut [f32], src: &[f32]);
+math::linear_to_db_block(out: &mut [f32], src: &[f32]);
+math::exp2_block(out: &mut [f32], src: &[f32]);
+math::log2_block(out: &mut [f32], src: &[f32]);
+```
+
+These matter because `libm`'s scalar transcendentals are opaque to
+LLVM's autovectorizer — even with `-C target-cpu=native`, a loop
+calling `f32::powf` stays scalar. The block forms route through
+`wide`'s vectorized intrinsics, so a dB → linear conversion in
+front of an envelope (the most common transcendental in a DSP
+plugin) runs in 8-lane f32 chunks.
+
+### Reading smoothed params per block
+
+Each `FloatParam` provides a `read_block::<N>() -> [f32; N]`
+method via the `FloatParamReadF32` trait, which is in scope
+through the default prelude. One atomic load + one atomic store
+per call, regardless of `N`:
+
+```rust
+let gain_db: [f32; 64] = self.params.gain.read_block::<64>();
+```
+
+Precision follows the prelude: `prelude64` plugins import
+`FloatParamReadF64` instead, and the same call returns
+`[f64; N]`. See [parameters](parameters.md) for the full smoother
+surface.
+
+### Walking the buffer in chunks
+
+`AudioBuffer::chunks_mut::<N>()` iterates `(channel, sample_offset,
+input, output)` tuples sized to fit one SIMD register's worth. The
+final chunk per channel can be shorter than `N` (yielded as
+`ChunkItem::Tail`); the full chunks come back as `ChunkItem::Full`
+with `&[f32; N]` / `&mut [f32; N]`:
+
+```rust
+use truce_core::buffer::ChunkItem;
+
+let mut chunks = buffer.chunks_mut::<32>();
+while let Some(chunk) = chunks.next() {
+    let (ch, sample, inp, out): (usize, usize, &[f32], &mut [f32]) = match chunk {
+        ChunkItem::Full { ch, sample, inp, out } => (ch, sample, &inp[..], &mut out[..]),
+        ChunkItem::Tail { ch, sample, inp, out } => (ch, sample, inp, out),
+    };
+    let env = if ch == 0 { &g_l } else { &g_r };
+    ops::mul_block(out, inp, &env[sample..sample + inp.len()]);
+}
+```
+
+Pick `N` to match the SIMD width of your target floor — 32 is a
+good default for f32 on AVX2 (one register is 8 lanes, so 4
+registers per chunk gives the optimizer scheduling room).
+
+### Fast path / slow path
+
+The canonical shape uses a **fast path** when the smoothers have
+converged (gain is constant for the whole block) and a **slow
+path** that vectorizes the envelope when they're still moving.
+[`examples/truce-example-block-gain`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-gain)
+puts both together:
+
+```rust
+fn process(
+    &mut self,
+    buffer: &mut AudioBuffer,
+    _events: &EventList,
+    _context: &mut ProcessContext,
+) -> ProcessStatus {
+    if !self.params.gain.is_smoothing() && !self.params.pan.is_smoothing() {
+        // Fast path: one scalar gain for the whole block.
+        let lin = db_to_linear(self.params.gain.value());
+        let pan = self.params.pan.value();
+        let gl = lin * (1.0 - pan.max(0.0));
+        let gr = lin * (1.0 + pan.min(0.0));
+
+        for ch in 0..buffer.channels() {
+            let g = if ch == 0 { gl } else { gr };
+            let (inp, out) = buffer.io(ch);
+            ops::scale_block(out, inp, g);
+        }
+    } else {
+        // Slow path: precompute a per-sample envelope, apply via
+        // chunks_mut + mul_block.
+        let n = buffer.num_samples().min(MAX_BLOCK);
+        let gain_db = self.params.gain.read_block::<MAX_BLOCK>();
+        let pan = self.params.pan.read_block::<MAX_BLOCK>();
+
+        // Vectorized dB -> linear in one pass.
+        let mut lin = [0.0_f32; MAX_BLOCK];
+        math::db_to_linear_block(&mut lin[..n], &gain_db[..n]);
+
+        // Pan split autovectorizes under -O; no explicit SIMD needed.
+        let mut g_l = [0.0_f32; MAX_BLOCK];
+        let mut g_r = [0.0_f32; MAX_BLOCK];
+        for i in 0..n {
+            g_l[i] = lin[i] * (1.0 - pan[i].max(0.0));
+            g_r[i] = lin[i] * (1.0 + pan[i].min(0.0));
+        }
+
+        let mut chunks = buffer.chunks_mut::<32>();
+        while let Some(chunk) = chunks.next() {
+            let (ch, sample, inp, out) = match chunk {
+                ChunkItem::Full { ch, sample, inp, out } => (ch, sample, &inp[..], &mut out[..]),
+                ChunkItem::Tail { ch, sample, inp, out } => (ch, sample, inp, out),
+            };
+            let env = if ch == 0 { &g_l } else { &g_r };
+            ops::mul_block(out, inp, &env[sample..sample + inp.len()]);
+        }
+    }
+
+    ProcessStatus::Normal
+}
+```
+
+Users hit the fast path 99% of the time. The slow path only fires
+while a smoother is mid-transition.
+
+### Composing through scratch buffers
+
+When the chain has more than one stage, allocate small stack
+scratches and thread the data through each `ops::` / `math::` call
+in sequence. [`examples/truce-example-block-saturate`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-saturate)
+shows the pattern for `drive → tanh → output`:
+
+```rust
+const MAX_BLOCK: usize = 1024;
+let mut sx = [0.0_f32; MAX_BLOCK];
+let mut sy = [0.0_f32; MAX_BLOCK];
+
+for ch in 0..buffer.channels() {
+    let (inp, out) = buffer.io(ch);
+    let n = inp.len().min(MAX_BLOCK);
+    let inp = &inp[..n];
+    let sx = &mut sx[..n];
+    let sy = &mut sy[..n];
+    let out = &mut out[..n];
+    ops::scale_block(sx, inp, drive_lin);    // sx = inp * drive
+    math::tanh_block(sy, sx);                // sy = tanh(sx)
+    ops::scale_block(out, sy, output_lin);   // out = sy * output
+}
+```
+
+Each line maps one-to-one to a math operation, and the shadow-bind
+on `sx` / `sy` / `out` clips each slice to the actual sample count
+so the inner ops never read past the end. Stack scratches are fine
+on the audio thread — `[f32; 1024]` is 4 KB, well under any
+reasonable stack budget.
+
+### Compile-time SIMD baseline
+
+`truce_simd`'s wide intrinsics dispatch at compile time via
+`cfg(target_feature)`, so the binary picks one SIMD path at build
+and locks it in. `cargo truce build` defaults x86_64 builds to
+`-C target-cpu=x86-64-v3` (AVX2 + FMA + BMI2) so the `f32x8` path
+activates automatically. aarch64 builds use NEON unconditionally.
+Override with `--target-cpu` — see
+[CLI reference](../reference/cli.md) for the full flag.
+
+### More examples
+
+Each shows a different `ops::` / `math::` shape:
+
+- [`drywet`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-drywet)
+  — `mix_block` as a dry/wet cross-fader in front of `tanh_block`.
+- [`gate`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-gate)
+  — `abs_max_block` for peak detection + `zero_block` for the
+  silent-output path.
+- [`widen`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-widen)
+  — `mac_block` for mid-side recombination.
+- [`surround-meter`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-surround-meter)
+  — `linear_to_db_block` over a multi-channel peak array.
+
 ## MIDI and parameter events
 
 `events` is a sorted list of `Event { sample_offset, body }`.

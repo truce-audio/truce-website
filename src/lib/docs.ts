@@ -200,7 +200,12 @@ async function renderMarkdown(markdown: string, sourcePath: string): Promise<str
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
-    .use(remarkRehype, { allowDangerousHtml: false })
+    // Markdown lives in-repo alongside the site code, so raw HTML
+    // (e.g. the `<img width="300">` tags in examples/README.md) is
+    // trusted. Without this pair, the `<img>` cells in the
+    // screenshots table render as empty space because remark-rehype
+    // drops them and rehype-stringify would otherwise escape them.
+    .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, {
       behavior: "prepend",
@@ -209,7 +214,7 @@ async function renderMarkdown(markdown: string, sourcePath: string): Promise<str
     })
     .use(rehypeRewriteLinks, { sourcePath })
     .use(rehypeShiki, { theme: "github-dark" })
-    .use(rehypeStringify)
+    .use(rehypeStringify, { allowDangerousHtml: true })
     .process(markdown);
   return String(file);
 }

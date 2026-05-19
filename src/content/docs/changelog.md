@@ -2,6 +2,29 @@
 
 Notable changes per release.
 
+## 0.45.0 — 2026-05-18
+
+- New CI gate exercises every prior release's example crates
+  against the current `truce` HEAD, catching backwards-incompatible
+  changes before they ship.
+- **Initial SIMD block operations.** New `truce-simd` crate ships
+  `wide`-backed `scale_block` / `mul_block` / `mix_block` /
+  `mac_block` / `copy_block` / `zero_block` plus `tanh_block` /
+  `db_to_linear_block` / `linear_to_db_block` math helpers, with
+  scalar fallbacks. Six new examples (`gain-simd`, `saturate`,
+  `drywet`, `gate`, `widen`, `surround-meter`) demonstrate the
+  shapes.
+- **`cargo truce build` now defaults x86_64 builds to
+  `-C target-cpu=x86-64-v3`** (AVX2 + FMA + BMI2) so the SIMD
+  paths above activate without any per-developer config. New
+  `--target-cpu <value>` flag accepts `baseline` (rustc default
+  = SSE2-only), `v2` / `v3` / `v4`, `native` for the local-CPU
+  dev-loop, or any literal rustc target-cpu name.
+- Plugin display names that contain filesystem-reserved characters
+  (e.g. `Truce Dry/Wet`) are now sanitized at the path-construction
+  boundary, so the on-disk bundle lands at `Truce Dry-Wet.aaxplugin`
+  while DAWs still display the raw name from the plist.
+
 ## 0.44.0 — 2026-05-18
 
 - **VST3 + CLAP on macOS now link as `MH_BUNDLE` instead of

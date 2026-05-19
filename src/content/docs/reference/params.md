@@ -121,15 +121,18 @@ see [Precision (preludes)](../guide/plugin-anatomy.md#precision-preludes).
 The method takes `&self` (the smoother state is atomic), so it
 works through `Arc<Params>` without `&mut`.
 
-### `.read()` vs `.value()`
+### Read accessors
 
-`FloatParam` exposes three read accessors:
+`FloatParam` exposes four read accessors:
 
 | Method | What it returns | When to use |
 |---|---|---|
 | `.read()` | Next smoothed sample; advances the smoother. | Per-sample DSP loop. |
+| `.read_block::<N>()` | Next `N` smoothed samples as `[f32; N]` (or `[f64; N]` under `prelude64`); advances the smoother by `N`. One atomic load + one atomic store per call, regardless of `N`. | Block-rate DSP — pair with vectorized math (`ops::*_block`, `math::*_block`) to amortize the atomic over a whole block. See the [processing chapter](../guide/processing.md#reading-smoothed-params-per-block) for the full slow-path / fast-path pattern. |
 | `.current()` | Current smoothed value without advancing. | Peeking at the smoother without consuming a tick — e.g. a per-block snapshot. |
 | `.value()` | The raw target value (last write from host automation / `set_normalized`), with no smoothing. | Threshold checks, structural decisions, anything that shouldn't react to the smoother's crawl. |
+
+All four are trait methods (`FloatParamReadF32` / `FloatParamReadF64`) that the preludes bring into scope; the return type follows the prelude in use. `use truce::prelude::*;` gives you `f32`-returning versions, `use truce::prelude64::*;` gives you `f64`-returning versions, same call sites either way.
 
 The canonical case for `.value()` is a parameter that drives a
 *discrete* downstream decision rather than a continuous gain. The
