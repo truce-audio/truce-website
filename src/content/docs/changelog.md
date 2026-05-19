@@ -2,6 +2,20 @@
 
 Notable changes per release.
 
+## 0.45.2 — 2026-05-19
+
+- AAX: Fix ABI mismatch bug (broken since 0.43.0).
+- AAX / `cargo-truce`: Add Pro Tools `pluginrunner` to
+  `cargo truce validate` (used if present).
+- LV2: Fix editor positioning quirks (some quirks remain but no
+  showstoppers).
+- `cargo-truce`: Update help with `--target-cpu`.
+- `cargo-truce`: Thread `--target-cpu` args through `install`,
+  `package`, and `run` commands (with sane defaults).
+- `cargo-truce`: `status` no longer runs auval (too slow for the
+  purpose); use `validate` for that.
+- Stylistic sweep.
+
 ## 0.45.0 — 2026-05-18
 
 - New CI gate exercises every prior release's example crates
