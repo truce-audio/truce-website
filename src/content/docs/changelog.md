@@ -2,6 +2,15 @@
 
 Notable changes per release.
 
+## 0.45.3 — 2026-05-19
+
+- `cargo-truce`: Fix plugin-name to path sanitization mismatch
+  between `build` / `install` and `package` (display names with
+  filesystem-reserved characters like `Truce Dry/Wet` produced a
+  ~15 KB empty installer because `productbuild`'s distribution.xml
+  referenced the raw name while the on-disk `.pkg` files used the
+  sanitized name).
+
 ## 0.45.2 — 2026-05-19
 
 - AAX: Fix ABI mismatch bug (broken since 0.43.0).

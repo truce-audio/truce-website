@@ -10,24 +10,24 @@ sitting.
 
 | Plugin | Type | GUI | Screenshot |
 |--------|------|-----|-----------|
-| [gain](./gain) | Effect | Built-in | <img src="/screenshots/examples/gain.png" width="300" alt="gain plugin"> |
-| [eq](./eq) | Effect | Built-in | <img src="/screenshots/examples/eq.png" width="300" alt="eq plugin"> |
-| [synth](./synth) | Instrument | Built-in | <img src="/screenshots/examples/synth.png" width="300" alt="synth plugin"> |
-| [transpose](./transpose) | MIDI | Built-in | <img src="/screenshots/examples/transpose.png" width="300" alt="transpose plugin"> |
-| [arpeggio](./arpeggio) | MIDI | Built-in | <img src="/screenshots/examples/arpeggio.png" width="300" alt="arpeggio plugin"> |
-| [tremolo](./tremolo) | Effect | egui | <img src="/screenshots/examples/tremolo.png" width="300" alt="tremolo plugin"> |
-| [state](./state) | Effect | egui | <img src="/screenshots/examples/state.png" width="300" alt="state plugin"> |
-| [fundsp-reverb-simple](./fundsp-reverb-simple) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-simple.png" width="300" alt="fundsp-reverb-simple plugin"> |
-| [fundsp-reverb-worker](./fundsp-reverb-worker) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-worker.png" width="300" alt="fundsp-reverb-worker plugin"> |
-| [gain-egui](./gain-egui) | Effect | egui | <img src="/screenshots/examples/gain-egui.png" width="300" alt="gain-egui plugin"> |
-| [gain-iced](./gain-iced) | Effect | Iced | <img src="/screenshots/examples/gain-iced.png" width="300" alt="gain-iced plugin"> |
-| [gain-slint](./gain-slint) | Effect | Slint | <img src="/screenshots/examples/gain-slint.png" width="300" alt="gain-slint plugin"> |
-| [block-gain](./block-gain) | Effect | Built-in | <img src="/screenshots/examples/block-gain.png" width="300" alt="block-gain plugin"> |
-| [block-drywet](./block-drywet) | Effect | Built-in | <img src="/screenshots/examples/block-drywet.png" width="300" alt="block-drywet plugin"> |
-| [block-gate](./block-gate) | Effect | Built-in | <img src="/screenshots/examples/block-gate.png" width="300" alt="block-gate plugin"> |
-| [block-saturate](./block-saturate) | Effect | Built-in | <img src="/screenshots/examples/block-saturate.png" width="300" alt="block-saturate plugin"> |
-| [block-widen](./block-widen) | Effect | Built-in | <img src="/screenshots/examples/block-widen.png" width="300" alt="block-widen plugin"> |
-| [block-surround-meter](./block-surround-meter) | Effect | Built-in | <img src="/screenshots/examples/block-surround-meter.png" width="300" alt="block-surround-meter plugin"> |
+| [gain](./gain) | Effect | Built-in | <img src="/screenshots/examples/gain.png" style="max-width: 300px; max-height: 200px;" alt="gain plugin"> |
+| [eq](./eq) | Effect | Built-in | <img src="/screenshots/examples/eq.png" style="max-width: 300px; max-height: 200px;" alt="eq plugin"> |
+| [synth](./synth) | Instrument | Built-in | <img src="/screenshots/examples/synth.png" style="max-width: 300px; max-height: 200px;" alt="synth plugin"> |
+| [transpose](./transpose) | MIDI | Built-in | <img src="/screenshots/examples/transpose.png" style="max-width: 300px; max-height: 200px;" alt="transpose plugin"> |
+| [arpeggio](./arpeggio) | MIDI | Built-in | <img src="/screenshots/examples/arpeggio.png" style="max-width: 300px; max-height: 200px;" alt="arpeggio plugin"> |
+| [tremolo](./tremolo) | Effect | egui | <img src="/screenshots/examples/tremolo.png" style="max-width: 300px; max-height: 200px;" alt="tremolo plugin"> |
+| [state](./state) | Effect | egui | <img src="/screenshots/examples/state.png" style="max-width: 300px; max-height: 200px;" alt="state plugin"> |
+| [fundsp-reverb-simple](./fundsp-reverb-simple) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-simple.png" style="max-width: 300px; max-height: 200px;" alt="fundsp-reverb-simple plugin"> |
+| [fundsp-reverb-worker](./fundsp-reverb-worker) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-worker.png" style="max-width: 300px; max-height: 200px;" alt="fundsp-reverb-worker plugin"> |
+| [gain-egui](./gain-egui) | Effect | egui | <img src="/screenshots/examples/gain-egui.png" style="max-width: 300px; max-height: 200px;" alt="gain-egui plugin"> |
+| [gain-iced](./gain-iced) | Effect | Iced | <img src="/screenshots/examples/gain-iced.png" style="max-width: 300px; max-height: 200px;" alt="gain-iced plugin"> |
+| [gain-slint](./gain-slint) | Effect | Slint | <img src="/screenshots/examples/gain-slint.png" style="max-width: 300px; max-height: 200px;" alt="gain-slint plugin"> |
+| [block-gain](./block-gain) | Effect | Built-in | <img src="/screenshots/examples/block-gain.png" style="max-width: 300px; max-height: 200px;" alt="block-gain plugin"> |
+| [block-drywet](./block-drywet) | Effect | Built-in | <img src="/screenshots/examples/block-drywet.png" style="max-width: 300px; max-height: 200px;" alt="block-drywet plugin"> |
+| [block-gate](./block-gate) | Effect | Built-in | <img src="/screenshots/examples/block-gate.png" style="max-width: 300px; max-height: 200px;" alt="block-gate plugin"> |
+| [block-saturate](./block-saturate) | Effect | Built-in | <img src="/screenshots/examples/block-saturate.png" style="max-width: 300px; max-height: 200px;" alt="block-saturate plugin"> |
+| [block-widen](./block-widen) | Effect | Built-in | <img src="/screenshots/examples/block-widen.png" style="max-width: 300px; max-height: 200px;" alt="block-widen plugin"> |
+| [block-surround-meter](./block-surround-meter) | Effect | Built-in | <img src="/screenshots/examples/block-surround-meter.png" style="max-width: 300px; max-height: 200px;" alt="block-surround-meter plugin"> |
 
 The four gain variants (`gain`, `gain-egui`, `gain-iced`,
 `gain-slint`) implement the same plugin with different GUI
