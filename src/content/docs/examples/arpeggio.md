@@ -1,5 +1,7 @@
 # Arpeggio
 
+<img src="/screenshots/examples/arpeggio.png" width="400" alt="arpeggio plugin">
+
 Tempo-synced arpeggiator that sequences held notes in configurable
 patterns.
 

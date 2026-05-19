@@ -1,5 +1,7 @@
 # Block Saturate
 
+<img src="/screenshots/examples/block-saturate.png" width="400" alt="block-saturate plugin">
+
 Series saturator: drive → `tanh` soft-clip → make-up gain.
 Demonstrates composing `ops::*` and `math::*` through scratch
 buffers when the chain has more than one stage.

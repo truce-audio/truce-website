@@ -1,5 +1,7 @@
 # Block Surround Meter
 
+<img src="/screenshots/examples/block-surround-meter.png" width="400" alt="block-surround-meter plugin">
+
 5.1 surround pass-through with per-channel dB-scale meters.
 Demos [`truce_simd::math::linear_to_db_block`] on an array of
 per-channel peaks converted all at once. For one or two peaks

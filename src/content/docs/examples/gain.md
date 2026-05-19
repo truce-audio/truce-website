@@ -1,5 +1,7 @@
 # Gain
 
+<img src="/screenshots/examples/gain.png" width="400" alt="gain plugin">
+
 Stereo gain and pan utility with level metering. Uses the
 built-in GUI.
 

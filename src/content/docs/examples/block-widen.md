@@ -1,5 +1,7 @@
 # Block Widen
 
+<img src="/screenshots/examples/block-widen.png" width="400" alt="block-widen plugin">
+
 Stereo widener via mid-side recombination. Decomposes input
 into `mid = (L+R)/2` and `side = (L-R)/2`, then recombines as
 `L = mid + side * width`, `R = mid - side * width`. `width =

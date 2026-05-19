@@ -1,5 +1,7 @@
 # Tremolo
 
+<img src="/screenshots/examples/tremolo.png" width="400" alt="tremolo plugin">
+
 Beat-synced amplitude LFO. Demonstrates the host-transport feature
 end-to-end: the DSP reads `ProcessContext::transport` to lock the
 LFO phase to the host's beat grid, and the editor reads

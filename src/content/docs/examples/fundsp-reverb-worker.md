@@ -1,5 +1,7 @@
 # Fundsp Reverb (Worker variant)
 
+<img src="/screenshots/examples/fundsp-reverb-worker.png" width="400" alt="fundsp-reverb-worker plugin">
+
 Stereo plate reverb wired through a
 [`fundsp`](https://github.com/SamiPerttu/fundsp) audio graph. The
 point of this example is the integration shape — how to hold a

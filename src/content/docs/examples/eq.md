@@ -1,5 +1,7 @@
 # EQ
 
+<img src="/screenshots/examples/eq.png" width="400" alt="eq plugin">
+
 3-band parametric equalizer using biquad filters.
 
 Source: [`examples/truce-example-eq/`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-eq).

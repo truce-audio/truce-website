@@ -1,5 +1,7 @@
 # State
 
+<img src="/screenshots/examples/state.png" width="400" alt="state plugin">
+
 Hello-world for `#[derive(State)]` — the per-instance non-numeric
 data plumbing.
 

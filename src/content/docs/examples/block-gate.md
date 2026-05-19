@@ -1,5 +1,7 @@
 # Block Gate
 
+<img src="/screenshots/examples/block-gate.png" width="400" alt="block-gate plugin">
+
 Noise gate: passes audio through when the block peak is above
 threshold, zeroes the output when below. Per-block detect and
 apply (hard gate, zero ramp) to keep the example focused on the

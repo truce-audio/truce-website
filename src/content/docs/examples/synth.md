@@ -1,5 +1,7 @@
 # Synth
 
+<img src="/screenshots/examples/synth.png" width="400" alt="synth plugin">
+
 16-voice polyphonic synthesizer with oscillator, filter, and ADSR
 envelope.
 

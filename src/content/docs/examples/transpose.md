@@ -1,5 +1,7 @@
 # Transpose
 
+<img src="/screenshots/examples/transpose.png" width="400" alt="transpose plugin">
+
 MIDI note transposer with semitone and octave controls.
 
 Source: [`examples/truce-example-transpose/`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-transpose).

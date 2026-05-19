@@ -1,5 +1,7 @@
 # Gain (iced)
 
+<img src="/screenshots/examples/gain-iced.png" width="400" alt="gain-iced plugin">
+
 The gain plugin reimplemented with an
 [iced](https://github.com/iced-rs/iced) GUI. Same DSP as the
 built-in [gain](./gain) example, different frontend.

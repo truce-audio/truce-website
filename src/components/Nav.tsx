@@ -95,12 +95,6 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
           >
             GitHub
           </a>
-          <Link
-            href="/docs/guide/install/"
-            className="ml-2 inline-flex items-center rounded-md bg-accent px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-accent-fg transition-opacity hover:opacity-90"
-          >
-            Get started
-          </Link>
         </div>
 
         {/* Hamburger. On docs routes: hidden lg+; on other routes: hidden sm+.
@@ -130,12 +124,6 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
               >
                 GitHub
               </a>
-              <Link
-                href="/docs/guide/install/"
-                className={`${MOBILE_ITEM_CLASS} bg-accent text-accent-fg hover:bg-accent hover:opacity-90`}
-              >
-                Get started
-              </Link>
             </div>
 
             {docsSections.length > 0 && (
