@@ -298,6 +298,12 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "examples/gain-egui.md",
     "examples/gain-iced.md",
     "examples/gain-slint.md",
+    "examples/block-gain.md",
+    "examples/block-drywet.md",
+    "examples/block-gate.md",
+    "examples/block-saturate.md",
+    "examples/block-widen.md",
+    "examples/block-surround-meter.md",
   ];
 
   const formatOrder = [
