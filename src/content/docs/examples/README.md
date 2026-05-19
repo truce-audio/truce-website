@@ -22,11 +22,24 @@ sitting.
 | [gain-egui](./gain-egui) | Effect | egui | <img src="/screenshots/examples/gain-egui.png" width="300" alt="gain-egui plugin"> |
 | [gain-iced](./gain-iced) | Effect | Iced | <img src="/screenshots/examples/gain-iced.png" width="300" alt="gain-iced plugin"> |
 | [gain-slint](./gain-slint) | Effect | Slint | <img src="/screenshots/examples/gain-slint.png" width="300" alt="gain-slint plugin"> |
+| [block-gain](./block-gain) | Effect | Built-in | <img src="/screenshots/examples/block-gain.png" width="300" alt="block-gain plugin"> |
+| [block-drywet](./block-drywet) | Effect | Built-in | <img src="/screenshots/examples/block-drywet.png" width="300" alt="block-drywet plugin"> |
+| [block-gate](./block-gate) | Effect | Built-in | <img src="/screenshots/examples/block-gate.png" width="300" alt="block-gate plugin"> |
+| [block-saturate](./block-saturate) | Effect | Built-in | <img src="/screenshots/examples/block-saturate.png" width="300" alt="block-saturate plugin"> |
+| [block-widen](./block-widen) | Effect | Built-in | <img src="/screenshots/examples/block-widen.png" width="300" alt="block-widen plugin"> |
+| [block-surround-meter](./block-surround-meter) | Effect | Built-in | <img src="/screenshots/examples/block-surround-meter.png" width="300" alt="block-surround-meter plugin"> |
 
 The four gain variants (`gain`, `gain-egui`, `gain-iced`,
 `gain-slint`) implement the same plugin with different GUI
 frameworks. Compare them to see how each framework handles the
 same layout.
+
+The six `block-*` examples each isolate one `truce_simd::ops::*`
+or `truce_simd::math::*` shape (`mix_block`, `mac_block`,
+`abs_max_block` + `zero_block`, `tanh_block`,
+`db_to_linear_block`, `linear_to_db_block`). See the [SIMD
+section of the processing guide](../guide/processing#compile-time-simd-baseline)
+for the design.
 
 The two `fundsp-reverb-*` crates share a topology and signal
 flow but rebuild the graph differently; the [fundsp integration
