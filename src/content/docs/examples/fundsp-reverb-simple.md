@@ -1,6 +1,6 @@
 # Fundsp Reverb (Simple variant)
 
-<img src="/screenshots/examples/fundsp-reverb-simple.png" width="400" alt="fundsp-reverb-simple plugin">
+<img src="/screenshots/examples/fundsp-reverb-simple.png" style="max-width: 400px; max-height: 300px;" alt="fundsp-reverb-simple plugin">
 
 Stereo plate reverb wired through a
 [`fundsp`](https://github.com/SamiPerttu/fundsp) audio graph. Same

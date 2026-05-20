@@ -1,6 +1,6 @@
 # State
 
-<img src="/screenshots/examples/state.png" width="400" alt="state plugin">
+<img src="/screenshots/examples/state.png" style="max-width: 400px; max-height: 300px;" alt="state plugin">
 
 Hello-world for `#[derive(State)]` — the per-instance non-numeric
 data plumbing.

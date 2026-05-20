@@ -1,6 +1,6 @@
 # Fundsp Reverb (Worker variant)
 
-<img src="/screenshots/examples/fundsp-reverb-worker.png" width="400" alt="fundsp-reverb-worker plugin">
+<img src="/screenshots/examples/fundsp-reverb-worker.png" style="max-width: 400px; max-height: 300px;" alt="fundsp-reverb-worker plugin">
 
 Stereo plate reverb wired through a
 [`fundsp`](https://github.com/SamiPerttu/fundsp) audio graph. The

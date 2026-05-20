@@ -1,6 +1,6 @@
 # Block Gain
 
-<img src="/screenshots/examples/block-gain.png" width="400" alt="block-gain plugin">
+<img src="/screenshots/examples/block-gain.png" style="max-width: 400px; max-height: 300px;" alt="block-gain plugin">
 
 Fully SIMD-optimized gain plugin: block-rate processing plus a
 vectorized envelope precompute for the slow-path smoothing case.

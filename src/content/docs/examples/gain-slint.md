@@ -1,6 +1,6 @@
 # Gain (slint)
 
-<img src="/screenshots/examples/gain-slint.png" width="400" alt="gain-slint plugin">
+<img src="/screenshots/examples/gain-slint.png" style="max-width: 400px; max-height: 300px;" alt="gain-slint plugin">
 
 The gain plugin reimplemented with a
 [Slint](https://github.com/slint-ui/slint) GUI. Same DSP as the

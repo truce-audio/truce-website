@@ -1,6 +1,6 @@
 # Gain (egui)
 
-<img src="/screenshots/examples/gain-egui.png" width="400" alt="gain-egui plugin">
+<img src="/screenshots/examples/gain-egui.png" style="max-width: 400px; max-height: 300px;" alt="gain-egui plugin">
 
 The gain plugin reimplemented with an
 [egui](https://github.com/emilk/egui) GUI. Same DSP as the

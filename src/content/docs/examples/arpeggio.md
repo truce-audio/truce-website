@@ -1,6 +1,6 @@
 # Arpeggio
 
-<img src="/screenshots/examples/arpeggio.png" width="400" alt="arpeggio plugin">
+<img src="/screenshots/examples/arpeggio.png" style="max-width: 400px; max-height: 300px;" alt="arpeggio plugin">
 
 Tempo-synced arpeggiator that sequences held notes in configurable
 patterns.

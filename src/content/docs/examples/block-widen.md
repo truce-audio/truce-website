@@ -1,6 +1,6 @@
 # Block Widen
 
-<img src="/screenshots/examples/block-widen.png" width="400" alt="block-widen plugin">
+<img src="/screenshots/examples/block-widen.png" style="max-width: 400px; max-height: 300px;" alt="block-widen plugin">
 
 Stereo widener via mid-side recombination. Decomposes input
 into `mid = (L+R)/2` and `side = (L-R)/2`, then recombines as

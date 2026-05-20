@@ -1,6 +1,6 @@
 # Block Dry/Wet
 
-<img src="/screenshots/examples/block-drywet.png" width="400" alt="block-drywet plugin">
+<img src="/screenshots/examples/block-drywet.png" style="max-width: 400px; max-height: 300px;" alt="block-drywet plugin">
 
 Parallel-saturation dry/wet plugin. Wet path is a `tanh_block`
 soft-clip after a drive boost; dry and wet blend through

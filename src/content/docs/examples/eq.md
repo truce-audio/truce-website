@@ -1,6 +1,6 @@
 # EQ
 
-<img src="/screenshots/examples/eq.png" width="400" alt="eq plugin">
+<img src="/screenshots/examples/eq.png" style="max-width: 400px; max-height: 300px;" alt="eq plugin">
 
 3-band parametric equalizer using biquad filters.
 
