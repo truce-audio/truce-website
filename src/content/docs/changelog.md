@@ -8,7 +8,7 @@ Notable changes per release.
 - `truce-egui`: Add `param_dropdown` widget (stock click-to-open
   dropdown wrapping `egui::ComboBox`).
 - `truce-egui`: `param_knob` snaps to discrete steps on enum /
-  discrete params; previously felt "stuck" on small drag deltas.
+  discrete params.
 - Examples: Tremolo refreshed (compact transport line, fractional
   rate labels, dropdown polish).
 
