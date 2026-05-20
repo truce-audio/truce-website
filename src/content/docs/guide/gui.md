@@ -67,8 +67,6 @@ points. Override any of those:
 | `meter(&[P::L, P::R], "Label")` | vertical level meters | peak / RMS output |
 | `xy_pad(P::X, P::Y, "Label")` | 2-axis pad | two continuous params on one surface |
 
-Most plugins only use `knob`, `toggle`, and `meter`.
-
 ### Spanning cells
 
 ```rust
@@ -79,7 +77,6 @@ xy_pad(P::X, P::Y, "Pad").cols(2).rows(2),      // 2×2 cell block
 ```
 
 Explicit positions work too: `knob(P::Gain, "Gain").at(col, row)`.
-Useful when you want a dial tucked into the corner of a meter.
 
 ### Meters
 

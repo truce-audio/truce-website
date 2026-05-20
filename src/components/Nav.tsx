@@ -144,6 +144,25 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
       .forEach((el) => el.removeAttribute("open"));
   }, [pathname]);
 
+  // Close the dropdown when a tap lands outside the <details>. Native
+  // <details> doesn't dismiss on outside clicks; we add a `pointerdown`
+  // listener so the close feels snappy on touch (firing before the
+  // browser's synthetic click). Taps on links inside the dropdown
+  // still navigate normally - the route-change effect above handles
+  // dismissal in that case.
+  useEffect(() => {
+    const onDocPointerDown = (e: PointerEvent) => {
+      const details = detailsRef.current;
+      if (!details || !details.open) return;
+      const target = e.target as Node | null;
+      if (target && !details.contains(target)) {
+        details.open = false;
+      }
+    };
+    document.addEventListener("pointerdown", onDocPointerDown);
+    return () => document.removeEventListener("pointerdown", onDocPointerDown);
+  }, []);
+
   const onPointerDown = (e: React.PointerEvent) => {
     dragRef.current = {
       startX: e.clientX,

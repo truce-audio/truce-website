@@ -67,7 +67,8 @@ Widget constructors accept `impl Into<u32>`, so both typed enum IDs
 
 If you don't specify a widget type, the default is inferred from
 the parameter type: `BoolParam` → toggle, `EnumParam` →
-selector, everything else → knob.
+dropdown, everything else → knob. Pass `selector(...)` explicitly
+if you want the click-to-cycle behavior instead.
 
 ## Sections
 

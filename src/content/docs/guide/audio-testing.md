@@ -186,8 +186,7 @@ driver!(MyEffect)
 ```
 
 The second arg is a [`SetupContext`] carrying the resolved channel
-count, sample rate, and block size — useful when the closure needs
-to size per-channel scratch:
+count, sample rate, and block size:
 
 ```rust
 driver!(MyEffect)

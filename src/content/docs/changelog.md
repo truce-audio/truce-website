@@ -2,6 +2,23 @@
 
 Notable changes per release.
 
+## 0.46.0 — 2026-05-20
+
+- `truce-iced`: Migrate to iced 0.14.
+- `truce-egui`: Add `param_dropdown` widget (stock click-to-open
+  dropdown wrapping `egui::ComboBox`).
+- `truce-egui`: `param_knob` snaps to discrete steps on enum /
+  discrete params; previously felt "stuck" on small drag deltas.
+- Examples: Tremolo refreshed (compact transport line, fractional
+  rate labels, dropdown polish).
+
+## 0.45.4 — 2026-05-20
+
+- LV2: Fix install path on Windows.
+- LV2: Fix param defaults (mirror other formats).
+- Standalone: Disable window resizing on Linux (mirror other OSes).
+- Examples: Fix `fourcc` collision between two example plugins.
+
 ## 0.45.3 — 2026-05-19
 
 - `cargo-truce`: Fix plugin-name to path sanitization mismatch

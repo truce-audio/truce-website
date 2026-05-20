@@ -88,8 +88,8 @@ that are expensive or that don't care about sample-accuracy
 
 ## Per-channel loop with input/output pairs
 
-Useful when you need separate read and write pointers (convolution,
-IIR filters) rather than in-place modification:
+If you need separate read and write pointers (convolution, IIR
+filters) rather than in-place modification:
 
 ```rust
 for ch in 0..buffer.num_output_channels() {
@@ -103,12 +103,11 @@ ProcessStatus::Normal
 
 ## SIMD block operations
 
-For a single gain knob on a stereo channel strip the per-sample
-shape above is fine — LLVM autovectorizes the simple cases and the
-cost is invisible. The `truce_simd` crate exists for the rest:
-many channels, many smoothed knobs, transcendentals in the inner
-loop. Its per-block primitives compile down to packed SIMD (NEON
-on aarch64; SSE / AVX / AVX-512 on x86_64) and unlock a 4x–16x
+LLVM autovectorizes the simple per-sample shapes and the cost is
+invisible. The `truce_simd` crate exists for the rest: many
+channels, many smoothed knobs, transcendentals in the inner loop.
+Its per-block primitives compile down to packed SIMD (NEON on
+aarch64; SSE / AVX / AVX-512 on x86_64) and unlock a 4x–16x
 throughput win on the shapes that need it. Reach for it when
 you've measured a hot spot, or when you know up-front the workload
 will hit one of those triggers.
