@@ -142,10 +142,6 @@ if (time_s - self.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
 }
 ```
 
-Read `value()` (the raw target), not `read()` (the smoothed
-sample-by-sample reading), or you get the unstable-tail problem
-again even with the threshold.
-
 ## Variant 1: inline rebuild (the simple crate)
 
 The simple variant just calls `rebuild_graph` directly inside
@@ -318,7 +314,7 @@ makes "I've already asked for this target" implicit.
 If the user then moves Time *further* past the threshold while
 the worker is still building, the diff trips again and a new
 request lands. Worst case, the worker discards one graph and
-builds the latest one. Acceptable.
+builds the latest one.
 
 ### Drop joins the worker
 
