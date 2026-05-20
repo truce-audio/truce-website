@@ -35,11 +35,11 @@ inherits = "release"           # ← shell binaries land at target/shell/
 cargo truce install --shell
 
 # Iterate (release-quality DSP, slower compile):
-cargo watch -x "build --release -p my-plugin"
+cargo build --release -p my-plugin
 
 # Or, for faster compile / debug-quality DSP:
 cargo truce install --shell --debug
-cargo watch -x "build -p my-plugin"
+cargo build -p my-plugin
 ```
 
 `--shell` flips the `shell` feature on, which makes `truce::plugin!`
