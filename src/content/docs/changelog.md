@@ -2,6 +2,14 @@
 
 Notable changes per release.
 
+## 0.48.3 — 2026-05-21
+
+- `cargo-truce`: Improve iOS screenshot reliability — clear any
+  stale `_truce_editor_frame.json` before launch, extend the
+  first-paint poll timeout for cold CI runners, and hard-fail
+  with a diagnostic when the editor never renders (instead of
+  silently proceeding to a misleading "screenshot size mismatch").
+
 ## 0.48.2 — 2026-05-21
 
 - `truce-egui`: Migrate to egui 0.34 (bumps `wgpu` to 29 transitively).
