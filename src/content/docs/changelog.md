@@ -9,6 +9,7 @@ Notable changes per release.
   closure now receive `&mut egui::Ui` instead of `&egui::Context` —
   egui 0.34 deprecates `Context::run` plus the per-panel `show(ctx, …)`
   entry points in favor of `Context::run_ui` and `show_inside(ui, …)`.
+- For egui-0.33 parity with `nih-plug`, pin truce to `0.47.0`.
 
 ## 0.47.0 — 2026-05-20
 
