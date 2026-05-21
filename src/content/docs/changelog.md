@@ -2,11 +2,15 @@
 
 Notable changes per release.
 
-## 0.48.1 — 2026-05-20
+## 0.48.2 — 2026-05-21
 
-- Bump MSRV to 1.92 (should've been done at 0.48.0)
+- Fix Windows GUI builds (broken since 0.48.0).
 
-## 0.48.0 — 2026-05-20
+## 0.48.1 — 2026-05-20 (yanked)
+
+- Bump MSRV to 1.92 (should've been done at 0.48.0).
+
+## 0.48.0 — 2026-05-20 (yanked)
 
 - `truce-egui`: Migrate to egui 0.34 (bumps `wgpu` to 29 transitively).
 - **Breaking (`truce-egui`):** `EditorUi::ui` and the `EguiEditor::new`
