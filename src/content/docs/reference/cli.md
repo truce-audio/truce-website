@@ -187,7 +187,7 @@ cargo truce package --formats clap,vst3,aax  # subset
 | `-p <crate>` | Single plugin. |
 | `--target-cpu <value>` | Same semantics as [`build`](#--target-cpu). |
 
-Output: `target/dist/<Name>-<version>-{macos.pkg,windows.exe}`, with a `-user` / `-system` suffix when scope is hard-locked.
+Output: `target/dist/<Name>-<version>-{macos.pkg,windows.exe}` (with a `-user` / `-system` suffix when scope is hard-locked) or `target/dist/<bundle_id>-<version>-linux-<arch>.tar.gz` on Linux.
 
 Defaults: universal architecture (macOS = fat Mach-O `x86_64` + `aarch64`; Windows = `x64` + `arm64` payloads).
 

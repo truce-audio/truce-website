@@ -29,9 +29,7 @@ fn main() {
 `truce_slint_build::compile` wraps `slint-build` with the truce
 widget library and the bundled JetBrains Mono font already wired
 in, so `import { ... } from "@truce";` and `import
-"JetBrainsMono-Regular.ttf";` in your `.slint` files just work —
-no need to point the Slint compiler at any truce source paths
-yourself.
+"JetBrainsMono-Regular.ttf";` in your `.slint` files just work.
 
 ## A simple plugin UI
 

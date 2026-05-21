@@ -197,12 +197,16 @@ cargo truce package --user                   # hard-locked user-scope installer
 cargo truce package --system                 # hard-locked system-scope installer
 ```
 
-Output: `target/dist/<Name>-<version>-{macos.pkg,windows.exe}`,
-optionally suffixed with `-user` / `-system` when the scope is
-hard-locked so a `--user` and `--system` build of the same plugin
-don't overwrite each other in `dist/`. Version comes from
-`[workspace.package] version` or `[package] version` in
-`Cargo.toml`.
+Output: `target/dist/<Name>-<version>-macos.pkg`,
+`target/dist/<Name>-<version>-windows.exe`, or
+`target/dist/<bundle_id>-<version>-linux-<arch>.tar.gz` (the Linux
+tarball ships an `install.sh` instead of taking a `--user` /
+`--system` scope at build time — see [Linux](#linux) below).
+macOS and Windows builds are optionally suffixed with `-user` /
+`-system` when the scope is hard-locked so a `--user` and
+`--system` build of the same plugin don't overwrite each other in
+`dist/`. Version comes from `[workspace.package] version` or
+`[package] version` in `Cargo.toml`.
 
 ### Scope (`--ask` / `--user` / `--system`)
 
