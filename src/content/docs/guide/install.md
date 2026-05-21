@@ -6,7 +6,7 @@ Set up your machine to build truce plugins. Three things: Rust, a system C/C++ c
 
 ## Rust
 
-Install Rust **1.90+** via [rustup.rs]. If you already have it, `rustup update`.
+Install Rust **1.92+** via [rustup.rs]. If you already have it, `rustup update`.
 
 [rustup.rs]: https://rustup.rs
 
