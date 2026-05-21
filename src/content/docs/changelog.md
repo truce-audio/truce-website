@@ -2,7 +2,7 @@
 
 Notable changes per release.
 
-## 0.48.0 — unreleased
+## 0.48.0 — 2026-05-20
 
 - `truce-egui`: Migrate to egui 0.34 (bumps `wgpu` to 29 transitively).
 - **Breaking (`truce-egui`):** `EditorUi::ui` and the `EguiEditor::new`
