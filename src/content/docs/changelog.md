@@ -4,20 +4,15 @@ Notable changes per release.
 
 ## 0.48.2 — 2026-05-21
 
-- Fix Windows GUI builds (broken since 0.48.0).
-
-## 0.48.1 — 2026-05-20 (yanked)
-
-- Bump MSRV to 1.92 (should've been done at 0.48.0).
-
-## 0.48.0 — 2026-05-20 (yanked)
-
 - `truce-egui`: Migrate to egui 0.34 (bumps `wgpu` to 29 transitively).
 - **Breaking (`truce-egui`):** `EditorUi::ui` and the `EguiEditor::new`
   closure now receive `&mut egui::Ui` instead of `&egui::Context` —
   egui 0.34 deprecates `Context::run` plus the per-panel `show(ctx, …)`
   entry points in favor of `Context::run_ui` and `show_inside(ui, …)`.
+- Bump MSRV to 1.92.
 - For egui-0.33 parity with `nih-plug`, pin truce to `0.47.0`.
+
+(0.48.0 and 0.48.1 were yanked — install 0.48.2.)
 
 ## 0.47.0 — 2026-05-20
 
