@@ -2,6 +2,24 @@
 
 Notable changes per release.
 
+## 0.48.0 — unreleased
+
+- `truce-egui`: Migrate to egui 0.34 (bumps `wgpu` to 29 transitively).
+- **Breaking (`truce-egui`):** `EditorUi::ui` and the `EguiEditor::new`
+  closure now receive `&mut egui::Ui` instead of `&egui::Context` —
+  egui 0.34 deprecates `Context::run` plus the per-panel `show(ctx, …)`
+  entry points in favor of `Context::run_ui` and `show_inside(ui, …)`.
+
+## 0.47.0 — 2026-05-20
+
+- `truce-egui`: Migrate to egui 0.33 (bumps `wgpu` to 27 transitively).
+- wgpu 27 made all graphics backends opt-in; on Linux this surfaced as
+  `Instance::new` panicking with "No wgpu backend feature [...] enabled".
+  `truce-gpu` now declares the per-OS feature set
+  (`metal` on macOS/iOS, `dx12` on Windows, `vulkan` + `gles` on Linux)
+  in target-conditional `[dependencies]` blocks, so Cargo's feature
+  unification carries the right backends to every downstream consumer.
+
 ## 0.46.0 — 2026-05-20
 
 - `truce-iced`: Migrate to iced 0.14.

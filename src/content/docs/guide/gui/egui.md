@@ -10,7 +10,7 @@ hosting handled for you.
 ```toml
 [dependencies]
 truce-egui = { workspace = true }
-egui = "0.31"
+egui = "0.34"
 ```
 
 Override `custom_editor()` and return an `EguiEditor`:
@@ -26,11 +26,9 @@ impl PluginLogic for MyPlugin {
         Some(Box::new(EguiEditor::new(
             self.params.clone(),
             (400, 300),
-            |ctx: &egui::Context, state: &PluginContext<MyParams>| {
-                egui::CentralPanel::default().show(ctx, |ui| {
-                    ui.heading("My Plugin");
-                    param_knob(ui, state, P::Gain, "Gain");
-                });
+            |ui: &mut egui::Ui, state: &PluginContext<MyParams>| {
+                ui.heading("My Plugin");
+                param_knob(ui, state, P::Gain, "Gain");
             },
         )))
     }
@@ -39,8 +37,10 @@ impl PluginLogic for MyPlugin {
 
 The closure is your egui frame function — it runs every frame, same as
 `eframe::App::update`. `(400, 300)` is the window size in logical points.
-`PluginContext<MyParams>` is typed for direct `Deref` access to the
-plugin's `Params` fields (`state.gain.read()` etc.) inside the
+The `&mut Ui` you receive is the root UI for the editor window — nest
+`Panel::top`, `CentralPanel`, etc. with `.show_inside(ui, …)` if you
+want them. `PluginContext<MyParams>` is typed for direct `Deref` access
+to the plugin's `Params` fields (`state.gain.read()` etc.) inside the
 closure.
 
 ## PluginContext
@@ -85,15 +85,13 @@ use truce_egui::widgets::{
 Typical layout:
 
 ```rust
-fn my_ui(ctx: &egui::Context, state: &PluginContext<MyParams>) {
-    egui::CentralPanel::default().show(ctx, |ui| {
-        ui.horizontal(|ui| {
-            param_knob(ui, state, P::Gain, "Gain");
-            param_knob(ui, state, P::Pan, "Pan");
-            level_meter(ui, state, &[P::MeterLeft, P::MeterRight], 200.0);
-        });
-        param_xy_pad(ui, state, P::Pan, P::Gain, "Pan / Gain", 130.0, 130.0);
+fn my_ui(ui: &mut egui::Ui, state: &PluginContext<MyParams>) {
+    ui.horizontal(|ui| {
+        param_knob(ui, state, P::Gain, "Gain");
+        param_knob(ui, state, P::Pan, "Pan");
+        level_meter(ui, state, &[P::MeterLeft, P::MeterRight], 200.0);
     });
+    param_xy_pad(ui, state, P::Pan, P::Gain, "Pan / Gain", 130.0, 130.0);
 }
 ```
 
@@ -126,8 +124,8 @@ EguiEditor::new(self.params.clone(), (400, 300), my_ui)
     .with_font(truce_gui::font::JETBRAINS_MONO)
 ```
 
-You can also call `ctx.set_visuals()` inside your frame function to
-switch themes at runtime.
+You can also call `ui.ctx().set_visuals()` inside your frame function
+to switch themes at runtime.
 
 The truce theme exports color constants for consistency with the
 built-in GUI widgets:
@@ -148,14 +146,12 @@ use truce_egui::EditorUi;
 struct MyUi { tab: usize }
 
 impl EditorUi<MyParams> for MyUi {
-    fn ui(&mut self, ctx: &egui::Context, state: &PluginContext<MyParams>) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.selectable_value(&mut self.tab, 0, "Controls");
-                ui.selectable_value(&mut self.tab, 1, "Settings");
-            });
-            // draw based on self.tab
+    fn ui(&mut self, ui: &mut egui::Ui, state: &PluginContext<MyParams>) {
+        ui.horizontal(|ui| {
+            ui.selectable_value(&mut self.tab, 0, "Controls");
+            ui.selectable_value(&mut self.tab, 1, "Settings");
         });
+        // draw based on self.tab
     }
 }
 
@@ -168,7 +164,7 @@ EguiEditor::with_ui(self.params.clone(), (640, 480), MyUi { tab: 0 })
 | Method | When | Use for |
 |---|---|---|
 | `opened(&mut self, &PluginContext<P>)` | Editor window opens | Initialize `StateBinding`, load resources |
-| `ui(&mut self, &egui::Context, &PluginContext<P>)` | Every frame | Draw your UI |
+| `ui(&mut self, &mut egui::Ui, &PluginContext<P>)` | Every frame | Draw your UI |
 | `state_changed(&mut self, &PluginContext<P>)` | Preset recall, undo, session load | Re-sync cached state |
 
 All have default no-ops. Only `ui()` is required.
@@ -194,10 +190,8 @@ impl EditorUi<MyParams> for MyUi {
         self.state = StateBinding::new(ctx.clone().dyn_erase());
     }
 
-    fn ui(&mut self, egui_ctx: &egui::Context, _ctx: &PluginContext<MyParams>) {
-        egui::CentralPanel::default().show(egui_ctx, |ui| {
-            ui.label(&self.state.get().instance_name);
-        });
+    fn ui(&mut self, ui: &mut egui::Ui, _ctx: &PluginContext<MyParams>) {
+        ui.label(&self.state.get().instance_name);
     }
 
     fn state_changed(&mut self, _ctx: &PluginContext<MyParams>) {
@@ -215,7 +209,7 @@ self.state.update(|s| s.instance_name = new_name);
 For the closure API, use `.on_state_changed()`:
 
 ```rust
-EguiEditor::new(self.params.clone(), (400, 300), |ctx, state| { /* ui */ })
+EguiEditor::new(self.params.clone(), (400, 300), |ui, state| { /* ui */ })
     .on_state_changed(|state| { /* re-read cached state */ })
 ```
 

@@ -11,7 +11,7 @@ Add the dependencies:
 ```toml
 [dependencies]
 truce-iced = { workspace = true }
-iced = { version = "0.13", default-features = false, features = ["canvas", "wgpu"] }
+iced = { version = "0.14", default-features = false, features = ["canvas", "wgpu"] }
 ```
 
 The simplest approach is auto mode — generate a UI from your layout

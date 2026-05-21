@@ -12,7 +12,7 @@ Source: [`examples/truce-example-gain-egui/`](https://github.com/truce-audio/tru
 
 - `EguiEditor` with a closure-based UI function
 - `param_knob`, `param_xy_pad`, `level_meter` helper widgets
-- Custom header using `egui::TopBottomPanel`
+- Custom header using `egui::Panel::top`
 - Theme color constants from `truce_egui::theme`
 - Consistent window sizing with `WINDOW_W`/`WINDOW_H` constants
 - Screenshot testing with `truce_egui::screenshot`
