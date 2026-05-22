@@ -257,8 +257,7 @@ Notable changes per release.
   always emits the bundled Swift container template (title, Play,
   status, hamburger overlay). Plug-ins that need a bespoke shell
   hand-author it outside the pipeline and load the `.appex` truce
-  builds. First-class support for swapping in a custom container
-  is on the roadmap.
+  builds. 
 - **iced on iOS.** iced's `iced_winit` calls a desktop-only `winit`
   trait inside a non-iOS-gated branch, so `truce-example-gain-iced`
   doesn't build for `aarch64-apple-ios*`. Blocked upstream.
