@@ -244,8 +244,6 @@ Notable changes per release.
 - **Retail iLok / PACE round-trip.** PACE wraptool is wired and
   exercised against a dev iLok account; we haven't yet round-tripped
   through a retail iLok + retail Pro Tools install.
-- **Pro Tools shell-mode smoke test.** Manual: load a `--shell` AAX
-  bundle in Pro Tools Developer, confirm hot-reload fires.
 - **Authenticode round-trip with a real cert.** The Azure Trusted
   Signing / SHA1 thumbprint / `.pfx` paths are wired but haven't
   been exercised with a real EV / OV cert end-to-end.
