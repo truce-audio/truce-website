@@ -2,6 +2,11 @@
 
 Notable changes per release.
 
+## 0.48.4 (2026-05-21)
+
+- Standalone: Fix default device selection on Linux (broke after
+  cpal 0.17 update in 0.48.x).
+
 ## 0.48.3 (2026-05-21)
 
 - `cargo-truce`: Improve iOS screenshot reliability, clear any
