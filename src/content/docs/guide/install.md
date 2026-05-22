@@ -26,6 +26,8 @@ Installs the Xcode command-line tools (clang, system headers). All system framew
 
 Install Visual Studio 2019+ with the **"Desktop development with C++"** workload. The Windows SDK and MSVC toolchain come with it. WSL users: install Rust on Windows itself, not in WSL — plugin hosts can't load ELF binaries from WSL paths.
 
+To ship a universal x64 + ARM64 installer, see [Dual-arch on Windows](#dual-arch-on-windows).
+
 **Linux**
 
 ```sh
@@ -110,6 +112,15 @@ Needs the Avid AAX SDK (point `AAX_SDK_PATH` at it) plus PACE/iLok for retail Pr
 - **macOS:** signing identities + Apple notary credentials. See [`cargo-config`](../reference/cargo-config.md).
 - **Windows:** [Inno Setup 6](https://jrsoftware.org/isinfo.php) for `ISCC.exe`, plus an Authenticode source (Azure Trusted Signing, cert thumbprint, or `.pfx`). See [`cargo-config`](../reference/cargo-config.md).
 - **Linux:** no signed-installer support yet.
+
+### Dual-arch on Windows
+
+`cargo truce package` ships a universal x64 + ARM64 installer by default. You need two things:
+
+1. The Rust target: `rustup target add aarch64-pc-windows-msvc`
+2. The MSVC cross-tools: VS Installer → Modify → **Individual components** → check **"MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools"** (or **v145** on VS 2026).
+
+`cargo truce doctor` reports whether both are in place. Pass `--host-only` to `cargo truce package` if you want to skip ARM64 for a quick iteration build.
 
 ### sccache
 
