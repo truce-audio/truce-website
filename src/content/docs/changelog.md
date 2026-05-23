@@ -2,6 +2,21 @@
 
 Notable changes per release.
 
+## 0.48.9 (2026-05-23)
+
+- Examples: Fix blocksize bug in EQ example.
+- AAX: Set `UNSAFE_OBJC2_ALLOW_CLASS_OVERRIDE` when building AAX
+  to prevent same-class-name crashes when multiple AAX plugins
+  load into the same host process (e.g. Pro Tools loading two
+  truce plugins). Details:
+  <https://github.com/rust-windowing/raw-window-metal/issues/29>
+- `cargo-truce`: Make `--ios` packaging behavior and naming scheme
+  consistent with the other formats / OSes — iterates every
+  plugin in the workspace (no longer errors when more than one is
+  declared) and writes the artifact to
+  `target/dist/<crate>-<version>-ios.ipa` next to the macOS
+  `.pkg` / Windows `.exe` / Linux `.tar.gz`.
+
 ## 0.48.8 (2026-05-22)
 
 - **truce now fully published to crates.io.** `cargo truce new` scaffolds
