@@ -1,6 +1,6 @@
 # Synth
 
-<img src="/screenshots/examples/synth.png" style="max-width: 400px; max-height: 300px;" alt="synth plugin">
+<img src="/screenshots/examples/synth.png" class="screenshot-hero" width="277" height="279" alt="synth plugin">
 
 16-voice polyphonic synthesizer with oscillator, filter, and ADSR
 envelope.

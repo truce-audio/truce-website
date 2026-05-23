@@ -1,6 +1,6 @@
 # Block Saturate
 
-<img src="/screenshots/examples/block-saturate.png" style="max-width: 400px; max-height: 300px;" alt="block-saturate plugin">
+<img src="/screenshots/examples/block-saturate.png" class="screenshot-hero" width="139" height="182" alt="block-saturate plugin">
 
 Series saturator: drive → `tanh` soft-clip → make-up gain.
 Demonstrates composing `ops::*` and `math::*` through scratch

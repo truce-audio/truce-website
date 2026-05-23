@@ -113,6 +113,10 @@ pre.shiki {
   margin-top: 2.75rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
+  /* Clear any preceding float (e.g. an `img.screenshot-hero` on an
+     example page) so section headers always start on their own line
+     below the screenshot rather than wrapping next to it. */
+  clear: both;
 }
 
 .prose-doc h3 {
@@ -252,6 +256,25 @@ pre.shiki {
   max-width: 100%;
   border-radius: 0.5rem;
   border: 1px solid var(--border);
+}
+
+/* Hero screenshot on example pages: floated left so the description
+   paragraph wraps to its right and continues below. Source PNGs are
+   Retina (144 DPI = 2x) and `<img width=...>` is set to intrinsic / 2
+   per image, giving a uniform 2x display density across every page. */
+.prose-doc img.screenshot-hero {
+  float: left;
+  margin: 0 1.5rem 1rem 0;
+}
+
+/* On narrow viewports the float would cramp the wrapping text into a
+   slim column. Drop the float and stack instead. */
+@media (max-width: 600px) {
+  .prose-doc img.screenshot-hero {
+    float: none;
+    margin: 0 0 1rem 0;
+    display: block;
+  }
 }
 
 /* Strip the default ▶ disclosure marker from our custom <details> menus */

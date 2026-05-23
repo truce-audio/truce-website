@@ -1,6 +1,6 @@
 # Transpose
 
-<img src="/screenshots/examples/transpose.png" style="max-width: 400px; max-height: 300px;" alt="transpose plugin">
+<img src="/screenshots/examples/transpose.png" class="screenshot-hero" width="139" height="113" alt="transpose plugin">
 
 MIDI note transposer with semitone and octave controls.
 
