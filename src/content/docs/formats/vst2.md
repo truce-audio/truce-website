@@ -4,7 +4,7 @@ VST2 is the legacy Steinberg plugin format. It's been superseded by
 VST3 but is still the format of choice for older Reaper projects,
 Ableton Live 10 and earlier, and FL Studio's "prefer VST2" setting.
 Truce ships clean-room C bindings (no Steinberg SDK headers) so the
-`truce-vst2` crate itself is MIT/Apache-2.0 licensed.
+`truce-vst2` crate itself is Apache-2.0 licensed.
 
 ## Status
 
@@ -20,7 +20,7 @@ require an existing Steinberg agreement.
 
 Truce's clean-room C shim (`truce-vst2/shim/vst2_shim.c`) uses no
 Steinberg SDK headers and carries no Steinberg copyright, so the
-crate itself is redistributable under MIT/Apache-2.0. What is still
+crate itself is redistributable under Apache-2.0. What is still
 licensed by Steinberg:
 
 - The **VST trademark** and logo.

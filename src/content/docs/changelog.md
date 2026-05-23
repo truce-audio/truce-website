@@ -2,6 +2,14 @@
 
 Notable changes per release.
 
+## 0.48.10 (2026-05-23)
+
+- Minor housekeeping.
+- `cargo-truce`: Replace non-Latin status glyphs in `cargo truce
+  package` output with the same `[ OK ]` / `[FAIL]` ASCII tags
+  used by `cargo truce doctor`. The Unicode `✓` / `✗` characters
+  broke rendering in Windows 10 WSL terminals.
+
 ## 0.48.9 (2026-05-23)
 
 - Examples: Fix blocksize bug in EQ example.

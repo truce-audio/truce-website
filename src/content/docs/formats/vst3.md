@@ -2,7 +2,7 @@
 
 Steinberg's VST3 is the most widely-supported plugin format in
 commercial DAWs. Truce implements it through a thin C++ shim
-(`truce-vst3/shim/vst3_shim.cpp`, MIT-licensed) that implements the
+(`truce-vst3/shim/vst3_shim.cpp`) that implements the
 COM vtables required by the VST3 ABI and forwards every callback
 into Rust.
 
@@ -31,7 +31,7 @@ vst3 = ["dep:truce-vst3"]
 - **Linux**: GCC or Clang with C++17 support.
 
 No Steinberg SDK required — the shim is a clean-room COM
-implementation with MIT licensing.
+implementation under Apache-2.0.
 
 ## Install paths
 
