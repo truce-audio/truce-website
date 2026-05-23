@@ -15,11 +15,6 @@ export default function PluginsPage() {
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
           Built with truce
         </h1>
-        <p className="mt-3 text-[var(--fg-muted)] leading-relaxed">
-          Open-source audio plugins built on the truce framework. Every plugin ships
-          as CLAP, VST3, and standalone at minimum, with optional LV2, AU, and AAX
-          builds.
-        </p>
       </header>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {plugins.map((p) => (
