@@ -2,6 +2,51 @@
 
 Notable changes per release.
 
+## 0.48.8 (2026-05-22)
+
+- **truce now fully published to crates.io.** `cargo truce new` scaffolds
+  with a `truce = { version = "0.48" }` registry pin by default;
+  the historical `git = "...", tag = "v0.48.7"` form stays
+  available via `cargo truce new --github` for scaffolding against
+  an unreleased checkout.
+- New `truce-aax-bridge` crate carries the C ABI header so
+  `cargo-truce` doesn't transitively pull the full `truce-aax`
+  runtime stack.
+
+### Migrating an existing plugin to the registry pin
+
+In your plugin's `Cargo.toml`, replace each
+`truce-* = { git = "https://github.com/truce-audio/truce", tag = "v0.48.7"[, ...] }`
+line with `truce-* = { version = "0.48"[, ...] }`. Concretely:
+
+```diff
+ [dependencies]
+-truce         = { git = "https://github.com/truce-audio/truce", tag = "v0.48.7" }
+-truce-gui     = { git = "https://github.com/truce-audio/truce", tag = "v0.48.7" }
+-truce-clap    = { git = "https://github.com/truce-audio/truce", tag = "v0.48.7", optional = true }
+-truce-vst3    = { git = "https://github.com/truce-audio/truce", tag = "v0.48.7", optional = true }
+-truce-standalone = { git = "https://github.com/truce-audio/truce", tag = "v0.48.7", features = ["gui"], optional = true }
++truce         = { version = "0.48" }
++truce-gui     = { version = "0.48" }
++truce-clap    = { version = "0.48", optional = true }
++truce-vst3    = { version = "0.48", optional = true }
++truce-standalone = { version = "0.48", features = ["gui"], optional = true }
+```
+
+Preserve any `optional = true` / `features = [...]` keys that
+were already on the line. Workspace-mode plugin Cargo.tomls
+(`truce-* = { workspace = true }`) need no change — only the
+workspace root `[workspace.dependencies]` block flips. Then:
+
+```
+cargo update -p truce
+cargo build
+```
+
+Cargo's caret resolver expands `"0.48"` to `>=0.48.0, <0.49.0`,
+so you'll pick up any future `0.48.x` patch release without
+re-editing.
+
 ## 0.48.4 (2026-05-21)
 
 - Standalone: Fix default device selection on Linux (broke after
