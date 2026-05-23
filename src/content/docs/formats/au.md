@@ -8,8 +8,7 @@ sandboxed `.appex` App Extension loaded out-of-process).
 
 ## Status
 
-Opt-in. macOS-only (iOS is planned). Tested in Logic Pro, GarageBand,
-Ableton Live, and Reaper.
+Opt-in. Tested in Logic Pro, GarageBand, Ableton Live, and Reaper.
 
 Both AU v2 and AU v3 ship from the **same `au` feature flag** and
 the **same Rust staticlib**. What differs is only the bundle layout

@@ -4,14 +4,13 @@ LV2 is the open plugin standard that dominates Linux-native DAWs
 (Ardour, Qtractor, Carla, Zrythm, Jalv) and is also supported by
 Reaper and Bitwig on other platforms. Truce ships hand-rolled C
 bindings (`truce-lv2/src/lib.rs`, no `lv2-sys` dependency), so the
-crate itself is MIT/Apache-2.0 licensed and has no runtime
-dependencies beyond libc.
+crate itself has no runtime dependencies beyond libc.
 
 ## Status
 
-Opt-in. Working on macOS, Windows, and Linux. Tested in Reaper for
-Linux; other LV2 hosts (Ardour, Carla, Jalv, Zrythm) not yet
-validated but expected to work.
+Opt-in. Working on macOS, Windows, and Linux. Tested in Reaper;
+other LV2 hosts (Ardour, Carla, Jalv, Zrythm) not yet validated
+but expected to work.
 
 ## Enable
 
