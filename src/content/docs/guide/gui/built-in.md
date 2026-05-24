@@ -1,9 +1,9 @@
 # Built-in GUI
 
 The built-in GUI renders widgets from a layout you define in code.
-No custom editor, no framework dependency — declare what you want
-and truce draws it. This is the default; override `layout()` on
-`PluginLogic` and you're done.
+No framework dependency — declare what you want and truce draws it.
+Build a `GridLayout` and return it from `editor()` with
+`.into_editor(&self.params)`.
 
 For a first walkthrough see [the GUI chapter](../gui.md). This page
 is the reference for every option.
@@ -11,15 +11,17 @@ is the reference for every option.
 ## `GridLayout::build`
 
 ```rust
+use truce_gui::IntoLayoutEditor;
 use truce_gui_types::layout::{GridLayout, knob, slider, toggle, widgets};
 use MyParamsParamId as P;
 
-fn layout(&self) -> GridLayout {
+fn editor(&self) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         slider(P::Pan, "Pan"),
         toggle(P::Bypass, "Bypass"),
     ])])
+    .into_editor(&self.params)
 }
 ```
 
@@ -171,9 +173,9 @@ GridLayout::build(sections)
 Fonts: fontdue rasterisation with JetBrains Mono Regular embedded
 at compile time. No font file on disk, no runtime load.
 
-Rendering: `truce-gpu` through wgpu (Metal on macOS, DX12 on
-Windows, Vulkan on Linux). Tiny-skia CPU rasterisation is the
-fallback.
+Rendering: tiny-skia CPU rasterisation by default. Opt into GPU
+rendering through wgpu (Metal on macOS, DX12 on Windows, Vulkan on
+Linux) with the `gpu` feature on `truce-gui`.
 
 ## Interaction
 
@@ -194,9 +196,10 @@ don't wire any of it by hand:
 
 ```rust
 use GainParamsParamId as P;
+use truce_gui::IntoLayoutEditor;
 use truce_gui_types::layout::{GridLayout, knob, meter, widgets, xy_pad};
 
-fn layout(&self) -> GridLayout {
+fn editor(&self) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         knob(P::Pan,  "Pan"),
@@ -204,6 +207,7 @@ fn layout(&self) -> GridLayout {
         meter(&[P::MeterLeft, P::MeterRight], "Level").rows(2),
     ])])
     .with_title("GAIN")
+    .into_editor(&self.params)
 }
 ```
 

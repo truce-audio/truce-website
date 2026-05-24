@@ -15,10 +15,10 @@ Four things you write:
 1. A **params struct** with `#[derive(Params)]`.
 2. A **plugin struct** with an inherent `new(params: Arc<P>)`.
 3. A single **`impl PluginLogic for ...`** block — DSP and GUI in
-   one trait (`reset`, `process`, `save_state`, `load_state`,
-   `state_changed`, `latency`, `tail`, `bus_layouts`, `layout`,
-   `render`, `custom_editor`, …). Only `reset` and `process` are
-   required; every other method has a default.
+   one trait (`reset`, `process`, `editor`, `save_state`,
+   `load_state`, `state_changed`, `latency`, `tail`, `bus_layouts`,
+   …). `reset`, `process`, and `editor` are required; every other
+   method has a default.
 4. A **single `truce::plugin!` macro call** that wires those into
    every plugin format.
 
@@ -26,12 +26,12 @@ Everything else — parameter hosting, GUI event dispatch, state
 envelope, format-specific lifecycle, hot-reload shell — is
 generated.
 
-`PluginLogic` lives in `truce_gui` (re-exported as
+`PluginLogic` lives in `truce_plugin` (re-exported as
 `truce::prelude::PluginLogic`). The trait covers both the
 audio-thread surface (`process`, `reset`, …) and the main-thread
-surface (`layout`, `render`, `custom_editor`, …); the framework
-guarantees the threading split — `process()` only runs on the
-audio thread, `layout()` only on the main thread.
+surface (`editor`); the framework guarantees the threading split —
+`process()` only runs on the audio thread, `editor()` only on the
+main thread.
 
 ## Precision (preludes)
 
@@ -75,7 +75,7 @@ explicitly there and keep the prelude out of that scope.
 
 ## The `PluginLogic` trait
 
-Only `reset` and `process` are required. Everything else has a
+`reset`, `process`, and `editor` are required. Everything else has a
 default. Override what you need.
 
 ```rust
@@ -100,11 +100,7 @@ pub trait PluginLogic: Send + 'static {
     fn tail(&self) -> u32 { 0 }
 
     // --- GUI (main thread) ---
-    fn layout(&self) -> truce_gui_types::layout::GridLayout { ... }
-    fn render(&self, backend: &mut dyn RenderBackend) {}
-    fn uses_custom_render(&self) -> bool { false }
-    fn hit_test(&self, widgets: &[WidgetRegion], x: f32, y: f32) -> Option<usize> { ... }
-    fn custom_editor(&self) -> Option<Box<dyn Editor>> { None }
+    fn editor(&self) -> Box<dyn Editor>;
 }
 ```
 
@@ -120,19 +116,17 @@ pub trait PluginLogic: Send + 'static {
 | `latency` | Host bus reconfiguration | no | Samples of processing delay, for PDC. |
 | `tail` | Host transport stop | no | Samples of audio produced after input stops (reverb, delay). |
 
-### GUI methods
+### GUI method
 
 | Method | When called | Real-time? | Notes |
 |--------|-------------|------------|-------|
-| `layout` | Built-in GUI rebuild | no | Returns a `GridLayout` description of widgets. See [gui](gui.md). |
-| `render`, `uses_custom_render`, `hit_test` | Built-in GUI, when overridden | no | Escape hatches for custom visuals. See [gui](gui.md). |
-| `custom_editor` | Editor open | no | Return `Some(...)` to use egui / iced / Slint / raw window handle instead of the built-in widget set. See [gui](gui.md). |
+| `editor` | Editor open | no | Return the editor to display. For the built-in widget set, build a `GridLayout` and finish with `.into_editor(&self.params)`; for a framework backend, construct an `EguiEditor` / `IcedEditor` / `SlintEditor` / hand-rolled `Editor` and finish with `.into_editor()`. See [gui](gui.md). |
 
-Headless plugins (no editor) just leave the GUI methods at their
-defaults — the framework draws nothing. Post-load-state cache
-invalidation lives on `state_changed` (audio thread) and, for
-custom editors, on the `Editor` you return from `custom_editor`
-(GUI thread). See [State persistence](#state-persistence) below.
+`editor()` is required: the renderer is whichever editor you return,
+and which crate your `Cargo.toml` pulls in. Post-load-state cache
+invalidation lives on `state_changed` (audio thread) and, for the
+editor, on the `Editor`'s own `state_changed` (GUI thread). See
+[State persistence](#state-persistence) below.
 
 ### Construction is not on the trait
 
@@ -174,7 +168,7 @@ into GUI closures. One source of truth, no synchronization.
 3. **`PluginLogic::reset(sr, max_block)`** runs once the sample rate
    and block size are known.
 4. **Playback loop.** The shell drives `process(buffer, events, ctx)`
-   on the audio thread, `layout()` / `render()` on the main thread,
+   on the audio thread, `editor()` on the main thread,
    and the host writes automation through atomics. If the sample
    rate changes, `reset` is called again. Saving a session triggers
    automatic parameter serialization plus `save_state`; loading one
@@ -319,7 +313,7 @@ impl PluginLogic for MyPlugin {
         self.extra_decoded_ir = decode_ir(&self.extra.ir_file_path);
     }
 
-    // ... reset, process, layout, custom_editor ...
+    // ... reset, process, editor ...
 }
 ```
 
@@ -388,7 +382,7 @@ let path = &self.state.get().ir_file_path;
 self.state.update(|s| s.ir_file_path = new_path);
 ```
 
-If your plugin is parameter-only (no custom editor, no extra
+If your plugin is parameter-only (built-in editor, no extra
 state), skip `StateBinding` — the built-in GUI polls parameters
 every frame for free.
 

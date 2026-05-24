@@ -314,7 +314,7 @@ fn screenshot(
 ) -> Option<(Vec<u8>, u32, u32)>;
 ```
 
-Built-in backends (`truce-gpu`, `truce-egui`, `truce-iced`,
+Built-in backends (`truce-gui`, `truce-egui`, `truce-iced`,
 `truce-slint`) all implement this. Custom editor implementations
 need to override it to be testable through `screenshot!`.
 
@@ -355,7 +355,7 @@ when you're hand-rolling a renderer.
 
 | Backend | Live format | Screenshot bytes returned |
 |---------|------------|----------------------------|
-| Built-in (`truce-gpu`) | Non-sRGB surface default | RGBA8 |
+| Built-in (`truce-gui`) | tiny-skia CPU pixmap | RGBA8 |
 | egui (`truce-egui`) | `Rgba8UnormSrgb` | RGBA8 (sRGB) |
 | Iced (`truce-iced`) | `Bgra8UnormSrgb` | RGBA8 (sRGB, swizzled) |
 | Slint (`truce-slint`) | CPU pixels (premultiplied) | RGBA8 (un-premultiplied) |

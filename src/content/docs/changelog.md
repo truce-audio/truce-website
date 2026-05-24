@@ -2,6 +2,103 @@
 
 Notable changes per release.
 
+## 0.49.0 (2026-05-24)
+
+- **Breaking (`PluginLogic`): the GUI surface collapses to a single
+  `editor()` method.** The old `layout()`, `custom_editor()`,
+  `render()`, `uses_custom_render()`, and `hit_test()` methods are
+  gone — every plugin now returns its editor from one place:
+
+  ```rust
+  fn editor(&self) -> Box<dyn Editor> { /* ... */ }
+  ```
+
+  `editor()` is required (there is no headless auto-fallback).
+  Migration steps below.
+- **Renderer split: the built-in GUI now defaults to CPU
+  (tiny-skia); wgpu is opt-in.** The CPU rasterizer moved into a
+  new `truce-cpu` crate, a peer of `truce-gpu`. A layout-only
+  plugin no longer compiles wgpu and its per-OS graphics backends
+  unless it asks for them — smaller binaries and faster builds out
+  of the box. Opt into GPU rendering with
+  `truce-gui = { version = "0.49", features = ["gpu"] }`; the `gpu`
+  path doesn't pull the CPU dependency tree, and vice-versa. Plain
+  `truce-gui = "0.49"` keeps the CPU default with no change.
+- The `truce` umbrella no longer pulls `truce-gui` transitively.
+  Plugins using the built-in renderer declare `truce-gui`
+  explicitly — newly scaffolded projects (`cargo truce new`)
+  already do.
+
+Both paths end with `.into_editor(...)` — a fluent terminal that
+replaces the old `Box::new(...)` wrapper and keeps every `editor()`
+impl looking the same.
+
+### Migrating `layout()` users
+
+Move your `GridLayout` body into `editor()` and close it with
+`.into_editor(&self.params)`:
+
+```diff
+-    fn layout(&self) -> GridLayout {
+-        GridLayout::build(vec![widgets(vec![
+-            knob(P::Gain, "Gain"),
+-            knob(P::Pan, "Pan"),
+-        ])])
+-        .with_title("GAIN")
+-    }
++    fn editor(&self) -> Box<dyn Editor> {
++        GridLayout::build(vec![widgets(vec![
++            knob(P::Gain, "Gain"),
++            knob(P::Pan, "Pan"),
++        ])])
++        .with_title("GAIN")
++        .into_editor(&self.params)
++    }
+```
+
+`.into_editor(&params)` comes from the `truce_gui::IntoLayoutEditor`
+trait — add `use truce_gui::IntoLayoutEditor;` to your imports. It
+picks the renderer from the `truce-gui` feature you enabled (`cpu`
+by default, `gpu` if opted in), so the same `editor()` body covers
+both. If your plugin previously depended only on `truce-gui-types`,
+add `truce-gui`:
+
+```diff
+ [dependencies]
+ truce-gui-types = { version = "0.49" }
++truce-gui       = { version = "0.49" }   # add features = ["gpu"] for wgpu
+```
+
+(`truce_gui::default_editor(params, layout)` is the equivalent
+free function if you'd rather not import the trait.)
+
+### Migrating `custom_editor()` users (egui / iced / slint / hand-rolled)
+
+Rename `custom_editor` to `editor` and return the `Box<dyn Editor>`
+directly. The new method is non-optional, so drop the `Some(...)`
+wrapper and finish the builder chain with `.into_editor()`:
+
+```diff
+-    fn custom_editor(&self) -> Option<Box<dyn Editor>> {
+-        Some(Box::new(
+-            EguiEditor::new(self.params.clone(), (W, H), gain_ui)
+-                .with_visuals(truce_egui::theme::dark()),
+-        ))
+-    }
++    fn editor(&self) -> Box<dyn Editor> {
++        EguiEditor::new(self.params.clone(), (W, H), gain_ui)
++            .with_visuals(truce_egui::theme::dark())
++            .into_editor()
++    }
+```
+
+The zero-arg `.into_editor()` is the blanket `truce_core::IntoEditor`
+helper — it's in `truce::prelude`, so no extra import. The egui /
+iced / slint editor constructors are otherwise unchanged. These
+backends supply their own renderer, so they don't need `truce-gui`'s
+`cpu` / `gpu` features — a plugin using one of them can drop the
+`truce-gui` dependency entirely.
+
 ## 0.48.11 (2026-05-24)
 
 - `cargo-truce`: Fix various install-path bugs on Windows. VST3 now

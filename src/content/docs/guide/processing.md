@@ -491,7 +491,7 @@ impl PluginLogic for Synth {
         if self.voices.is_empty() { ProcessStatus::Tail(0) } else { ProcessStatus::Normal }
     }
 
-    fn layout(&self) -> truce_gui_types::layout::GridLayout { /* ... */ }
+    fn editor(&self) -> Box<dyn Editor> { /* ... */ }
 }
 ```
 

@@ -76,8 +76,8 @@ slint::include_modules!();
 use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
-    fn custom_editor(&self) -> Option<Box<dyn truce_core::editor::Editor>> {
-        Some(Box::new(SlintEditor::new(
+    fn editor(&self) -> Box<dyn Editor> {
+        SlintEditor::new(
             self.params.clone(),
             (200, 120),
             |state: PluginContext<MyParams>| -> SyncFn<MyParams> {
@@ -94,7 +94,8 @@ impl PluginLogic for MyPlugin {
                     ui.set_meter_right(meter_display(state.get_meter(P::MeterRight)));
                 })
             },
-        )))
+        )
+        .into_editor()
     }
 }
 ```

@@ -11,11 +11,12 @@ If you haven't built a GUI in Rust before, start with the
 renders the widgets for you — no custom editor code required.
 
 ```rust
-fn layout(&self) -> GridLayout {
+fn editor(&self) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         knob(P::Pan, "Pan"),
     ])])
+    .into_editor(&self.params)
 }
 ```
 
@@ -34,9 +35,9 @@ tabs, custom drawing — pick a framework:
 - **[Slint](slint.md)** — declarative markup. Design your UI in `.slint`
   files, wire properties in Rust. Has an IDE live preview.
 
-All three integrate the same way: override `custom_editor()` and return
-your editor. The rest of your plugin (params, DSP, format export) stays
-the same.
+All three integrate the same way: return the backend's editor from
+`editor()`, finishing with `.into_editor()`. The rest of your plugin
+(params, DSP, format export) stays the same.
 
 ## If you need full control
 

@@ -23,7 +23,7 @@ Here's the minimum implementation. The host calls `open()` with a parent
 window handle, and you create your UI as a child of that window:
 
 ```rust
-use truce_core::editor::{Editor, PluginContext, RawWindowHandle};
+use truce_core::editor::{Editor, IntoEditor, PluginContext, RawWindowHandle};
 
 pub struct MyEditor {
     size: (u32, u32),
@@ -121,11 +121,12 @@ Same as every other backend:
 
 ```rust
 impl PluginLogic for MyPlugin {
-    fn custom_editor(&self) -> Option<Box<dyn Editor>> {
-        Some(Box::new(MyEditor {
+    fn editor(&self) -> Box<dyn Editor> {
+        MyEditor {
             size: (800, 600),
             context: None,
-        }))
+        }
+        .into_editor()
     }
 }
 ```
@@ -171,8 +172,8 @@ The existing backends are good examples of real `Editor` implementations:
 
 | Backend | Source | Approach |
 |---------|--------|----------|
-| Built-in | `crates/truce-gui/src/editor.rs` | baseview + wgpu + CPU pixel blit |
-| GPU | `crates/truce-gpu/src/editor.rs` | baseview + wgpu + GPU rendering |
+| Built-in (CPU) | `crates/truce-gui/src/editor.rs` | baseview + tiny-skia CPU raster + wgpu blit |
+| Built-in (GPU) | `crates/truce-gui/src/gpu_editor.rs` | baseview + wgpu (via truce-gpu) |
 | egui | `crates/truce-egui/src/editor.rs` | baseview + egui-wgpu |
 | Iced | `crates/truce-iced/src/editor.rs` | baseview + iced-wgpu |
 | Slint | `crates/truce-slint/src/editor.rs` | baseview + software renderer + wgpu blit |

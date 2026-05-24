@@ -14,6 +14,7 @@ the built-in and reach for a framework when you hit its limits.
 ### Declaring a layout
 
 ```rust
+use truce_gui::IntoLayoutEditor;
 use truce_gui_types::layout::{GridLayout, knob, slider, toggle,
                         dropdown, meter, xy_pad, widgets, section};
 use MyParamsParamId as P;
@@ -21,7 +22,7 @@ use MyParamsParamId as P;
 impl PluginLogic for MyPlugin {
     // ... reset, process ...
 
-    fn layout(&self) -> GridLayout {
+    fn editor(&self) -> Box<dyn Editor> {
         GridLayout::build(vec![
             widgets(vec![
                 knob(P::Gain, "Gain"),
@@ -33,6 +34,7 @@ impl PluginLogic for MyPlugin {
                 knob(P::Resonance, "Reso"),
             ]),
         ])
+        .into_editor(&self.params)
     }
 }
 ```
@@ -83,7 +85,7 @@ Explicit positions work too: `knob(P::Gain, "Gain").at(col, row)`.
 Declare meters as `#[meter] pub x: MeterSlot` fields alongside your
 params (see [parameters.md § Meters](parameters.md#meters)), push
 from `process()` with `context.set_meter(P::MeterL, peak)`, and
-render them in `layout()`:
+render them in `editor()`:
 
 ```rust
 meter(&[P::MeterL, P::MeterR], "Level").rows(3)
@@ -106,9 +108,9 @@ from the layout and the parameter behaviour from the `ParamId`.
 
 ### Rendering and theming
 
-The built-in GUI renders through `truce-gpu` (wgpu → Metal on
-macOS, DX12 on Windows, Vulkan on Linux). CPU rasterisation via
-tiny-skia is available as a fallback.
+The built-in GUI rasterises on the CPU through tiny-skia by
+default. Opt into GPU rendering (wgpu → Metal on macOS, DX12 on
+Windows, Vulkan on Linux) with the `gpu` feature on `truce-gui`.
 
 Colours come from a named theme — dark by default. Swap to light or
 a custom palette:
@@ -138,10 +140,9 @@ when you need:
   envelopes.
 - **Specific aesthetics** the built-in theme system can't reach.
 
-All alternatives integrate the same way: override `custom_editor()`
-on `PluginLogic` and return a boxed `Editor`. The
-`PluginLogic::layout()` method becomes irrelevant when a custom
-editor is used.
+All alternatives integrate the same way: return the backend's
+editor from `editor()` on `PluginLogic`, finishing the builder
+chain with `.into_editor()`.
 
 | Backend | Crate | When |
 |---------|-------|------|

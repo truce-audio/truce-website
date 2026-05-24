@@ -19,14 +19,14 @@ with no custom code:
 
 ```rust
 use truce::prelude::*;
+use truce_gui_types::layout::{GridLayout, knob, widgets};
 use truce_iced::IcedEditor;
+use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
-    fn custom_editor(&self) -> Option<Box<dyn truce_core::editor::Editor>> {
-        Some(Box::new(IcedEditor::from_layout(
-            self.params.clone(),
-            self.layout(),
-        )))
+    fn editor(&self) -> Box<dyn Editor> {
+        let layout = GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])]);
+        IcedEditor::from_layout(self.params.clone(), layout).into_editor()
     }
 }
 ```
@@ -80,11 +80,8 @@ impl IcedPlugin<MyParams> for MyEditor {
 Wire it up:
 
 ```rust
-fn custom_editor(&self) -> Option<Box<dyn truce_core::editor::Editor>> {
-    Some(Box::new(IcedEditor::<MyParams, MyEditor>::new(
-        self.params.clone(),
-        (400, 300),
-    )))
+fn editor(&self) -> Box<dyn Editor> {
+    IcedEditor::<MyParams, MyEditor>::new(self.params.clone(), (400, 300)).into_editor()
 }
 ```
 

@@ -97,9 +97,11 @@ impl PluginLogic for MyGain {
         ProcessStatus::Normal
     }
 
-    fn layout(&self) -> truce_gui_types::layout::GridLayout {
+    fn editor(&self) -> Box<dyn Editor> {
+        use truce_gui::IntoLayoutEditor;
         use truce_gui_types::layout::{GridLayout, knob, widgets};
         GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])])
+            .into_editor(&self.params)
     }
 }
 ```
@@ -107,10 +109,9 @@ impl PluginLogic for MyGain {
 `PluginLogic` is a single trait covering both the audio thread
 (`reset()` runs when the host knows the sample rate and block
 size; `process()` runs every block) and the main thread
-(`layout()` returns a declarative description of the GUI). Only
-`reset` and `process` are required; everything else has a
-default — headless plugins just leave `layout()` at the default.
-See [chapter 3 → plugin-anatomy](plugin-anatomy.md).
+(`editor()` returns the GUI to display). `reset`, `process`, and
+`editor` are required; everything else has a default. See
+[chapter 3 → plugin-anatomy](plugin-anatomy.md).
 
 ### 3. The export macro — makes it a plugin
 
@@ -276,11 +277,12 @@ for i in 0..buffer.num_samples() {
 Show it in the GUI:
 
 ```rust
-fn layout(&self) -> GridLayout {
+fn editor(&self) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         knob(P::Pan,  "Pan"),
     ])])
+    .into_editor(&self.params)
 }
 ```
 

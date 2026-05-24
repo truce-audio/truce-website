@@ -13,7 +13,7 @@ truce-egui = { workspace = true }
 egui = "0.34"
 ```
 
-Override `custom_editor()` and return an `EguiEditor`:
+Return an `EguiEditor` from `editor()`:
 
 ```rust
 use truce::prelude::*;
@@ -22,15 +22,16 @@ use truce_egui::widgets::param_knob;
 use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
-    fn custom_editor(&self) -> Option<Box<dyn truce_core::editor::Editor>> {
-        Some(Box::new(EguiEditor::new(
+    fn editor(&self) -> Box<dyn Editor> {
+        EguiEditor::new(
             self.params.clone(),
             (400, 300),
             |ui: &mut egui::Ui, state: &PluginContext<MyParams>| {
                 ui.heading("My Plugin");
                 param_knob(ui, state, P::Gain, "Gain");
             },
-        )))
+        )
+        .into_editor()
     }
 }
 ```
@@ -155,8 +156,8 @@ impl EditorUi<MyParams> for MyUi {
     }
 }
 
-// In custom_editor():
-EguiEditor::with_ui(self.params.clone(), (640, 480), MyUi { tab: 0 })
+// In editor():
+EguiEditor::with_ui(self.params.clone(), (640, 480), MyUi { tab: 0 }).into_editor()
 ```
 
 `EditorUi<P>` has three methods:
