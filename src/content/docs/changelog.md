@@ -2,6 +2,13 @@
 
 Notable changes per release.
 
+## 0.48.11 (2026-05-24)
+
+- `cargo-truce`: Fix various install-path bugs on Windows. VST3 now
+  installs to system scope by default — Ableton doesn't scan the
+  per-user VST3 directory.
+- `truce-gui` & `truce-gpu`: Minor built-in GUI rendering improvements.
+
 ## 0.48.10 (2026-05-23)
 
 - Minor housekeeping.
