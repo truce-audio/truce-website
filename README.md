@@ -16,9 +16,11 @@ npm run dev        # http://localhost:3536
 
 `predev` and `prebuild` run `scripts/sync-assets.ts` which copies
 screenshots from sibling repos (`../truce/examples/...`,
-`../truce-analyzer/screenshots/...`) into `public/screenshots/`.
-Source files in those repos must exist or you'll get warnings and
-missing images at runtime.
+`../truce-analyzer/screenshots/...`) into `public/screenshots/` and
+the changelog (`../truce/CHANGELOG.md`) into the docs tree. Source
+files in those repos must exist or you'll get warnings and missing
+content at runtime. The synced copies are committed so the
+Cloudflare deploy (no sibling checkout) still ships them.
 
 ## Build / typecheck
 
@@ -40,7 +42,9 @@ Cloudflare Pages, Git-connected:
 
 - **Docs pages** — markdown under `src/content/docs/`. Files are
   picked up automatically; ordering inside the sidebar is the
-  explicit arrays in `src/lib/docs.ts`.
+  explicit arrays in `src/lib/docs.ts`. Exception:
+  `docs/changelog.md` is synced from `../truce/CHANGELOG.md` by
+  `sync-assets.ts` — edit it there, not here.
 - **Plugin catalog** — add an entry to `src/content/plugins.ts`,
   drop screenshots in the source repo, then map them in
   `scripts/sync-assets.ts`. The catalog page, detail route, and

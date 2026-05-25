@@ -2,6 +2,14 @@
 
 Notable changes per release.
 
+## 0.49.2 (2026-05-25)
+
+- Housekeeping: minor README updates and safety fixes.
+- Standalone: Disable window resizing on Windows for now (mirrors
+  other OSes).
+- Standalone: Wire `windows_icon` through to the window's
+  `WM_SETICON` so the title bar and taskbar show the app icon.
+
 ## 0.49.0 (2026-05-24)
 
 - **Breaking (`PluginLogic`): the GUI surface collapses to a single

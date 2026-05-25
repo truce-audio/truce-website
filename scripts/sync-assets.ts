@@ -58,6 +58,19 @@ const IOS_SCREENSHOTS: AssetMap["files"] = [
   },
 ];
 
+// Prose synced from sibling repos. The changelog is authored in
+// truce/CHANGELOG.md so releases touch it in one place; we mirror it
+// into the docs tree where docs.ts picks it up as the /docs/changelog
+// page. Like the screenshots, the destination is committed so the
+// Cloudflare deploy — which has no sibling checkout — still ships it;
+// this refresh only does anything when ../truce is present.
+const DOC_FILES: Array<{ from: string; to: string }> = [
+  {
+    from: "truce/CHANGELOG.md",
+    to: "src/content/docs/changelog.md",
+  },
+];
+
 const assetMaps: AssetMap[] = [
   {
     plugin: "truce-analyzer",
@@ -117,6 +130,22 @@ for (const asset of assetMaps) {
     copied++;
     console.log(`[sync-assets] ${from} → ${to}${resizeWidth ? ` (resized to ${resizeWidth}px)` : ""}`);
   }
+}
+
+for (const { from, to } of DOC_FILES) {
+  const src = resolve(workspaceRoot, from);
+  const dst = resolve(repoRoot, to);
+
+  if (!existsSync(src)) {
+    console.warn(`[sync-assets] missing source: ${src}`);
+    missing++;
+    continue;
+  }
+
+  mkdirSync(dirname(dst), { recursive: true });
+  copyFileSync(src, dst);
+  copied++;
+  console.log(`[sync-assets] ${from} → ${to}`);
 }
 
 console.log(`[sync-assets] done — ${copied} copied, ${missing} missing`);
