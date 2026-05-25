@@ -84,6 +84,7 @@ cargo truce install --vst3
 # Open your DAW, scan for plugins, load "MyPlugin"`;
 
 export const minimalExample = `use truce::prelude::*;
+use truce_gui::IntoLayoutEditor;
 use truce_gui_types::layout::{knob, widgets, GridLayout};
 
 #[derive(Params)]
@@ -118,8 +119,9 @@ impl PluginLogic for Gain {
         ProcessStatus::Normal
     }
 
-    fn layout(&self) -> GridLayout {
+    fn editor(&self) -> Box<dyn Editor> {
         GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])])
+            .into_editor(&self.params)
     }
 }
 

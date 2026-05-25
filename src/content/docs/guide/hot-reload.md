@@ -70,12 +70,12 @@ Zero code changes between dev and release.
 | Widget layout (built-in GUI) | ~2 s |
 | Meter logic | ~2 s |
 
-**Built-in GUI reloads too.** Editing `layout()` and rebuilding
-swaps the new layout into the running editor without closing the
-window. The `HotEditor` wrapper delegates to `GpuEditor` for
-rendering and spawns a background thread watching the dylib. On
-change, the new `BuiltinEditor` is installed via a shared mutex —
-no flicker.
+**Built-in GUI reloads too.** Editing your `editor()` body and
+rebuilding swaps the new layout into the running editor without
+closing the window. The `HotEditor` wrapper delegates to the
+renderer returned by `editor()` and spawns a background thread
+watching the dylib. On change, the new `BuiltinEditor` is installed
+via a shared mutex — no flicker.
 
 **Custom editors (egui, iced, Slint) do not hot-reload the UI
 itself** — they reload the DSP, but you still need to close and

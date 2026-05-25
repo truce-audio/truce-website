@@ -103,14 +103,14 @@ Parameters and meters share the generated `ParamId` enum —
 `P::Gain`, `P::MeterL`, `P::MeterR` all work. Use those typed
 identifiers; the derive keeps the underlying IDs collision-free.
 
-Write from `process()`, draw in `layout()`:
+Write from `process()`, draw in `editor()`:
 
 ```rust
 // process():
 context.set_meter(P::MeterL, buffer.output_peak(0));
 context.set_meter(P::MeterR, buffer.output_peak(1));
 
-// layout():
+// editor():
 meter(&[P::MeterL, P::MeterR], "Level").rows(3)
 ```
 

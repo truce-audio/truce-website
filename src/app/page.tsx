@@ -30,7 +30,7 @@ export default function HomePage() {
       <Section
         title="A complete plugin"
         eyebrow="Example"
-        description="Smoothed parameter, GPU-rendered knob, CLAP + VST3 + standalone. The truce::plugin! macro generates every format export, GUI, and state serialization."
+        description="Smoothed parameter, built-in knob, CLAP + VST3 + standalone. The truce::plugin! macro generates every format export, GUI, and state serialization."
       >
         <CodeBlock code={minimalExample} lang="rust" />
       </Section>

@@ -66,14 +66,14 @@ pub struct MyParams {
 }
 ```
 
-Parameters and meters share the generated `ParamId` enum. Write from `process()`, read in `layout()`:
+Parameters and meters share the generated `ParamId` enum. Write from `process()`, read in `editor()`:
 
 ```rust
 // process():
 context.set_meter(P::MeterL, buffer.output_peak(0));
 context.set_meter(P::MeterR, buffer.output_peak(1));
 
-// layout():
+// editor():
 meter(&[P::MeterL, P::MeterR], "Level").rows(3)
 ```
 
