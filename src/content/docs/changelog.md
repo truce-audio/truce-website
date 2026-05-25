@@ -33,7 +33,7 @@ Both paths end with `.into_editor(...)` — a fluent terminal that
 replaces the old `Box::new(...)` wrapper and keeps every `editor()`
 impl looking the same.
 
-### Migrating `layout()` users
+### Migrating `layout()`
 
 Move your `GridLayout` body into `editor()` and close it with
 `.into_editor(&self.params)`:
@@ -72,7 +72,7 @@ add `truce-gui`:
 (`truce_gui::default_editor(params, layout)` is the equivalent
 free function if you'd rather not import the trait.)
 
-### Migrating `custom_editor()` users (egui / iced / slint / hand-rolled)
+### Migrating `custom_editor()` (egui / iced / slint / hand-rolled)
 
 Rename `custom_editor` to `editor` and return the `Box<dyn Editor>`
 directly. The new method is non-optional, so drop the `Some(...)`
