@@ -77,16 +77,28 @@ export default async function PluginPage({
         </div>
       </header>
 
-      <ScreenshotFigure
-        src={plugin.heroScreenshot.src}
-        alt={plugin.heroScreenshot.alt}
-        width={plugin.heroScreenshot.width}
-        height={plugin.heroScreenshot.height}
-      />
-
-      <section className="prose-truce mt-10 max-w-none">
+      <section className="prose-truce mt-10 max-w-none after:block after:clear-both after:content-['']">
+        <figure className="mb-6 sm:float-left sm:mr-8 sm:mb-4 sm:max-w-[55%]">
+          <div
+            className="mx-auto overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-code)]"
+            style={{ maxWidth: `${plugin.heroScreenshot.width ?? 1600}px` }}
+          >
+            <Image
+              src={plugin.heroScreenshot.src}
+              alt={plugin.heroScreenshot.alt}
+              width={plugin.heroScreenshot.width ?? 1600}
+              height={plugin.heroScreenshot.height ?? 900}
+              className="h-auto w-full"
+            />
+          </div>
+        </figure>
         {plugin.longDescription.map((p, i) => (
-          <p key={i}>{p}</p>
+          <p
+            key={i}
+            className="my-6 leading-relaxed text-[var(--fg)] first:mt-0"
+          >
+            {p}
+          </p>
         ))}
       </section>
 
