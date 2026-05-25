@@ -105,20 +105,22 @@ Two ways to enable an opt-in format. Per install: `cargo truce install --vst2` (
 
 ### Install destinations
 
-`cargo truce install` defaults to **per-user** paths on every platform. Pass `--system` for the system-wide directories (sudo on macOS, Administrator shell on Windows). AAX, AU v3, and Windows VST2 are always system-only — `--user` for those falls back to the system path with a one-line note (`†`).
+`cargo truce install` defaults to **per-user** paths on every platform — no sudo / Administrator prompt. Pass `--system` for the system-wide directories (sudo on macOS, Administrator shell on Windows). AAX, AU v3, and Windows VST2 are always system-only — `--user` for those falls back to the system path with a one-line note (`†`). Linux is user-scope only: `--user` and `--system` resolve to the same paths every Linux host already scans.
+
+The **bold** cell in each row is the destination `cargo truce install` lands at by default (no flag). Other cells are reached by passing `--system` (or, for system-only formats, by passing `--system` explicitly so the `†` fallback note is suppressed).
 
 | Format | macOS user | macOS system | Windows user | Windows system | Linux |
 |--------|-----------|--------------|--------------|----------------|-------|
-| CLAP   | `~/Library/Audio/Plug-Ins/CLAP/{Name}.clap` | `/Library/Audio/Plug-Ins/CLAP/{Name}.clap` | `%LOCALAPPDATA%\Programs\Common\CLAP\{Name}.clap` | `%COMMONPROGRAMFILES%\CLAP\{Name}.clap` | `~/.clap/{Name}.clap` |
-| VST3   | `~/Library/Audio/Plug-Ins/VST3/{Name}.vst3/` | `/Library/Audio/Plug-Ins/VST3/{Name}.vst3/` | `%LOCALAPPDATA%\Programs\Common\VST3\{Name}.vst3\` | `%COMMONPROGRAMFILES%\VST3\{Name}.vst3\` | `~/.vst3/{Name}.vst3/` |
-| VST2   | `~/Library/Audio/Plug-Ins/VST/{Name}.vst/` | `/Library/Audio/Plug-Ins/VST/{Name}.vst/` | system† | `%PROGRAMFILES%\Steinberg\VstPlugins\{Name}.dll` | `~/.vst/{Name}.so` |
-| LV2    | `~/Library/Audio/Plug-Ins/LV2/{Name}.lv2/` | `/Library/Audio/Plug-Ins/LV2/{Name}.lv2/` | `%APPDATA%\LV2\{Name}.lv2\` | `%COMMONPROGRAMFILES%\LV2\{Name}.lv2\` | `~/.lv2/{Name}.lv2/` |
-| AU v2  | `~/Library/Audio/Plug-Ins/Components/{Name}.component/` | `/Library/Audio/Plug-Ins/Components/{Name}.component/` | — | — | — |
-| AU v3  | system† | `/Applications/{Name}.app/Contents/PlugIns/AUExt.appex/` | — | — | — |
-| AAX    | system† | `/Library/Application Support/Avid/Audio/Plug-Ins/{Name}.aaxplugin/` | system† | `%COMMONPROGRAMFILES%\Avid\Audio\Plug-Ins\{Name}.aaxplugin\` | — |
+| CLAP   | **`~/Library/Audio/Plug-Ins/CLAP/{Name}.clap`** | `/Library/Audio/Plug-Ins/CLAP/{Name}.clap` | **`%LOCALAPPDATA%\Programs\Common\CLAP\{Name}.clap`** | `%COMMONPROGRAMFILES%\CLAP\{Name}.clap` | **`~/.clap/{Name}.clap`** |
+| VST3   | **`~/Library/Audio/Plug-Ins/VST3/{Name}.vst3/`** | `/Library/Audio/Plug-Ins/VST3/{Name}.vst3/` | **`%LOCALAPPDATA%\Programs\Common\VST3\{Name}.vst3\`** | `%COMMONPROGRAMFILES%\VST3\{Name}.vst3\` | **`~/.vst3/{Name}.vst3/`** |
+| VST2   | **`~/Library/Audio/Plug-Ins/VST/{Name}.vst/`** | `/Library/Audio/Plug-Ins/VST/{Name}.vst/` | system† | **`%PROGRAMFILES%\Steinberg\VstPlugins\{Name}.dll`** | **`~/.vst/{Name}.so`** |
+| LV2    | **`~/Library/Audio/Plug-Ins/LV2/{Name}.lv2/`** | `/Library/Audio/Plug-Ins/LV2/{Name}.lv2/` | **`%APPDATA%\LV2\{Name}.lv2\`** | `%COMMONPROGRAMFILES%\LV2\{Name}.lv2\` | **`~/.lv2/{Name}.lv2/`** |
+| AU v2  | **`~/Library/Audio/Plug-Ins/Components/{Name}.component/`** | `/Library/Audio/Plug-Ins/Components/{Name}.component/` | — | — | — |
+| AU v3  | system† | **`/Applications/{Name}.app/Contents/PlugIns/AUExt.appex/`** | — | — | — |
+| AAX    | system† | **`/Library/Application Support/Avid/Audio/Plug-Ins/{Name}.aaxplugin/`** | system† | **`%COMMONPROGRAMFILES%\Avid\Audio\Plug-Ins\{Name}.aaxplugin\`** | — |
 | Standalone | `target/bundles/{Name}.standalone/` (staged by `cargo truce run`; not installed) | same | same | same | same |
 
-`cargo truce install` is the supported way to land bundles in these dirs; the paths are listed here as a debug aid when plugins aren't being picked up. `cargo truce doctor` prints both scopes side-by-side with a writable / sudo / not-present marker.
+`cargo truce install` is the supported way to land bundles in these dirs; the paths are listed here as a debug aid when plugins aren't being picked up. `cargo truce doctor` prints both scopes side-by-side with a writable / sudo / not-present marker. End-to-end packaging and `--ask` / `--user` / `--system` installer scope live in [guide/shipping](guide/shipping.md).
 
 ## See also
 

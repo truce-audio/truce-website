@@ -10,9 +10,11 @@ cargo truce validate  # run auval + pluginval + clap-validator against installed
 cargo truce package   # produce a signed distributable installer (.pkg / .exe)
 ```
 
-Per-format requirements (SDKs, env vars, install paths, signing
-specifics) live in [docs/formats/](../#formats). This chapter
-covers the cross-format `cargo truce` workflow and signing.
+Per-format requirements (SDKs, env vars, signing specifics) live
+in [docs/formats/](../#formats); the [install destinations
+table](../#install-destinations) on the quick-start page lists the
+exact user / system path each format lands at. This chapter covers
+the cross-format `cargo truce` workflow and signing.
 
 ## Enabling formats
 
@@ -76,7 +78,9 @@ Windows VST2 is also system-only on Windows. The install scope is
 a per-invocation developer choice — `cargo truce install` has no
 `truce.toml` override, only the CLI flag.
 
-Full per-platform table in [formats/README](../#formats).
+Full per-platform path table — bolded to mark the default
+destination per (OS, format) — is in the quick start's
+[install destinations](../#install-destinations) section.
 
 `cargo truce uninstall` mirrors the same flags. By default it scans
 both scopes (handy when you switched scope mid-iteration); pass
@@ -189,7 +193,8 @@ cargo truce package                          # every default format, universal a
 cargo truce package -p my-gain               # single plugin (cargo crate name)
 cargo truce package --formats clap,vst3,aax  # subset
 cargo truce package --host-only              # skip the cross-arch build (dev iteration)
-cargo truce package --no-sign                # skip signing (dev)
+cargo truce package --no-pace-sign           # skip PACE/iLok signing on AAX (also aliased to --no-sign on macOS)
+cargo truce package --no-sign                # Windows: skip Authenticode signing entirely
 cargo truce package --no-notarize            # macOS: sign but skip Apple notarization
 cargo truce package --no-installer           # Windows: stage files, skip ISCC
 cargo truce package --ask                    # end user picks scope at install time (default)
@@ -289,9 +294,12 @@ xcrun notarytool store-credentials TRUCE_NOTARY \
   --password "<app-specific-password-from-appleid.apple.com>"
 ```
 
-AU v2 post-install clears `AudioComponentRegistrar` caches
-automatically — no manual step. AAX is built fat from the Avid
-SDK (both Apple archs ship in the SDK).
+`cargo truce install --au2` clears `~/Library/Caches/AudioUnitCache`
+automatically so the new component shows up in `auval` and DAW
+scans without a manual step. If you ever need a heavier reset,
+`cargo truce reset-au` kills the `AudioComponentRegistrar` daemon
+too. AAX is built fat from the Avid SDK on macOS (both Apple
+archs ship in the SDK).
 
 ### Windows flow
 
@@ -318,15 +326,19 @@ Requirements:
 
 `cargo truce doctor` reports what's present.
 
-Three Authenticode credential sources, tried in order:
+Three Authenticode credential sources, tried in order. All three are
+configured via env vars in `.cargo/config.toml [env]`:
 
 1. **Azure Trusted Signing** (recommended, ~\$120/yr, no hardware
-   token). Configure `[windows.signing].azure_account` +
-   `azure_profile` and set `AZURE_TENANT_ID` / `AZURE_CLIENT_ID`
-   / `AZURE_CLIENT_SECRET` in the environment.
+   token). Set `TRUCE_AZURE_ACCOUNT` + `TRUCE_AZURE_PROFILE`
+   (optional `TRUCE_AZURE_DLIB` to point at a non-default
+   `Azure.CodeSigning.Dlib`), and `AZURE_TENANT_ID` /
+   `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` for auth.
 2. **SHA1 cert thumbprint** — typical for OV/EV certs on a
-   hardware token. Configure `sha1` + `cert_store`.
-3. **`.pfx` file** — configure `pfx_path` + put the password in
+   hardware token. Set `TRUCE_CERT_SHA1` (+ optional
+   `TRUCE_CERT_STORE` if the cert isn't in signtool's default
+   `My` store).
+3. **`.pfx` file** — set `TRUCE_PFX_PATH` and put the password in
    `TRUCE_PFX_PASSWORD`.
 
 With no credentials `package` still runs; it prints a single
