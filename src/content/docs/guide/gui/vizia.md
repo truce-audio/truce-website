@@ -182,9 +182,8 @@ draw with `level_meter(cx, lens, &[P::MeterL, P::MeterR], 240.0)`.
 
 Widgets render against vizia's default theme and prescribe no colors
 themselves. The `BASE_CSS` constant carries only the minimum CSS
-needed to work around vizia layout bugs (the collapsing knob head,
-the popup overflow). Plugins that want a particular palette layer
-their own stylesheet via `with_stylesheet`:
+needed for establishing a working baseline. Plugins that want a
+particular palette layer their own stylesheet via `with_stylesheet`:
 
 ```rust
 ViziaEditor::new(self.params.clone(), (240, 160), my_view)

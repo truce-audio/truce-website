@@ -218,8 +218,8 @@ pub struct MyParams {
 }
 ```
 
-The cheap-vs-expensive mix is common: this lets the cheap params
-get sample-accurate behavior without paying per-event FFT rebuilds.
+This lets the cheap params get sample-accurate behavior without
+paying per-event FFT rebuilds.
 
 ### What plugin code sees
 
@@ -231,9 +231,7 @@ same `EventList` API, same `ProcessContext`.
 
 Plugins that already implemented the manual event-splitting loop
 (see [processing § Sample-accurate event splitting](processing.md#sample-accurate-event-splitting))
-keep working — the framework now does the apply at the right
-sample anyway, so the manual loop subdivides an already-subdivided
-block. Remove the manual loop as a follow-up.
+keep working.
 
 ### Per-format coverage
 
