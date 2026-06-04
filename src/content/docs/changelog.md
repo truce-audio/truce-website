@@ -5,10 +5,9 @@ Notable changes per release.
 ## 0.52.0
 
 - **New GUI backend: `truce-vizia`.** Param-bound widgets, headless
-  screenshot, JetBrains Mono. Desktop only (no iOS, no Windows
-  ARM64). New examples `truce-example-gain-vizia` and
-  `truce-example-gui-zoo-vizia` live in the `truce-vizia` Cargo
-  sub-workspace.
+  screenshot. Desktop only (no iOS, no Windows ARM64). New examples
+  `truce-example-gain-vizia` and `truce-example-gui-zoo-vizia` live
+  in the `truce-vizia` Cargo sub-workspace.
 - **Sample-accurate parameter automation.** Param changes apply at
   their `sample_offset` instead of the start of the block; smoothers
   start ramping at the event sample. On by default. Tune via
