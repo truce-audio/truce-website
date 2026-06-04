@@ -359,6 +359,7 @@ simulator your CI matrix uses.
 |---------|-----|
 | `--shell` hot reload | iOS App Extensions reject `dlopen` of anything outside the signed bundle's `Frameworks/` |
 | `truce-iced` | iced's `iced_winit` dependency calls a desktop-only `winit` trait inside a non-iOS-gated branch — blocked upstream |
+| `truce-vizia` | Vizia hard-pins `vizia_baseview`, and baseview has no `target_os = "ios"` platform impl — desktop only |
 | CLAP / VST3 / VST2 / LV2 / AAX | Platform contract — iOS only hosts AU v3 |
 | Universal `.ipa` | Device + simulator slices have distinct Mach-O platform IDs and can't lipo together; use `--xcframework` packaging if you need both slices in one artifact |
 

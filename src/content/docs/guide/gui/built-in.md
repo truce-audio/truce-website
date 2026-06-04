@@ -223,5 +223,7 @@ the theme system can't reach, switch to a framework backend:
   complex custom UIs.
 - [slint](slint.md) — declarative `.slint` markup with data
   binding.
+- [vizia](vizia.md) — retained-mode with reactive data binding and
+  CSS; desktop only (no iOS, no Windows ARM64).
 - [raw-window-handle](raw-window-handle.md) — full control: Metal,
   OpenGL, Skia, anything.

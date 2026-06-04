@@ -157,6 +157,95 @@ fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
 `.read()` takes `&self` (the atomic smoother state is interior-
 mutable), so it works through `Arc<Params>` without `&mut`.
 
+## Sample-accurate automation
+
+When the host sends a parameter change mid-block, the smoother
+starts ramping from the event's `sample_offset` rather than from the
+top of the block. truce achieves this by chunking `process()` at
+event boundaries: each `EventBody::ParamChange` whose target
+parameter participates in chunking splits the audio block, and the
+smoother's `set_target` runs at the sub-block boundary instead of
+eagerly at block start.
+
+The behavior is on by default for every parameter. Plugins reading
+`.read()` per sample get sample-accurate behavior for free —
+smoothers ramp from the right sample, `SmoothingStyle::None` params
+snap at the right sample.
+
+### Tuning the granularity
+
+The chunker has one global knob — the **minimum sub-block size**.
+Events that would produce a sub-block shorter than this are
+coalesced (the smoother target is set at the start of the next
+sub-block instead of at the event sample). Set it in
+[`truce.toml`](../reference/truce-toml.md):
+
+```toml
+[automation]
+min_subblock_samples = 32   # default
+```
+
+- **32** (default) — sub-blocks land on SIMD-friendly strides;
+  per-event fixed costs in `process()` are bounded to
+  `block_size / 32`. Good fit for typical plugins.
+- **1** — strict sample-accuracy. Pick when an event landing one
+  sample early would matter (transient shapers, hard-cut volume
+  automation).
+- **N where N ≥ host max block size** — disables chunking; matches
+  the pre-0.52 "apply at block start" behavior. Pick when the
+  whole `process()` body is too expensive to subdivide and a
+  per-param opt-out (below) doesn't cover enough.
+
+### Per-parameter opt-out
+
+Some parameters are too expensive to re-target mid-block — FFT
+sizes, lookahead lengths, filter rebuild triggers. Mark them with
+`chunk = false` so their events never trigger a split (the change
+still applies, just at the start of the next sub-block, like before
+0.52):
+
+```rust
+#[derive(Params)]
+pub struct MyParams {
+    // Cheap to re-target — sub-block chunks at every event.
+    #[param(name = "Cutoff", range = "log(20, 20000)", smooth = "exp(10)")]
+    pub cutoff: FloatParam,
+
+    // FFT size triggers a buffer rebuild — too expensive to chunk on.
+    #[param(name = "FFT Size", range = "discrete(256, 4096)",
+            chunk = false)]
+    pub fft_size: IntParam,
+}
+```
+
+The cheap-vs-expensive mix is common: this lets the cheap params
+get sample-accurate behavior without paying per-event FFT rebuilds.
+
+### What plugin code sees
+
+`process()` itself doesn't change. The plugin receives a `&mut
+AudioBuffer` of the sub-block length and an `&EventList` whose
+entries have `sample_offset` rebased to the sub-block. Each
+sub-block is a normal `process()` call — same `AudioBuffer` shape,
+same `EventList` API, same `ProcessContext`.
+
+Plugins that already implemented the manual event-splitting loop
+(see [processing § Sample-accurate event splitting](processing.md#sample-accurate-event-splitting))
+keep working — the framework now does the apply at the right
+sample anyway, so the manual loop subdivides an already-subdivided
+block. Remove the manual loop as a follow-up.
+
+### Per-format coverage
+
+- **CLAP, VST3** — full sample-accurate automation.
+- **AU v2, AU v3** — block-rate today; per-sample ramp decoding is
+  on the roadmap. Wraps run through the chunker but never find a
+  split, equivalent to pre-0.52 behavior.
+- **VST2, AAX, LV2** — formats themselves deliver only block-rate
+  param changes; no chunks fire. Same equivalence.
+- **Standalone** — GUI gestures always arrive at `sample_offset = 0`,
+  so the chunker is a no-op.
+
 ## Shared ownership (`Arc<Params>`)
 
 The shell owns the `Arc<MyParams>` and passes a clone to

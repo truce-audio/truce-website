@@ -22,6 +22,7 @@ sitting.
 | [gain-egui](./gain-egui) | Effect | egui | <img src="/screenshots/examples/gain-egui.png" width="176" height="290" alt="gain-egui plugin"> |
 | [gain-iced](./gain-iced) | Effect | Iced | <img src="/screenshots/examples/gain-iced.png" width="176" height="290" alt="gain-iced plugin"> |
 | [gain-slint](./gain-slint) | Effect | Slint | <img src="/screenshots/examples/gain-slint.png" width="176" height="290" alt="gain-slint plugin"> |
+| [gain-vizia](./gain-vizia) | Effect | Vizia | <img src="/screenshots/examples/gain-vizia.png" width="176" height="260" alt="gain-vizia plugin"> |
 | [block-gain](./block-gain) | Effect | Built-in | <img src="/screenshots/examples/block-gain.png" width="208" height="251" alt="block-gain plugin"> |
 | [block-drywet](./block-drywet) | Effect | Built-in | <img src="/screenshots/examples/block-drywet.png" width="139" height="182" alt="block-drywet plugin"> |
 | [block-gate](./block-gate) | Effect | Built-in | <img src="/screenshots/examples/block-gate.png" width="139" height="113" alt="block-gate plugin"> |
@@ -29,10 +30,13 @@ sitting.
 | [block-widen](./block-widen) | Effect | Built-in | <img src="/screenshots/examples/block-widen.png" width="139" height="113" alt="block-widen plugin"> |
 | [block-surround-meter](./block-surround-meter) | Effect | Built-in | <img src="/screenshots/examples/block-surround-meter.png" width="70" height="251" alt="block-surround-meter plugin"> |
 
-The four gain variants (`gain`, `gain-egui`, `gain-iced`,
-`gain-slint`) implement the same plugin with different GUI
-frameworks. Compare them to see how each framework handles the
-same layout.
+The five gain variants (`gain`, `gain-egui`, `gain-iced`,
+`gain-slint`, `gain-vizia`) implement the same plugin with
+different GUI frameworks. Compare them to see how each framework
+handles the same layout. The vizia variant lives under
+`crates/truce-vizia/examples/` (its own Cargo sub-workspace — see
+the [vizia integration guide](../guide/gui/vizia) for why) rather
+than the top-level `examples/` directory.
 
 The six `block-*` examples each isolate one `truce_simd::ops::*`
 or `truce_simd::math::*` shape (`mix_block`, `mac_block`,

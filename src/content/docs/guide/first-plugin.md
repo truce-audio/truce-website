@@ -305,7 +305,7 @@ Close and reopen the plugin in your DAW. You now have two knobs.
 - **MIDI** — reading and emitting MIDI events, note effects →
   [chapter 7 → midi](midi.md).
 - **A richer UI** — more widgets, `section()`, switching to
-  egui/iced/Slint → [chapter 8 → gui](gui.md).
+  egui/iced/Slint/Vizia → [chapter 8 → gui](gui.md).
 - **Shipping to users** — signed `.pkg` / `.exe` installers →
   [chapter 10 → shipping](shipping.md).
 - **Real examples** — [`examples/truce-example-gain`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain),

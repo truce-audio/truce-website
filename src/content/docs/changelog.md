@@ -2,6 +2,36 @@
 
 Notable changes per release.
 
+## 0.52.0
+
+- **Sample-accurate parameter automation.** Param changes apply at
+  their `sample_offset` instead of the start of the block; smoothers
+  start ramping at the event sample. On by default. Tune via
+  `[automation] min_subblock_samples` in `truce.toml` or opt out
+  per-param with `#[param(chunk = false)]`.
+- **`cargo truce install` / `package`: dedupes duplicate archive
+  members during macOS bundle link.** Fixes the `clang -bundle`
+  duplicate-symbol failure plugins with `skia-bindings` (vizia)
+  could hit.
+
+## 0.51.0
+
+- **`truce-iced`: `with_font(bytes)` matches egui / vizia.** Family
+  name is now read from the TTF (was `with_font(family, bytes)`).
+
+## 0.50.0
+
+- **New GUI backend: `truce-vizia`.** Param-bound widgets, headless
+  screenshot, JetBrains Mono. Desktop only (no iOS, no Windows
+  ARM64).
+- **New examples: `truce-example-gain-vizia`,
+  `truce-example-gui-zoo-vizia`** — live in the `truce-vizia` Cargo
+  sub-workspace.
+
+## 0.49.23
+
+- **`keyboard-types` 0.6 -> 0.7** workspace-wide.
+
 ## 0.49.22
 
 - **New example: `truce-example-dasp-bitcrusher`.** Showcases

@@ -23,7 +23,7 @@ Source: [`examples/truce-example-gain/`](https://github.com/truce-audio/truce/tr
 
 ## GUI variants
 
-The same gain plugin is implemented with four different GUI
+The same gain plugin is implemented with five different GUI
 backends — compare them to see how each framework handles the
 same layout:
 
@@ -31,6 +31,7 @@ same layout:
 - **[gain-egui](./gain-egui)** — egui immediate-mode widgets
 - **[gain-iced](./gain-iced)** — iced retained-mode widgets
 - **[gain-slint](./gain-slint)** — declarative `.slint` markup
+- **[gain-vizia](./gain-vizia)** — vizia reactive widgets (desktop only)
 
 ## Build and test
 

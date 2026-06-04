@@ -34,8 +34,11 @@ tabs, custom drawing — pick a framework:
   update state, render a view. Good for complex state management.
 - **[Slint](slint.md)** — declarative markup. Design your UI in `.slint`
   files, wire properties in Rust. Has an IDE live preview.
+- **[Vizia](vizia.md)** — retained-mode with reactive data binding
+  and CSS. Per-param `Signal<f32>` keeps widgets in sync. Desktop
+  only (no iOS, no Windows ARM64).
 
-All three integrate the same way: return the backend's editor from
+All four integrate the same way: return the backend's editor from
 `editor()`, finishing with `.into_editor()`. The rest of your plugin
 (params, DSP, format export) stays the same.
 
@@ -48,7 +51,8 @@ implement the `Editor` trait directly. See
 ## Parameter communication
 
 Every backend hands you a `PluginContext<P>` typed for your plugin's
-`Params`. The same method API works in egui, iced, slint, and
+`Params` (vizia exposes the same surface through `ParamLens<P>`).
+The same method API works in egui, iced, slint, vizia, and
 raw-window-handle editors:
 
 ```rust

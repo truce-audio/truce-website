@@ -33,7 +33,7 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 | 5 | [processing](guide/processing.md) | `process()` patterns for effects, MIDI, sample-accurate events, synths. Includes the `truce_simd` per-block ops + math helpers for hot paths. |
 | 6 | [fundsp](guide/fundsp.md) | Drop a `fundsp` graph into `process()` — combinator DSL, `Shared` cells for sample-accurate automation, RT60 rebuild patterns. |
 | 7 | [midi](guide/midi.md) | Reading and emitting MIDI events; per-format support; testing MIDI plugins. |
-| 8 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, raw window handle). |
+| 8 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, Vizia, raw window handle). |
 | 9 | [audio-testing](guide/audio-testing.md) | `truce_test::PluginDriver` for in-process audio + MIDI regression tests — no DAW required. |
 | 10 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
 | 11 | [ios](guide/ios.md) | iOS-specific workflow: simulator iteration, device + `.ipa` signing, per-plugin `truce.toml` knobs, preview-audio mute, screenshot regression. |
@@ -44,7 +44,7 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 Pick a toolkit. The built-in widget set covers most plugin UIs; the alternatives are there when you need something the built-in widgets don't ship.
 
 - [Built-in widgets](guide/gui/built-in.md) — `GridLayout` builder, every widget constructor, theming
-- [egui](guide/gui/egui.md) · [iced](guide/gui/iced.md) · [Slint](guide/gui/slint.md) · [Raw window handle](guide/gui/raw-window-handle.md)
+- [egui](guide/gui/egui.md) · [iced](guide/gui/iced.md) · [Slint](guide/gui/slint.md) · [Vizia](guide/gui/vizia.md) · [Raw window handle](guide/gui/raw-window-handle.md)
 - [Screenshot testing](guide/gui/screenshot-testing.md) — visual regression tests for the GUI
 
 ## Reference
@@ -78,8 +78,9 @@ Full list with screenshots: [examples](examples/README.md).
 | [gain-egui](examples/gain-egui.md) | Effect | egui | Same plugin as `gain`, rendered with [egui](https://github.com/emilk/egui). |
 | [gain-iced](examples/gain-iced.md) | Effect | Iced | Same plugin, rendered with [Iced](https://github.com/iced-rs/iced). |
 | [gain-slint](examples/gain-slint.md) | Effect | Slint | Same plugin, rendered with [Slint](https://slint.dev/). |
+| [gain-vizia](examples/gain-vizia.md) | Effect | Vizia | Same plugin, rendered with [Vizia](https://github.com/vizia/vizia). |
 
-The four `gain*` variants implement the same plugin against
+The five `gain*` variants implement the same plugin against
 different GUI frameworks — compare them side-by-side to pick a
 toolkit. The two `fundsp-reverb-*` crates share a topology and
 signal flow but differ only in *how* the fundsp graph gets

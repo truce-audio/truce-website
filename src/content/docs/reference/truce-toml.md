@@ -105,6 +105,21 @@ Welcome/license screens are OS-specific (macOS uses HTML, Windows
 uses BMP + RTF) and live under their per-platform `[macos.packaging]`
 / `[windows.packaging]` tables.
 
+## `[automation]` — optional
+
+Tunes the sample-accurate parameter chunking layer (see
+[parameters § Sample-accurate automation](../guide/parameters.md#sample-accurate-automation)).
+Omit the whole table to accept defaults.
+
+| Field | Default | Notes |
+|-------|---------|-------|
+| `min_subblock_samples` | `32` | Smallest sub-block size in samples. Events that would produce a shorter sub-block are coalesced (smoother target lands at `block_start` instead of the event sample). `1` for strict sample-accuracy. A value above the host's max block size disables splitting (smoothers behave as they did pre-0.52). |
+
+```toml
+[automation]
+min_subblock_samples = 32
+```
+
 ## Full example
 
 ```toml

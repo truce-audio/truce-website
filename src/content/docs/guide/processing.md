@@ -342,9 +342,22 @@ generators), see **[midi](midi.md)**.
 
 ## Sample-accurate event splitting
 
-If your synth or transient shaper needs events applied at the
-exact sample they occur, interleave the event loop with the sample
-loop:
+**Parameter automation is sample-accurate by default.** The framework
+chunks `process()` at each `EventBody::ParamChange` so the smoother's
+`set_target` runs at the event's `sample_offset` rather than at the
+start of the block. Plugins reading `param.read()` per sample see the
+new target starting from the event sample — no manual loop required.
+Tune the granularity via `[automation] min_subblock_samples` in
+`truce.toml` (default 32) or opt a parameter out with
+`#[param(chunk = false)]`. See
+[parameters § Sample-accurate automation](parameters.md#sample-accurate-automation)
+for the configuration surface.
+
+For **non-parameter events** (MIDI note-on/off, transport ticks,
+sysex), the chunker doesn't split on them — they arrive in the
+`EventList` with the sub-block's relative `sample_offset` and the
+plugin is responsible for applying them at the right sample. The
+canonical shape interleaves the event loop with the sample loop:
 
 ```rust
 fn process(&mut self, buffer: &mut AudioBuffer, events: &EventList,
@@ -365,7 +378,7 @@ fn process(&mut self, buffer: &mut AudioBuffer, events: &EventList,
 }
 ```
 
-For block-rate event handling (effects where param changes don't
+For block-rate event handling (effects where MIDI events don't
 need sample accuracy), process the event list once at the top and
 then the whole block — simpler and cheaper.
 

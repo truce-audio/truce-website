@@ -77,8 +77,8 @@ renderer returned by `editor()` and spawns a background thread
 watching the dylib. On change, the new `BuiltinEditor` is installed
 via a shared mutex — no flicker.
 
-**Custom editors (egui, iced, Slint) do not hot-reload the UI
-itself** — they reload the DSP, but you still need to close and
+**Custom editors (egui, iced, Slint, Vizia) do not hot-reload the
+UI itself** — they reload the DSP, but you still need to close and
 reopen the plugin window to see layout changes in the custom UI.
 
 ## What does **not** reload

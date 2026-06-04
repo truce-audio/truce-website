@@ -315,8 +315,9 @@ fn screenshot(
 ```
 
 Built-in backends (`truce-gui`, `truce-egui`, `truce-iced`,
-`truce-slint`) all implement this. Custom editor implementations
-need to override it to be testable through `screenshot!`.
+`truce-slint`, `truce-vizia`) all implement this. Custom editor
+implementations need to override it to be testable through
+`screenshot!`.
 
 ### `cargo truce screenshot`
 
@@ -359,6 +360,7 @@ when you're hand-rolling a renderer.
 | egui (`truce-egui`) | `Rgba8UnormSrgb` | RGBA8 (sRGB) |
 | Iced (`truce-iced`) | `Bgra8UnormSrgb` | RGBA8 (sRGB, swizzled) |
 | Slint (`truce-slint`) | CPU pixels (premultiplied) | RGBA8 (un-premultiplied) |
+| Vizia (`truce-vizia`) | Skia CPU raster surface | RGBA8 |
 
 Mismatches usually look like a uniform tint shift (everything
 darker / lighter / wrong red-blue) — that's a sign the renderer

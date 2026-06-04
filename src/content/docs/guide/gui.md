@@ -5,9 +5,10 @@ declare a layout — rows of widgets — and the framework draws it,
 routes input events, and keeps everything in sync with the
 parameter `Arc`. Zero pixel math.
 
-If that's not enough, truce has adapters for egui, iced, and Slint,
-plus a raw-window-handle escape hatch for anything else. Start with
-the built-in and reach for a framework when you hit its limits.
+If that's not enough, truce has adapters for egui, iced, Slint, and
+Vizia, plus a raw-window-handle escape hatch for anything else.
+Start with the built-in and reach for a framework when you hit its
+limits.
 
 ## The built-in GUI
 
@@ -149,6 +150,7 @@ chain with `.into_editor()`.
 | **egui** | `truce-egui` | Immediate-mode. Good for prototyping, CPU-graph-heavy debugging UIs, and dev tools. Full guide: [gui/egui](gui/egui.md). |
 | **iced** | `truce-iced` | Retained-mode with Elm architecture. Good for complex custom UIs where you want a proper widget tree and state machine. Auto-generated from `GridLayout` is also available. [gui/iced](gui/iced.md). |
 | **Slint** | `truce-slint` | Declarative markup (`.slint` files) with data binding. Good for visually rich UIs designed outside Rust. [gui/slint](gui/slint.md). |
+| **Vizia** | `truce-vizia` | Retained-mode with reactive data binding and CSS. Per-param `Signal<f32>` keeps widgets in sync without manual wiring. Desktop only — no iOS, no Windows ARM64. [gui/vizia](gui/vizia.md). |
 | **BYO** | `truce-core` + `RawWindowHandle` | Full control — Metal, OpenGL, Skia, anything. You handle painting, input, DPI, and lifecycle yourself. [gui/raw-window-handle](gui/raw-window-handle.md). |
 
 See [gui/README](gui/README.md) for a side-by-side comparison
@@ -174,7 +176,7 @@ in `target/screenshots/` (gitignored). The first time you run
 the test the reference doesn't exist yet — the test fails and
 points at `cargo truce screenshot --out <ref-path>` to create
 the baseline. Works for every backend (built-in GUI, egui,
-iced, slint).
+iced, slint, vizia).
 
 See [gui/screenshot-testing](gui/screenshot-testing.md) for
 the full flow — promoting new references, state-dependent shots

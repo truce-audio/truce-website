@@ -31,6 +31,7 @@ the right.
 - [gain](./gain) — same plugin with the built-in GUI
 - [gain-egui](./gain-egui) — same plugin with egui
 - [gain-slint](./gain-slint) — same plugin with slint
+- [gain-vizia](./gain-vizia) — same plugin with vizia (desktop only)
 
 ## Build and test
 

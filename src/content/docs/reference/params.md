@@ -17,6 +17,7 @@ Every attribute, range type, smoothing mode, and parameter type that the params 
 | `flags` | `flags = "automatable \| bypass"` | Combination of: `automatable`, `hidden`, `readonly`, `bypass`. |
 | `format` | `format = "format_cutoff"` | Method on the params struct that converts a `f64` value to a `String`. |
 | `parse` | `parse = "parse_cutoff"` | Inverse of `format`. Method that parses a host text-input `&str` back to `f64`. |
+| `chunk` | `chunk = false` | Opt this parameter out of sample-accurate sub-block chunking. Default `true`. Set to `false` for parameters too expensive to re-target mid-block (FFT sizes, lookahead lengths). See [parameters § Sample-accurate automation](../guide/parameters.md#sample-accurate-automation). |
 
 The derive generates `MyParams::new()`, a `Default` impl, the full `Params` trait impl, and a typed `MyParamsParamId` enum (`#[repr(u32)]`) with one variant per parameter.
 

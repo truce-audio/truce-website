@@ -30,7 +30,7 @@ export const features: Feature[] = [
   },
   {
     title: "Pick your GUI",
-    body: "Built-in widgets, egui, iced, Slint, or raw window handle. The same plugin, your choice of toolkit.",
+    body: "Built-in widgets, egui, iced, Slint, Vizia, or raw window handle. The same plugin, your choice of toolkit.",
   },
   {
     title: "Cross-platform",

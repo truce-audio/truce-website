@@ -15,7 +15,7 @@ This is the lowest level of GUI integration. You probably want it if:
 
 For most plugins, start with the [built-in GUI](built-in.md) or one of
 the framework integrations ([egui](egui.md), [iced](iced.md),
-[slint](slint.md)).
+[slint](slint.md), [vizia](vizia.md)).
 
 ## Implementing the Editor trait
 
@@ -177,3 +177,4 @@ The existing backends are good examples of real `Editor` implementations:
 | egui | `crates/truce-egui/src/editor.rs` | baseview + egui-wgpu |
 | Iced | `crates/truce-iced/src/editor.rs` | baseview + iced-wgpu |
 | Slint | `crates/truce-slint/src/editor.rs` | baseview + software renderer + wgpu blit |
+| Vizia | `crates/truce-vizia/src/editor.rs` | baseview + vizia (skia + GL); desktop only |

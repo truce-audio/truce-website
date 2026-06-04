@@ -37,6 +37,7 @@ the right. All defined in `ui/main.slint`.
 - [gain](./gain) — same plugin with the built-in GUI
 - [gain-egui](./gain-egui) — same plugin with egui
 - [gain-iced](./gain-iced) — same plugin with iced
+- [gain-vizia](./gain-vizia) — same plugin with vizia (desktop only)
 
 ## Build and test
 

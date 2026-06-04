@@ -217,8 +217,15 @@ au3_subtype = "MyF3"           # optional; iOS reuses au3_subtype
   software renderer into an RGBA buffer that's blitted to the
   `UIView`'s `layer.contents` via `CGImage` (the same CPU path the
   built-in iOS editor uses). Both translate `UITouch` events into
-  their backend's pointer-event shape. `truce-iced` is the lone
-  hold-out (see the iced gotcha below).
+  their backend's pointer-event shape. `truce-iced` and `truce-vizia`
+  are the hold-outs — see the iced gotcha below and the vizia
+  gotcha that follows.
+- **`truce-vizia` is desktop-only on iOS, upstream blocker.** Vizia
+  hard-pins `vizia_baseview`, and baseview has no `target_os = "ios"`
+  platform impl, so the chain
+  `truce-vizia → vizia → vizia_baseview → baseview` doesn't link on
+  iOS. `truce-vizia` is gated with `#![cfg(not(target_os = "ios"))]`.
+  Use the built-in editor, `truce-egui`, or `truce-slint` for iOS.
 - **`truce-iced` is desktop-only on iOS today, upstream blocker.**
   iced's `iced` umbrella crate has a non-optional dependency on
   `iced_winit`, and iced_winit calls

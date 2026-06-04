@@ -273,6 +273,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "guide/gui/egui.md",
     "guide/gui/iced.md",
     "guide/gui/slint.md",
+    "guide/gui/vizia.md",
     "guide/gui/raw-window-handle.md",
     "guide/gui/screenshot-testing.md",
   ];
@@ -298,6 +299,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "examples/gain-egui.md",
     "examples/gain-iced.md",
     "examples/gain-slint.md",
+    "examples/gain-vizia.md",
     "examples/block-gain.md",
     "examples/block-drywet.md",
     "examples/block-gate.md",
