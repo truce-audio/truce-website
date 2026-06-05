@@ -587,7 +587,7 @@ The contract:
   slice for in-place channels — the data only exists in the shared
   buffer. You **must** check `buffer.is_in_place(ch)` and use
   `buffer.in_out_mut(ch)` for those channels.
-- With `SUPPORTS_IN_PLACE = false` (default), `buffer.input(ch)` and
+- With `supports_in_place() = false` (default), `buffer.input(ch)` and
   `buffer.output(ch)` are always safe and disjoint, even when the
   host requested in-place. `is_in_place` still reflects the host's
   choice — but you can ignore it.
