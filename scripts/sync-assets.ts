@@ -14,11 +14,16 @@ type AssetMap = {
 };
 
 // Each example's macOS default screenshot lives at
-//   truce/examples/truce-example-<short>/screenshots/<short_with_underscores>_default_macos.png
-// We mirror it to public/screenshots/examples/<short>.png so the
-// docs `examples/` pages reference one stable URL across local
-// dev and the deployed site.
-const EXAMPLE_SHORT_NAMES = [
+//   truce/<root>/truce-example-<short>/screenshots/<short_with_underscores>_default_macos.png
+// where `<root>` is `examples` for top-level examples and
+// `crates/truce-<backend>/examples` for the slint / vizia
+// sub-workspace examples (each backend's crate has its own Cargo
+// sub-workspace because of native-link `links =` collisions
+// between vizia's skia-bindings pin and slint's). We mirror to
+// public/screenshots/examples/<short>.png so the docs `examples/`
+// pages reference one stable URL across local dev and the deployed
+// site.
+const TOP_LEVEL_EXAMPLES = [
   "gain",
   "eq",
   "synth",
@@ -28,15 +33,22 @@ const EXAMPLE_SHORT_NAMES = [
   "state",
   "gain-egui",
   "gain-iced",
-  "gain-slint",
   "fundsp-reverb-simple",
   "fundsp-reverb-worker",
 ];
 
-const exampleScreenshot = (short: string): AssetMap["files"][number] => {
+const SUB_WORKSPACE_EXAMPLES: Array<{ short: string; backend: string }> = [
+  { short: "gain-slint", backend: "slint" },
+  { short: "gain-vizia", backend: "vizia" },
+];
+
+const exampleScreenshot = (
+  short: string,
+  root: string,
+): AssetMap["files"][number] => {
   const file = `${short.replaceAll("-", "_")}_default_macos.png`;
   return {
-    from: `truce/examples/truce-example-${short}/screenshots/${file}`,
+    from: `truce/${root}/truce-example-${short}/screenshots/${file}`,
     to: `public/screenshots/examples/${short}.png`,
   };
 };
@@ -87,7 +99,12 @@ const assetMaps: AssetMap[] = [
   },
   {
     plugin: "truce-examples",
-    files: EXAMPLE_SHORT_NAMES.map(exampleScreenshot),
+    files: [
+      ...TOP_LEVEL_EXAMPLES.map((short) => exampleScreenshot(short, "examples")),
+      ...SUB_WORKSPACE_EXAMPLES.map(({ short, backend }) =>
+        exampleScreenshot(short, `crates/truce-${backend}/examples`),
+      ),
+    ],
   },
   {
     plugin: "truce-ios",
