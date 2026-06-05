@@ -33,6 +33,8 @@ or shell env vars instead. See
 | `au_subtype` | string | no | Synonym for `fourcc`. `fourcc` wins if both are set. |
 | `au3_subtype` | string | no | 4-char subtype for AU v3 only. Set if v2/v3 must differ. |
 | `au_tag` | string | no | AU category tag. Defaults to `"Effects"`. Common: `"Synthesizer"`, `"Dynamics"`, `"EQ"`, `"MIDI"`. |
+| `aax_category` | string | no | AAX category string (e.g. `"Delay"`, `"Reverb"`, `"EQ"`). Maps to `AAX_ePlugInCategory` in the AAX SDK. |
+| `vst3_subcategory` | string | no | VST3 "Plugin Type Categories" secondary token. Without this, hosts like Cubase bucket the plugin under "Other". Values from the VST3 SDK list: `"Delay"`, `"Distortion"`, `"Dynamics"`, `"EQ"`, `"Filter"`, `"Mastering"`, `"Modulation"`, `"Pitch Shift"`, `"Restoration"`, `"Reverb"`, `"Surround"`, `"Analyzer"`, `"Tools"`. Wrapper emits `Fx\|<sub>` for effects, `Instrument\|<sub>` for instruments. |
 | `{format}_name` | string | no | Per-format display-name override: `clap_name`, `vst3_name`, `vst2_name`, `au_name`, `au3_name`, `aax_name`, `lv2_name`. |
 | `windows_icon` | string | no | Path to `.ico` (workspace-root-relative). Embedded as `RT_GROUP_ICON` in the standalone `.exe`. Distinct from `[windows.packaging] installer_icon` — that one's the Inno-wizard chrome; this one's the per-product app icon. |
 | `macos_icon` | string | no | Path to `.icns` (workspace-root-relative). Copied into the standalone `.app`'s `Contents/Resources/` and referenced via `CFBundleIconFile`. Generate one with `iconutil -c icns <iconset>` from a directory of 16/32/128/256/512px (and `@2x`) PNGs. |
