@@ -129,11 +129,13 @@ works through `Arc<Params>` without `&mut`.
 | Method | What it returns | When to use |
 |---|---|---|
 | `.read()` | Next smoothed sample; advances the smoother. | Per-sample DSP loop. |
-| `.read_block::<N>()` | Next `N` smoothed samples as `[f32; N]` (or `[f64; N]` under `prelude64`); advances the smoother by `N`. One atomic load + one atomic store per call, regardless of `N`. | Block-rate DSP — pair with vectorized math (`ops::*_block`, `math::*_block`) to amortize the atomic over a whole block. See the [processing chapter](../guide/processing.md#reading-smoothed-params-per-block) for the full slow-path / fast-path pattern. |
+| `.read_into(&mut [f32])` | Fills the slice with the next `out.len()` smoothed samples; advances the smoother by `out.len()`. One atomic load + one atomic store per call, regardless of length. | Block-rate DSP — pair with vectorized math (`ops::*_block`, `math::*_block`) to amortize the atomic over a whole chunk. Pass `&mut scratch[..n]` to keep the smoother in lockstep with the consumed samples even when chunks vary in length. See the [processing chapter](../guide/processing.md#reading-smoothed-params-per-block) for the full slow-path / fast-path pattern. |
 | `.current()` | Current smoothed value without advancing. | Peeking at the smoother without consuming a tick — e.g. a per-block snapshot. |
 | `.value()` | The raw target value (last write from host automation / `set_normalized`), with no smoothing. | Threshold checks, structural decisions, anything that shouldn't react to the smoother's crawl. |
 
 All four are trait methods (`FloatParamReadF32` / `FloatParamReadF64`) that the preludes bring into scope; the return type follows the prelude in use. `use truce::prelude::*;` gives you `f32`-returning versions, `use truce::prelude64::*;` gives you `f64`-returning versions, same call sites either way.
+
+> The older `.read_block::<N>() -> [f32; N]` (and its `f64` variant) is deprecated since 0.53.0: it advanced the smoother by exactly `N` regardless of how many samples the caller consumed, which silently stepped the value at the next block boundary whenever the chunk length wasn't `N`. `.read_into(&mut scratch[..n])` is the same code shape on the same atomic-amortized fast path, with the hazard removed.
 
 The canonical case for `.value()` is a parameter that drives a
 *discrete* downstream decision rather than a continuous gain. The

@@ -153,21 +153,41 @@ calling `f32::powf` stays scalar. The block forms route through
 front of an envelope (the most common transcendental in a DSP
 plugin) runs in 8-lane f32 chunks.
 
+`prelude64` plugins get the same surface under `truce_simd::math64`
+— identical op names, `&mut [f64]` slices, `wide::f64x4` lanes
+(chunk granularity 4 instead of 8). Same vectorization win, half
+the lanes, ~10× tighter error budget.
+
 ### Reading smoothed params per block
 
-Each `FloatParam` provides a `read_block::<N>() -> [f32; N]`
-method via the `FloatParamReadF32` trait, which is in scope
-through the default prelude. One atomic load + one atomic store
-per call, regardless of `N`:
+Each `FloatParam` provides a `read_into(&mut [f32])` method via the
+`FloatParamReadF32` trait, which is in scope through the default
+prelude. One atomic load + one atomic store per call, regardless
+of slice length, and the smoother advances by exactly `out.len()`
+— so chunking the host's buffer into a dynamic-stride ladder stays
+correct even when the block size isn't a multiple of your stride:
 
 ```rust
-let gain_db: [f32; 64] = self.params.gain.read_block::<64>();
+let mut gain_db = [0.0_f32; MAX_BLOCK];
+while offset < total {
+    let n = (total - offset).min(MAX_BLOCK);
+    self.params.gain.read_into(&mut gain_db[..n]);
+    // ... consume gain_db[..n] for n samples ...
+    offset += n;
+}
 ```
 
 Precision follows the prelude: `prelude64` plugins import
-`FloatParamReadF64` instead, and the same call returns
-`[f64; N]`. See [parameters](parameters.md) for the full smoother
-surface.
+`FloatParamReadF64` instead and the same call takes `&mut [f64]`.
+See [parameters](parameters.md) for the full smoother surface.
+
+> The older `read_block::<N>() -> [f32; N]` is deprecated since
+> 0.53.0. It always advanced the smoother by exactly `N`, regardless
+> of how many samples the caller consumed — which silently stepped
+> the smoothed value at the next block boundary whenever the host's
+> block size wasn't a multiple of `N`. `read_into` is the same code
+> shape on the same one-atomic-pair fast path, with the hazard
+> removed.
 
 ### Walking the buffer in chunks
 
@@ -226,8 +246,10 @@ fn process(
         // Slow path: precompute a per-sample envelope, apply via
         // chunks_mut + mul_block.
         let n = buffer.num_samples().min(MAX_BLOCK);
-        let gain_db = self.params.gain.read_block::<MAX_BLOCK>();
-        let pan = self.params.pan.read_block::<MAX_BLOCK>();
+        let mut gain_db = [0.0_f32; MAX_BLOCK];
+        let mut pan = [0.0_f32; MAX_BLOCK];
+        self.params.gain.read_into(&mut gain_db[..n]);
+        self.params.pan.read_into(&mut pan[..n]);
 
         // Vectorized dB -> linear in one pass.
         let mut lin = [0.0_f32; MAX_BLOCK];
