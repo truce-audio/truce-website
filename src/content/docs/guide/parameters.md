@@ -235,10 +235,23 @@ keep working.
 
 ### Per-format coverage
 
-- **CLAP, VST3** — full sample-accurate automation.
-- **AU v2, AU v3, VST2, AAX, LV2** — block-rate today; no chunks
-  fire. Equivalent to pre-0.52 behavior. (AU v3 will move to the
-  full row once `AUParameterAutomationEvent` decoding lands.)
+- **CLAP, VST3, AU v3, LV2** — full sample-accurate automation. AU
+  v3 decodes `AURenderEvent.parameter` / `.parameterRamp` into
+  per-sample `ParamChange` events; LV2 advertises each parameter
+  as a `patch:writable` property and decodes host-emitted
+  `patch:Set` Objects from the input atom sequence (the atom
+  event's `time_frames` becomes the within-block `sample_offset`).
+  Ramps are treated as a step at the event's sample (the plugin's
+  smoother handles the actual interpolation), matching VST3's
+  parameter-queue treatment. The legacy `lv2:ControlPort` path is
+  kept alongside so older LV2 hosts still update params at block
+  rate.
+- **AU v2, VST2, AAX Native** — the format's host→plugin parameter
+  delivery has no sample-offset slot (`AudioUnitSetParameter`,
+  `effSetParameter`, AAX's `inSynchronizedParamValues`), so
+  block-rate is the contract. AAX DSP (Pro Tools | HDX) has
+  per-chunk delivery on a 32-sample grid; truce doesn't target
+  that path.
 - **Standalone** — GUI gestures always arrive at `sample_offset = 0`,
   so the chunker is a no-op.
 
