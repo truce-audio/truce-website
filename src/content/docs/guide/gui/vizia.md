@@ -13,10 +13,19 @@ Use the built-in GUI, `truce-egui`, or `truce-slint` on those.
 
 ## Setup
 
+`truce-vizia` is **not** published on crates.io — vizia upstream
+hasn't tagged a release that ships the `baseview` feature flag
+(it's main-branch only), and crates.io rejects git-only deps
+without a `version` shadow. Pull the crate from git instead:
+
 ```toml
 [dependencies]
-truce-vizia = { workspace = true }
+truce-vizia = { git = "https://github.com/truce-audio/truce.git", tag = "v0.54.0" }
 ```
+
+Bump the tag in lockstep with your other `truce-*` deps on each
+release; the sub-workspace inside the truce repo guarantees the
+git-pinned vizia rev tracks the rest of the framework's version.
 
 Vizia itself is a transitive dep — no direct `vizia = …` line is
 required. `truce-vizia` re-exports it as `truce_vizia::vizia` so
