@@ -236,11 +236,9 @@ keep working.
 ### Per-format coverage
 
 - **CLAP, VST3** — full sample-accurate automation.
-- **AU v2, AU v3** — block-rate today; per-sample ramp decoding is
-  on the roadmap. Wraps run through the chunker but never find a
-  split, equivalent to pre-0.52 behavior.
-- **VST2, AAX, LV2** — formats themselves deliver only block-rate
-  param changes; no chunks fire. Same equivalence.
+- **AU v2, AU v3, VST2, AAX, LV2** — block-rate today; no chunks
+  fire. Equivalent to pre-0.52 behavior. (AU v3 will move to the
+  full row once `AUParameterAutomationEvent` decoding lands.)
 - **Standalone** — GUI gestures always arrive at `sample_offset = 0`,
   so the chunker is a no-op.
 
