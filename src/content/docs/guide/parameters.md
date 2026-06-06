@@ -63,7 +63,7 @@ Typos are compile errors. Rename-refactor is safe.
 | `FloatParam` | knob | Continuous. Supports smoothing and custom formatting. |
 | `BoolParam` | toggle | On / off. Auto-detected as a toggle widget. |
 | `IntParam` | knob | Integer steps within a range. |
-| `EnumParam<T>` | dropdown | Click-to-open list; `T` is a `#[derive(ParamEnum)]` enum. Pass `selector(...)` explicitly for click-to-cycle. |
+| `EnumParam<T>` | dropdown | Click-to-open list; `T` is a `#[derive(ParamEnum)]` enum. |
 | `MeterSlot` | meter | Read-only, written from `process()`, drawn by the GUI. |
 
 ### Enum parameters

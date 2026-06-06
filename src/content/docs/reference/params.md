@@ -28,7 +28,7 @@ The derive generates `MyParams::new()`, a `Default` impl, the full `Params` trai
 | `FloatParam` | knob | Continuous. Supports smoothing and custom formatting. |
 | `BoolParam` | toggle | On / off. Range is implicit `0..1` — don't pass `range`. |
 | `IntParam` | knob | Integer steps within a range. |
-| `EnumParam<T>` | dropdown | Click-to-open list. `T` is a `#[derive(ParamEnum)]` enum; range is inferred from the variant count. Use `selector(...)` explicitly if you want click-to-cycle. |
+| `EnumParam<T>` | dropdown | Click-to-open list. `T` is a `#[derive(ParamEnum)]` enum; range is inferred from the variant count. |
 | `MeterSlot` | meter | Read-only, written from `process()`, drawn by the GUI. Declared with `#[meter]`, not `#[param(...)]`. |
 
 ### Enum parameters

@@ -20,7 +20,7 @@ Source: [`examples/truce-example-tremolo/`](https://github.com/truce-audio/truce
   `ProcessContext::transport`.
 - Reading transport on the editor thread from
   `PluginContext::transport`.
-- `#[derive(ParamEnum)]` with a selector widget.
+- `#[derive(ParamEnum)]` with a dropdown widget.
 - Graceful fallback when the host does not populate transport.
 
 ## Parameters

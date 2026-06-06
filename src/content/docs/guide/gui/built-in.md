@@ -62,15 +62,16 @@ Widget constructors accept `impl Into<u32>`, so both typed enum IDs
 | `knob(P::X, "Label")` | rotary knob | 1×1 | `FloatParam`, `IntParam` |
 | `slider(P::X, "Label")` | horizontal slider | 1×1 | `FloatParam` |
 | `toggle(P::X, "Label")` | pill on/off | 1×1 | `BoolParam` |
-| `selector(P::X, "Label")` | click-to-cycle | 1×1 | `EnumParam<T>`, `IntParam` |
 | `dropdown(P::X, "Label")` | click-to-open list | 1×1 | `EnumParam<T>`, `IntParam` |
 | `meter(&[P::L, P::R], "Label")` | level meter (one bar per ID) | 1×1 | `MeterSlot` |
 | `xy_pad(P::X, P::Y, "Label")` | 2D control pad | 2×2 | two `FloatParam`s |
 
 If you don't specify a widget type, the default is inferred from
 the parameter type: `BoolParam` → toggle, `EnumParam` →
-dropdown, everything else → knob. Pass `selector(...)` explicitly
-if you want the click-to-cycle behavior instead.
+dropdown, everything else → knob.
+
+> `selector(P::X, "Label")` is deprecated since 0.56.0; use
+> `dropdown` instead.
 
 ## Sections
 
@@ -185,7 +186,6 @@ don't wire any of it by hand:
 - **Knob / slider**: drag to adjust. Scroll-wheel to fine-tune.
   Double-click to reset to default.
 - **Toggle**: click to flip.
-- **Selector**: click to cycle forward.
 - **Dropdown**: click to open the popup list, click an option to
   select.
 - **XY pad**: drag anywhere on the pad to set both parameters.

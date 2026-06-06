@@ -65,10 +65,12 @@ points. Override any of those:
 | `knob(P::X, "Label")` | rotary | gain, cutoff, resonance, any `FloatParam` |
 | `slider(P::X, "Label")` | linear slider | pan, mix, sometimes easier to read than a knob |
 | `toggle(P::X, "Label")` | pill on/off | `BoolParam`, bypass |
-| `selector(P::X, "Label")` | click-to-cycle | `EnumParam<T>` when the list is short |
-| `dropdown(P::X, "Label")` | click-to-open list | `EnumParam<T>` / `IntParam` when the list is longer |
+| `dropdown(P::X, "Label")` | click-to-open list | `EnumParam<T>` / `IntParam` |
 | `meter(&[P::L, P::R], "Label")` | vertical level meters | peak / RMS output |
 | `xy_pad(P::X, P::Y, "Label")` | 2-axis pad | two continuous params on one surface |
+
+> `selector(P::X, "Label")` is deprecated since 0.56.0; use
+> `dropdown` instead.
 
 ### Spanning cells
 
@@ -100,7 +102,7 @@ value every frame.
 - Drag on a knob / slider → change the param.
 - Scroll-wheel on a knob → fine-tune.
 - Double-click a knob → reset to default.
-- Click a toggle / selector / dropdown → set / cycle / open.
+- Click a toggle / dropdown → set / open.
 - Right-click a widget → host context menu (automation, reset,
   enter value).
 

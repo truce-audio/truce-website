@@ -152,7 +152,7 @@ ui.set_gain_text(slint::SharedString::from(state.format_param(P::Gain)));
 Import from `"@truce"`:
 
 ```slint
-import { Knob, Meter, XYPad, ParamSlider, Toggle, Selector } from "@truce";
+import { Knob, Meter, XYPad, ParamSlider, Toggle, Dropdown } from "@truce";
 ```
 
 - **Knob** — 270-degree rotary control with arc, pointer, label
@@ -160,7 +160,10 @@ import { Knob, Meter, XYPad, ParamSlider, Toggle, Selector } from "@truce";
 - **XYPad** — 2D drag pad for two parameters
 - **ParamSlider** — horizontal slider
 - **Toggle** — on/off switch
-- **Selector** — click-to-cycle for enum params
+- **Dropdown** — popup list for enum / discrete int params
+
+> `Selector` (click-to-cycle) is deprecated since 0.56.0; use
+> `Dropdown` instead.
 
 You can also use Slint's built-in widgets (`Slider`, `Switch`,
 `ComboBox`) from `"std-widgets.slint"` and wire them manually.

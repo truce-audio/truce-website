@@ -140,17 +140,20 @@ direct writes are only needed for custom widgets and `Msg::*` handling.
 ## Widgets
 
 ```rust
-use truce_iced::{knob, param_slider, param_toggle, param_selector, xy_pad, meter};
+use truce_iced::{knob, param_slider, param_toggle, param_dropdown, xy_pad, meter};
 
 knob(P::Gain, params).label("Gain").size(60.0)
 param_slider(P::Pan, params).label("Pan")
 param_toggle(P::Bypass, params).label("Bypass")
-param_selector(P::Mode, params).label("Mode")
+param_dropdown(P::Mode, params).label("Mode")
 xy_pad(P::Pan, P::Gain, params).label("XY").size(130.0)
 meter(&[P::MeterLeft, P::MeterRight], params).size(16.0, 200.0)
 ```
 
 All use builder pattern. Call `.el()` to push into iced layouts.
+
+> `param_selector` is deprecated since 0.56.0; use `param_dropdown`
+> instead.
 
 ## Handling custom messages
 

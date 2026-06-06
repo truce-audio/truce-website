@@ -77,11 +77,14 @@ use truce_egui::widgets::{
     param_knob,     // rotary knob
     param_slider,   // horizontal slider
     param_toggle,   // on/off switch
-    param_selector, // click-to-cycle for enums
+    param_dropdown, // popup list for enums / discrete int ranges
     param_xy_pad,   // 2D pad for two params
     level_meter,    // vertical bar meter
 };
 ```
+
+> `param_selector` (click-to-cycle) is deprecated since 0.56.0;
+> use `param_dropdown` instead.
 
 Typical layout:
 
