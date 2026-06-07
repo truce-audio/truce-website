@@ -31,6 +31,14 @@ Vizia itself is a transitive dep — no direct `vizia = …` line is
 required. `truce-vizia` re-exports it as `truce_vizia::vizia` so
 `use truce_vizia::vizia::prelude::*;` brings the full API into scope.
 
+> **Linux:** Vizia renders with Skia, whose build links `-lEGL` and
+> `-lwayland-egl`, so on top of the [shared GUI dev
+> libraries](../install.md#platform-compiler) you also need the EGL +
+> Wayland-EGL **dev** packages (`sudo apt install libegl1-mesa-dev
+> libwayland-dev`). Without them the link fails with `rust-lld: error:
+> unable to find library -lwayland-egl`. The other GUI backends don't
+> link Skia and don't need these.
+
 Return a `ViziaEditor` from `editor()`:
 
 ```rust

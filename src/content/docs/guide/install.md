@@ -51,6 +51,15 @@ sudo apt install \
 
 (Standalone-host audio adds ALSA + JACK; see [extra setup](#extra-setup).)
 
+**Vizia GUI backend** additionally needs the EGL and Wayland-EGL **dev** libraries — Vizia renders with Skia, whose build links `-lEGL` and `-lwayland-egl`. The runtime `.so.N` files are usually already present; these dev packages add the bare `.so` symlinks the linker needs (a missing one shows up as `rust-lld: error: unable to find library -lwayland-egl`):
+
+```sh
+# Ubuntu / Debian
+sudo apt install libegl1-mesa-dev libwayland-dev
+```
+
+The other GUI backends (egui, iced, slint, the built-in renderer) don't link Skia and don't need these.
+
 ## Install the CLI
 
 ```sh
