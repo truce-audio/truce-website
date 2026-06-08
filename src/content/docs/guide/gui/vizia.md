@@ -11,6 +11,13 @@ Desktop only. macOS (x86_64 + aarch64), Windows (x86_64), and Linux
 unsupported** — see [Platform support](#platform-support) below.
 Use the built-in GUI, `truce-egui`, or `truce-slint` on those.
 
+> **Editor resize is currently a no-op on vizia.**
+> `ViziaEditor::set_size` records the new logical size but the
+> running view doesn't repaint at it - vizia's `WindowHandle` has
+> no resize entry point callable from outside its event loop.
+> Ship vizia plugins fixed-size; don't call `.resizable(true)`.
+> Pending a `vizia_baseview` upstream patch.
+
 ## Setup
 
 `truce-vizia` is **not** published on crates.io — vizia upstream
