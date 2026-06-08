@@ -30,32 +30,6 @@ Notable changes per release.
 
 ## 0.57.0
 
-- **Windows: wgpu editors pin the DX12 shader compiler to FXC.**
-  Fixes a blank editor (egui, built-in `GpuEditor`) and a host
-  crash (Slint) in Pro Tools. wgpu 29 defaults DX12 to a
-  dynamically-loaded **DXC** (`dxcompiler.dll`); when the host
-  process has already loaded its own incompatible `dxcompiler.dll`
-  (Pro Tools does), `DxcCreateInstance` returns `E_NOINTERFACE`
-  and the *entire* DX12 backend fails to initialise - the wgpu
-  instance ends up with zero adapters, so surface creation fails
-  (white editor, or a panic on Slint's `.expect`). The
-  `truce-gpu`, `truce-gui`, `truce-egui`, and `truce-slint` editor
-  instances now request `Dx12Compiler::Fxc` (`d3dcompiler_47.dll`,
-  always present on Windows, never conflicts). iced (wgpu 0.19,
-  FXC by default) and vizia (OpenGL) were never affected. The
-  Windows editor instances also narrow to `Backends::DX12` (the
-  only backend feature compiled in on Windows). Offscreen/headless
-  screenshot paths are unchanged.
-- **AAX: fix Pro Tools scan hang on Windows.** AAX registration
-  is now lazy - triggered by the first `truce_aax_get_descriptor`
-  query - instead of running from a `.CRT$XCU` library-load static
-  initializer. On Windows the AAX shim `LoadLibraryA`s the cdylib
-  from inside `GetEffectDescriptions` during scanning, so the old
-  initializer ran plugin construction (via `has_editor_static`'s
-  default `create().editor()`, which can touch user32 in editor
-  setup) *under the Windows loader lock* and hung the scan. Now
-  mirrors how VST3/CLAP register lazily on their first host entry
-  point. No API change.
 - **Resizable editors.** Every GUI backend opts in with
   `.resizable(true).min_size((a, b)).max_size((a, b))` on the
   editor / layout, and the CLAP, VST3, AU, and LV2 wrappers
@@ -88,6 +62,33 @@ Notable changes per release.
 - **`baseview-truce 0.1.1-truce.8`.** Adds the macOS
   `setFrameSize:` `Resized` event + OpenGL drawable resize that
   host-driven editor resize depends on. To upstream to baseview.
+- **Windows: wgpu editors pin the DX12 shader compiler to FXC.**
+  Fixes a blank editor (egui, built-in `GpuEditor`) and a host
+  crash (Slint) in Pro Tools. wgpu 29 defaults DX12 to a
+  dynamically-loaded **DXC** (`dxcompiler.dll`); when the host
+  process has already loaded its own incompatible `dxcompiler.dll`
+  (Pro Tools does), `DxcCreateInstance` returns `E_NOINTERFACE`
+  and the *entire* DX12 backend fails to initialise - the wgpu
+  instance ends up with zero adapters, so surface creation fails
+  (white editor, or a panic on Slint's `.expect`). The
+  `truce-gpu`, `truce-gui`, `truce-egui`, and `truce-slint` editor
+  instances now request `Dx12Compiler::Fxc` (`d3dcompiler_47.dll`,
+  always present on Windows, never conflicts). iced (wgpu 0.19,
+  FXC by default) and vizia (OpenGL) were never affected. The
+  Windows editor instances also narrow to `Backends::DX12` (the
+  only backend feature compiled in on Windows). Offscreen/headless
+  screenshot paths are unchanged.
+- **AAX: fix Pro Tools scan hang on Windows.** AAX registration
+  is now lazy - triggered by the first `truce_aax_get_descriptor`
+  query - instead of running from a `.CRT$XCU` library-load static
+  initializer. On Windows the AAX shim `LoadLibraryA`s the cdylib
+  from inside `GetEffectDescriptions` during scanning, so the old
+  initializer ran plugin construction (via `has_editor_static`'s
+  default `create().editor()`, which can touch user32 in editor
+  setup) *under the Windows loader lock* and hung the scan. Now
+  mirrors how VST3/CLAP register lazily on their first host entry
+  point. No API change.
+
 
 ## 0.56.0
 
