@@ -1,9 +1,5 @@
 # Roadmap & Known Gaps
 
-Things truce doesn't do yet, split into **known gaps** (real
-limitations users will hit) and **future** (deliberate scope choices,
-candidates for later).
-
 ## Known gaps
 
 - **Retail iLok / PACE round-trip.** PACE wraptool is wired and
