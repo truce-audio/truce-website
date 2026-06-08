@@ -1,6 +1,12 @@
 #!/usr/bin/env tsx
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -76,12 +82,35 @@ const IOS_SCREENSHOTS: AssetMap["files"] = [
 // page. Like the screenshots, the destination is committed so the
 // Cloudflare deploy — which has no sibling checkout — still ships it;
 // this refresh only does anything when ../truce is present.
-const DOC_FILES: Array<{ from: string; to: string }> = [
+//
+// The source file has a "## Roadmap & Known Gaps" pointer section
+// at the bottom (so GitHub readers know where the roadmap lives);
+// the website hosts the roadmap as its own page (`/docs/roadmap`),
+// so we strip everything from that heading down at sync time.
+// Without the strip the pointer would re-appear in the website
+// changelog page every time `sync-assets` runs.
+const DOC_FILES: Array<{
+  from: string;
+  to: string;
+  transform?: (raw: string) => string;
+}> = [
   {
     from: "truce/CHANGELOG.md",
     to: "src/content/docs/changelog.md",
+    transform: stripRoadmapSection,
   },
 ];
+
+/// Truncate the changelog at the `## Roadmap & Known Gaps` heading.
+/// The header line itself and everything after it gets dropped; we
+/// trim trailing whitespace so the result still ends with a single
+/// newline.
+function stripRoadmapSection(raw: string): string {
+  const marker = /\n## Roadmap & Known Gaps\b/;
+  const m = raw.match(marker);
+  if (!m || m.index === undefined) return raw;
+  return `${raw.slice(0, m.index).trimEnd()}\n`;
+}
 
 const assetMaps: AssetMap[] = [
   {
@@ -149,7 +178,7 @@ for (const asset of assetMaps) {
   }
 }
 
-for (const { from, to } of DOC_FILES) {
+for (const { from, to, transform } of DOC_FILES) {
   const src = resolve(workspaceRoot, from);
   const dst = resolve(repoRoot, to);
 
@@ -160,7 +189,12 @@ for (const { from, to } of DOC_FILES) {
   }
 
   mkdirSync(dirname(dst), { recursive: true });
-  copyFileSync(src, dst);
+  if (transform) {
+    const raw = readFileSync(src, "utf8");
+    writeFileSync(dst, transform(raw), "utf8");
+  } else {
+    copyFileSync(src, dst);
+  }
   copied++;
   console.log(`[sync-assets] ${from} → ${to}`);
 }
