@@ -300,12 +300,32 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "examples/gain-iced.md",
     "examples/gain-slint.md",
     "examples/gain-vizia.md",
+    "examples/gui-zoo.md",
+    "examples/gui-zoo-egui.md",
+    "examples/gui-zoo-iced.md",
+    "examples/gui-zoo-slint.md",
+    "examples/gui-zoo-vizia.md",
     "examples/block-gain.md",
     "examples/block-drywet.md",
     "examples/block-gate.md",
     "examples/block-saturate.md",
     "examples/block-widen.md",
     "examples/block-surround-meter.md",
+    "examples/reiss-delay.md",
+    "examples/reiss-vibrato.md",
+    "examples/reiss-flanger.md",
+    "examples/reiss-chorus.md",
+    "examples/reiss-pingpong.md",
+    "examples/reiss-parametric-eq.md",
+    "examples/reiss-wahwah.md",
+    "examples/reiss-phaser.md",
+    "examples/reiss-tremolo.md",
+    "examples/reiss-ringmod.md",
+    "examples/reiss-compressor.md",
+    "examples/reiss-distortion.md",
+    "examples/reiss-panning.md",
+    "examples/reiss-robotization.md",
+    "examples/reiss-pitchshift.md",
   ];
 
   const formatOrder = [
@@ -336,8 +356,8 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     { title: "Guide", items: collect(guideOrder) },
     { title: "Reference", items: collect(referenceOrder) },
     { title: "GUI backends", items: collect(guiOrder) },
-    { title: "Examples", items: collect(examplesOrder) },
     { title: "Formats", items: collect(formatOrder) },
+    { title: "Examples", items: collect(examplesOrder) },
   ].filter((s) => s.items.length > 0);
 }
 

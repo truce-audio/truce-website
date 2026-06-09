@@ -10,7 +10,8 @@ Source: [`examples/truce-example-gain/`](https://github.com/truce-audio/truce/tr
 ## What it demonstrates
 
 - Exponentially smoothed parameters (`smooth = "exp(5)"`)
-- Equal-power pan law using `cos`/`sin` on a quarter-circle angle
+- Naive pan law (`gain_l = 1 - max(pan, 0)`,
+  `gain_r = 1 + min(pan, 0)`)
 - Peak metering via `ProcessContext::set_meter`
 - Grid layout with knobs, XY pad, and stereo meter
 

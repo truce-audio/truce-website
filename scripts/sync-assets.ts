@@ -41,11 +41,37 @@ const TOP_LEVEL_EXAMPLES = [
   "gain-iced",
   "fundsp-reverb-simple",
   "fundsp-reverb-worker",
+  "gui-zoo",
+  "gui-zoo-egui",
+  "gui-zoo-iced",
 ];
 
 const SUB_WORKSPACE_EXAMPLES: Array<{ short: string; backend: string }> = [
   { short: "gain-slint", backend: "slint" },
   { short: "gain-vizia", backend: "vizia" },
+  { short: "gui-zoo-slint", backend: "slint" },
+  { short: "gui-zoo-vizia", backend: "vizia" },
+];
+
+// All Reiss & McPherson effects ship their default-state screenshot
+// in the sibling repo's `screenshots/` directory (one per crate,
+// already 2x physical px). We mirror them as-is.
+const REISS_MCPHERSON_PLUGINS = [
+  "delay",
+  "vibrato",
+  "flanger",
+  "chorus",
+  "pingpong",
+  "parametric-eq",
+  "wahwah",
+  "phaser",
+  "tremolo",
+  "ringmod",
+  "compressor",
+  "distortion",
+  "panning",
+  "robotization",
+  "pitchshift",
 ];
 
 const exampleScreenshot = (
@@ -134,6 +160,13 @@ const assetMaps: AssetMap[] = [
         exampleScreenshot(short, `crates/truce-${backend}/examples`),
       ),
     ],
+  },
+  {
+    plugin: "reiss-mcpherson-effects",
+    files: REISS_MCPHERSON_PLUGINS.map((short) => ({
+      from: `reiss-mcpherson-effects/screenshots/reiss-mcpherson-${short}.png`,
+      to: `public/screenshots/reiss-mcpherson/${short}.png`,
+    })),
   },
   {
     plugin: "truce-ios",
