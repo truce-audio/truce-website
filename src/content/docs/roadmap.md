@@ -30,6 +30,16 @@
 - **iced on iOS.** iced's `iced_winit` calls a desktop-only `winit`
   trait inside a non-iOS-gated branch, so `truce-example-gain-iced`
   doesn't build for `aarch64-apple-ios*`. Blocked upstream.
+- **Standalone Settings / Presets menu on Linux.** The X11
+  standalone has no native menu bar, so the audio / MIDI Settings
+  pickers and the Presets menu aren't drawn on Linux. Drive those
+  from the keyboard shortcuts (Cmd/Ctrl+S and Cmd/Ctrl+Shift+S for
+  Save / Save As, transport and octave keys) and the CLI flags
+  (`--preset`, `--output`, `--midi-input`, ...) instead; macOS and
+  Windows get the full menus.
+- **AAX presets (Pro Tools).** Factory presets ship to CLAP, VST3,
+  AU, and LV2, but aren't emitted as AAX `.tfx` yet, so they don't
+  appear in Pro Tools' preset menu.
 
 ## Future
 
