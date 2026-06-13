@@ -40,6 +40,10 @@
 - **AAX presets (Pro Tools).** Factory presets ship to CLAP, VST3,
   AU, and LV2, but aren't emitted as AAX `.tfx` yet, so they don't
   appear in Pro Tools' preset menu.
+- **VST2 presets and resizing.** VST2 doesn't get factory presets
+  (no `.fxp` emission yet), and resizable editors aren't wired for
+  it - host-driven resize round-trips through CLAP, VST3, AU, and
+  LV2 only, so a VST2 editor opens (and stays) at its natural size.
 
 ## Future
 
