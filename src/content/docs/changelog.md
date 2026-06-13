@@ -2,23 +2,30 @@
 
 Notable changes per release.
 
-## Unreleased
+## 0.58.1
+
+- **Pin `time` to 0.3.47.** 0.3.48 was yanked from crates.io.
+
+## 0.58.0
 
 - **Presets.** Drop a `presets/` directory of `.preset` TOML
-  files next to a plugin crate and `cargo truce install` ships
+  files next to a plugin crate (params keyed by your `Params`
+  struct's field names, resolved through the derive sidecars;
+  numeric ids also accepted) and `cargo truce install` ships
   them as factory presets in every format: CLAP (native files +
   the preset-discovery / preset-load extensions), AU v2/v3
   (factory list in Logic / GarageBand), VST3 (`.vstpreset` in
   the OS preset locations), LV2 (`pset:Preset` TTL). Every
   container wraps the same state envelope as session recall,
   which also powers the new `cargo truce preset` CLI: `convert`
-  between any two formats, `pull [--watch]` to turn presets
-  saved in your DAW into library files (uuid-stable updates,
-  param-name comments), `import` / `export` for pack zips, and
+  between any two formats, `pull` to turn presets saved in your
+  DAW into library files (uuid-stable updates, param-name
+  comments), `import` / `export` for pack zips, and
   `list` / `init`. Underneath, `truce_core::presets::PresetStore`
   manages factory / user / pack scopes with uuid identity, so
   renames never break host references and user copies override
-  factory ones.
+  factory ones. `[plugin.presets]` `user_dir` optionally replaces
+  the `truce/<vendor>/<plugin>` part of the user-scope path.
 - **`cargo truce install --au2 --debug` installed a stale
   release dylib.** The AU installer now resolves the build
   profile like every other format.
