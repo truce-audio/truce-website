@@ -86,7 +86,11 @@ other truce-produced artifact.
   --buffer <frames>        Audio buffer size
   --midi-input <name>      MIDI input device (substring match)
   --bpm <n>                Transport BPM (default 120)
-  --state <path>           Load plugin state from this file on launch
+  --state <path>           Load a state file on launch (a .trucepreset
+                           preset or a saved state blob)
+  --preset <name|uri>      Load a library preset on launch, by name
+                           (or its preset uri)
+  --list-presets           List the plugin's presets and exit
   -h, --help               Show this message
 ```
 
@@ -142,11 +146,40 @@ Mute (`--output-enabled off`) silences the speakers but **does
 not** affect what `--output-file` captures — bounce-to-disk
 behaviour matches what every DAW does.
 
+## Presets
+
+The standalone host browses and saves your plugin's preset library
+through a native **Presets** menu (macOS and Windows):
+
+- **Load** — pick a preset. The list also shows your own user presets
+  and any installed packs, deduped by identity.
+- **Previous / Next** — step through the list to audition sounds.
+- **Save** — update the preset you're editing in place. With a
+  factory preset loaded (or nothing) there's nothing of yours to
+  overwrite, so Save is grayed and points you at Save As — you can't
+  clobber a stock sound by accident. The menu label shows the file
+  you'd write, e.g. `Save Preset (Glass.trucepreset)`.
+- **Save As…** — name a new preset. macOS / Windows open a native
+  save panel (which confirms overwrites); the new preset is selected
+  once saved.
+
+Presets you save show up in the menu the next time you open it — no
+relaunch — and land in the same per-OS user location your DAW reads,
+so a sound you dial in here is immediately available in your projects.
+
+Keyboard shortcuts work on every platform, and are the whole preset
+interface on Linux (the X11 standalone has no menu bar): **Cmd-S /
+Ctrl-S** to Save, **Cmd-Shift-S / Ctrl-Shift-S** to Save As. You can
+also load a sound straight from the command line with
+`--preset <name>`, or list what's available with `--list-presets`.
+
+See the [presets guide](/docs/guide/presets) for authoring libraries.
+
 ## In-window hotkeys
 
 - **SPACE** — toggle transport play / stop
-- **Ctrl-S / Cmd-S** — quick-save plugin state to
-  `$XDG_DATA_HOME/truce/<slug>/quicksave-<ts>.state`
+- **Cmd-S / Ctrl-S** — save the current preset; **Cmd-Shift-S /
+  Ctrl-Shift-S** — Save As (see Presets above)
 - **I** — toggle mic input (effect plugins only). First press on
   macOS triggers the system permission prompt.
 - **Cmd-O / Ctrl-O** — toggle audio output (mute / unmute). Plugin

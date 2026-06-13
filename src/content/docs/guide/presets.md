@@ -188,6 +188,7 @@ store.delete(&uri)?;                     // user scope only
 | AU v2 | Plugin-window preset menu in Logic / GarageBand, served by the factory-presets property. |
 | AU v3 | Same, on macOS. iOS preset locations aren't wired yet. |
 | LV2 | Host preset list (Ardour, Carla) from the bundle TTL. |
+| Standalone | Native [Presets menu](/docs/formats/standalone#presets) (macOS / Windows) — Load / Previous / Next / Save / Save As, plus Cmd-S / Cmd-Shift-S (the whole interface on Linux). User presets save to the same location your DAW reads. |
 | AAX | Not emitted yet. |
 | VST2 | Not emitted yet. |
 

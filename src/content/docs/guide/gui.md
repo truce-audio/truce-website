@@ -58,6 +58,34 @@ points. Override any of those:
 - `.with_cell_size(s)` — bigger / smaller cells.
 - `.with_grid(cols, cell_size)` — both at once.
 
+### Resizable and maximizable
+
+Editors are fixed-size by default. Opt into host-driven resize with
+`.resizable(true)`, and clamp the range with `.min_size((a, b))` /
+`.max_size((a, b))`:
+
+```rust
+GridLayout::build(sections)
+    .resizable(true)
+    .min_size((4, 3))     // grid: (cols, rows) cells
+    .max_size((12, 9))
+    .maximizable(true)
+    .into_editor(&self.params)
+```
+
+`.maximizable(true)` lets the standalone host's window be maximized.
+It's off by default for a reason: maximizing grows the window to the
+whole screen, past the editor's `max_size`, leaving the clamped GUI in
+an empty margin. Leave it off and the maximize affordance is removed;
+turn it on only for editors that render correctly at any size. When a
+window does end up larger than the editor, the GUI is centered and the
+extra space painted black rather than stretched or pinned to a corner.
+
+The same four methods exist on the egui, iced, and slint editor
+builders, where `min_size` / `max_size` are **logical points** rather
+than grid cells. Ship vizia plugins fixed-size — don't call
+`.resizable(true)` there.
+
 ### The seven widgets
 
 | Constructor | Widget | Typical use |
