@@ -269,7 +269,7 @@ cover the full MIDI-in / MIDI-out shape end to end.
 
 - **[Chapter 8 → gui](gui.md)** — visualise note state,
   expose CC mappings as parameters.
-- **[Chapter 11 → hot-reload](hot-reload.md)** — iterate on
+- **[Chapter 13 → hot-reload](hot-reload.md)** — iterate on
   arp logic without restarting the DAW.
 - **[`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)** in the repo — full
   MIDI in → MIDI out plugin with state, transport, and tests.

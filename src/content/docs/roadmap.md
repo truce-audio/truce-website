@@ -33,7 +33,4 @@
 
 ## Future
 
-- More example plugins (delay).
 - WebView GUI backend.
-- Distribution-grade dynamic shell (today's `--shell` is dev-loop
-  only; making it a shipping mechanism is a phase-2 question).

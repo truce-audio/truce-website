@@ -35,9 +35,10 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 | 7 | [midi](guide/midi.md) | Reading and emitting MIDI events; per-format support; testing MIDI plugins. |
 | 8 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, Vizia, raw window handle). |
 | 9 | [audio-testing](guide/audio-testing.md) | `truce_test::PluginDriver` for in-process audio + MIDI regression tests — no DAW required. |
-| 10 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
-| 11 | [ios](guide/ios.md) | iOS-specific workflow: simulator iteration, device + `.ipa` signing, per-plugin `truce.toml` knobs, preview-audio mute, screenshot regression. |
-| 12 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
+| 10 | [presets](guide/presets.md) | Factory presets in every format from `.preset` TOML; in-DAW authoring via `cargo truce preset pull`; cross-format conversion; preset packs. |
+| 11 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
+| 12 | [ios](guide/ios.md) | iOS-specific workflow: simulator iteration, device + `.ipa` signing, per-plugin `truce.toml` knobs, preview-audio mute, screenshot regression. |
+| 13 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
 
 ### GUI backends
 

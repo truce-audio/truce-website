@@ -2,6 +2,27 @@
 
 Notable changes per release.
 
+## Unreleased
+
+- **Presets.** Drop a `presets/` directory of `.preset` TOML
+  files next to a plugin crate and `cargo truce install` ships
+  them as factory presets in every format: CLAP (native files +
+  the preset-discovery / preset-load extensions), AU v2/v3
+  (factory list in Logic / GarageBand), VST3 (`.vstpreset` in
+  the OS preset locations), LV2 (`pset:Preset` TTL). Every
+  container wraps the same state envelope as session recall,
+  which also powers the new `cargo truce preset` CLI: `convert`
+  between any two formats, `pull [--watch]` to turn presets
+  saved in your DAW into library files (uuid-stable updates,
+  param-name comments), `import` / `export` for pack zips, and
+  `list` / `init`. Underneath, `truce_core::presets::PresetStore`
+  manages factory / user / pack scopes with uuid identity, so
+  renames never break host references and user copies override
+  factory ones.
+- **`cargo truce install --au2 --debug` installed a stale
+  release dylib.** The AU installer now resolves the build
+  profile like every other format.
+
 ## 0.57.2
 
 - **CLAP editor clipped above the host's pane in REAPER.** The

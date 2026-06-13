@@ -55,6 +55,29 @@ from `name`. One exception: `au3_name` also overrides the
 `/Applications/{au3_name}.app` install path so two AU v3 builds
 (e.g. release and beta) can coexist.
 
+## `[plugin.presets]` — optional, per plugin
+
+Factory-preset settings ([guide chapter](../guide/presets.md)).
+Without this table, a `presets/` directory next to the crate is
+picked up automatically; add it only to change the defaults.
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `factory_dir` | string | no | Directory of authored `.preset` TOML files, relative to the plugin's crate directory. Default `presets`. |
+| `user_dir` | string | no | Replaces the `truce/<vendor>/<plugin>` subpath of the user-scope preset root (where user presets and packs live). Relative segments only; `..` is rejected at install. Pick once, before first release - changing it later orphans previously saved user presets. |
+
+Where the user-scope root resolves per OS:
+
+| OS | default | with `user_dir = "Acme/MySynth"` |
+|----|---------|----------------------------------|
+| macOS | `~/Library/Audio/Presets/truce/<vendor>/<plugin>/` | `~/Library/Audio/Presets/Acme/MySynth/` |
+| Windows | `%APPDATA%\truce\<vendor>\<plugin>\presets\` | `%APPDATA%\Acme\MySynth\` |
+| Linux | `$XDG_DATA_HOME/truce/<vendor>/<plugin>/presets/` | `$XDG_DATA_HOME/truce/Acme/MySynth/` |
+
+(`$XDG_DATA_HOME` falls back to `~/.local/share` when unset.) The
+override replaces the whole default subpath with no implicit
+`presets` suffix.
+
 ## `[[suite]]` — optional, repeatable
 
 Each entry produces one suite installer per platform that bundles

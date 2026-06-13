@@ -603,7 +603,7 @@ The contract:
   the UI.
 - **[Chapter 9 → audio-testing](audio-testing.md)** — lock
   this code in with in-process regression tests before it ships.
-- **[Chapter 11 → hot-reload](hot-reload.md)** — keep your DAW
+- **[Chapter 13 → hot-reload](hot-reload.md)** — keep your DAW
   open while you iterate on this code.
 - **[`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo)** in the repo — host transport
   + egui UI in a small, real plugin.
