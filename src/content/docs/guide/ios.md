@@ -362,6 +362,7 @@ simulator your CI matrix uses.
 | `truce-vizia` | Vizia hard-pins `vizia_baseview`, and baseview has no `target_os = "ios"` platform impl — desktop only |
 | CLAP / VST3 / VST2 / LV2 / AAX | Platform contract — iOS only hosts AU v3 |
 | Universal `.ipa` | Device + simulator slices have distinct Mach-O platform IDs and can't lipo together; use `--xcframework` packaging if you need both slices in one artifact |
+| Factory presets | iOS appex / framework preset locations aren't wired yet (planned, not a platform limit). `cargo truce install` ships them on every desktop format; on iOS they're skipped |
 
 ## What's next
 

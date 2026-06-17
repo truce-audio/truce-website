@@ -44,6 +44,9 @@
   (no `.fxp` emission yet), and resizable editors aren't wired for
   it - host-driven resize round-trips through CLAP, VST3, AU, and
   LV2 only, so a VST2 editor opens (and stays) at its natural size.
+- **iOS presets.** Factory presets ship to CLAP, VST3, AU, and LV2
+  on desktop, but the iOS AU v3 appex / framework preset locations
+  aren't wired yet, so `cargo truce install` skips them on iOS.
 
 ## Future
 
