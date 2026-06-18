@@ -42,8 +42,13 @@
   appear in Pro Tools' preset menu.
 - **VST2 presets and resizing.** VST2 doesn't get factory presets
   (no `.fxp` emission yet), and resizable editors aren't wired for
-  it - host-driven resize round-trips through CLAP, VST3, AU, and
-  LV2 only, so a VST2 editor opens (and stays) at its natural size.
+  it - host-driven resize round-trips through CLAP, VST3, AU v3,
+  and LV2 only, so a VST2 editor opens (and stays) at its natural
+  size.
+- **AU v2 resize.** Resizable editors round-trip under AU v3 but
+  not the AU v2 component - an AU v2 editor opens at its natural
+  size and doesn't follow host-driven resize. Use AU v3 for
+  resizable GUIs on macOS.
 - **AAX host-driven resize (Pro Tools).** A plugin can resize its
   own editor (the GUI's `request_resize` forwards to
   `AAX_IViewContainer::SetViewSize()`), but the reverse direction
