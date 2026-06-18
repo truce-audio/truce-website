@@ -190,26 +190,3 @@ name = "Acme Studio"
 bundle_id = "acme-studio"
 description = "Gain and Synth in one installer."
 ```
-
-## What's not here
-
-These all used to be `truce.toml` fields and are now per-developer
-env vars instead. Setting them in `truce.toml` does nothing; see
-[`cargo-config`](cargo-config.md) for where they live.
-
-- `[macos].aax_sdk_path` → `AAX_SDK_PATH`
-- `[macos.signing].application_identity` → `TRUCE_SIGNING_IDENTITY`
-- `[macos.signing].installer_identity` → `TRUCE_INSTALLER_SIGNING_IDENTITY`
-- `[macos.packaging].apple_id` → `APPLE_ID`
-- `[macos.packaging].team_id` → `TEAM_ID`
-- `[windows].aax_sdk_path` → `AAX_SDK_PATH`
-- `[windows.signing].azure_account` → `TRUCE_AZURE_ACCOUNT`
-- `[windows.signing].azure_profile` → `TRUCE_AZURE_PROFILE`
-- `[windows.signing].azure_dlib` → `TRUCE_AZURE_DLIB`
-- `[windows.signing].sha1` → `TRUCE_CERT_SHA1`
-- `[windows.signing].cert_store` → `TRUCE_CERT_STORE`
-- `[windows.signing].pfx_path` → `TRUCE_PFX_PATH`
-- `[windows.signing].timestamp_url` → `TRUCE_TIMESTAMP_URL`
-
-The split keeps secrets and machine-specific paths out of the
-tracked file.
