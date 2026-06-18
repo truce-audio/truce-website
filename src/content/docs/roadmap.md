@@ -44,6 +44,13 @@
   (no `.fxp` emission yet), and resizable editors aren't wired for
   it - host-driven resize round-trips through CLAP, VST3, AU, and
   LV2 only, so a VST2 editor opens (and stays) at its natural size.
+- **AAX host-driven resize (Pro Tools).** A plugin can resize its
+  own editor (the GUI's `request_resize` forwards to
+  `AAX_IViewContainer::SetViewSize()`), but the reverse direction
+  isn't wired: AAX's `AAX_CEffectGUI` exposes no inbound
+  size-change callback like VST3's `onSize` or CLAP's
+  `gui_set_size`, so dragging the Pro Tools window edge doesn't
+  resize the editor.
 - **iOS presets.** Factory presets ship to CLAP, VST3, AU, and LV2
   on desktop, but the iOS AU v3 appex / framework preset locations
   aren't wired yet, so `cargo truce install` skips them on iOS.
