@@ -73,6 +73,7 @@ warning at the top of `cargo truce package`).
 |----------|---------|
 | `TRUCE_AZURE_ACCOUNT` | Azure Trusted Signing account name. |
 | `TRUCE_AZURE_PROFILE` | Certificate profile name within the account. |
+| `TRUCE_AZURE_ENDPOINT` | Trusted Signing endpoint. A full URL, or a region short code (e.g. `weu`) expanded to `https://<code>.codesigning.azure.net`. Defaults to `https://eus.codesigning.azure.net` (East US). |
 | `TRUCE_AZURE_DLIB` | Override path to `Azure.CodeSigning.Dlib.dll`. Defaults to `C:\Program Files\Microsoft Trusted Signing Client\bin\x64\Azure.CodeSigning.Dlib.dll`. |
 
 Azure's own auth (tenant ID, client ID / secret) is read from

@@ -332,8 +332,10 @@ configured via env vars in `.cargo/config.toml [env]`:
 1. **Azure Trusted Signing** (recommended, ~\$120/yr, no hardware
    token). Set `TRUCE_AZURE_ACCOUNT` + `TRUCE_AZURE_PROFILE`
    (optional `TRUCE_AZURE_DLIB` to point at a non-default
-   `Azure.CodeSigning.Dlib`), and `AZURE_TENANT_ID` /
-   `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` for auth.
+   `Azure.CodeSigning.Dlib`, optional `TRUCE_AZURE_ENDPOINT` to
+   sign through a region other than the East US default), and
+   `AZURE_TENANT_ID` / `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET`
+   for auth.
 2. **SHA1 cert thumbprint** — typical for OV/EV certs on a
    hardware token. Set `TRUCE_CERT_SHA1` (+ optional
    `TRUCE_CERT_STORE` if the cert isn't in signtool's default
