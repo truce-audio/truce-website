@@ -2,6 +2,15 @@
 
 Notable changes per release.
 
+## 0.60.0
+
+- **`midi_input` / `midi_output` capability flags.** New `[[plugin]]` truce.toml keys let an instrument or audio effect opt into MIDI input/output (or opt out), overriding the category default, consistently across every format.
+- **AU MusicEffect for MIDI-driven effects.** An audio effect with `midi_input = true` now registers as an `aumf` MusicEffect, so AU hosts route MIDI to it instead of an `aufx`.
+- **VST2 MIDI output fixed on 64-bit.** The outbound `VstEvents` block placed its pointer array at the wrong offset, so hosts read a garbage event pointer; plugins now emit MIDI correctly. ([#131](https://github.com/truce-audio/truce/issues/131))
+- **VST3 emits non-note MIDI output.** Control change, pitch bend, aftertouch, channel pressure, and program change reach the host now, not just note on/off. ([#123](https://github.com/truce-audio/truce/issues/123))
+- **CLAP advertises the MIDI note dialect.** Raw-MIDI output events (CC, pitch bend, SysEx) are no longer dropped by dialect-routing hosts.
+- **SysEx payloads under sample-accurate chunking.** The chunking layer handed `process()` a timing-rebased event list whose SysEx pool was empty, so a plugin reading a SysEx payload would index out of bounds; the rebased list now carries its own copy of the payload.
+
 ## 0.59.0
 
 - **Honor cargo's real target directory.** `cargo truce` now reads cargo's `target_directory` via `cargo metadata` instead of assuming `<plugin>/target`, fixing installs when the plugin crate is a member of a larger workspace (artifacts land in the workspace-root `target/`). ([#124](https://github.com/truce-audio/truce/issues/124))

@@ -28,8 +28,10 @@ or shell env vars instead. See
 | `bundle_id` | string | yes | Short lowercase, no-dash identifier. Used internally for bundle / extension reverse-DNS IDs (`com.{vendor}.{bundle_id}.au`), install plist filenames, and scratch paths. Not used at the CLI. |
 | `crate` | string | yes | Cargo package name. CLI uses this for `-p <crate>`. Hyphens become underscores in built `.dll`/`.dylib`. |
 | `category` | string | yes | `"effect"` / `"instrument"` / `"midi"`. Drives AU/VST3/CLAP category metadata. |
+| `midi_input` | bool | no | Whether the host routes MIDI into the plugin. Defaults to `true` for instruments and note effects (`"midi"`); set `true` on an effect that reacts to MIDI (e.g. CC-controlled), or `false` to suppress. On AU, `true` on an effect promotes it to the `aumf` MusicEffect type so the host actually routes MIDI to it; `false` on an instrument is a no-op (an `aumu` receives MIDI by type). |
+| `midi_output` | bool | no | Whether the plugin emits MIDI to the host. Defaults to `true` for note effects (`"midi"`) only; set `true` on an instrument or effect that also emits MIDI so the host declares the MIDI output port/bus. |
 | `fourcc` | string | yes† | Exactly 4 ASCII chars. AU subtype + cross-format unique ID. |
-| `au_type` | string | no | Override AU type. Defaults: `"aumu"` for instruments, `"aumi"` for midi / note-effects, `"aufx"` for effects. |
+| `au_type` | string | no | Override AU type. Defaults: `"aumu"` for instruments, `"aumi"` for midi / note-effects, `"aumf"` for an effect with `midi_input = true`, else `"aufx"`. |
 | `au_subtype` | string | no | Synonym for `fourcc`. `fourcc` wins if both are set. |
 | `au3_subtype` | string | no | 4-char subtype for AU v3 only. Set if v2/v3 must differ. |
 | `au_tag` | string | no | AU category tag. Defaults to `"Effects"`. Common: `"Synthesizer"`, `"Dynamics"`, `"EQ"`, `"MIDI"`. |

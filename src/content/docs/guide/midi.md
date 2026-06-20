@@ -33,11 +33,19 @@ opens its MIDI I/O path:
 Set `category = "instrument"` for synths so wrappers register
 MIDI input + audio output (and AU builds as `aumu`).
 
-`category = "effect"` plugins receive MIDI input where the host
-provides it (CLAP, VST3, AAX). VST2 effects don't get MIDI input
-unless you opt in via the format's `canDo` flag — in practice
-declare `"midi"` or `"instrument"` if you need MIDI on every
-host.
+By default a plugin's MIDI I/O follows its `category`: instruments
+and note effects accept MIDI input, and only note effects emit MIDI
+output. Override either direction per plugin with the `midi_input`
+and `midi_output` keys in `truce.toml` (see the
+[`truce.toml` reference](../reference/truce-toml.md)). They apply
+consistently across CLAP, VST3, VST2, AU, AAX, and LV2:
+
+- An audio effect that reacts to MIDI (a CC-controlled filter) sets
+  `midi_input = true`. On AU this registers it as an `aumf`
+  MusicEffect so the host routes MIDI to it.
+- An instrument or effect that also emits MIDI (a chord generator,
+  an envelope-to-CC follower) sets `midi_output = true` so every
+  format declares its MIDI output port/bus.
 
 ## The event model
 
