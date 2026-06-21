@@ -205,24 +205,78 @@ impl SynthParams {
 
 ## Nested structs
 
-Split a wide parameter set into sub-structs with `#[nested]`:
+Split a wide parameter set into self-contained groups with `#[nested]`, each its own `#[derive(Params)]` struct. The host still sees one flat parameter list.
 
 ```rust
+#[derive(Params)]
+pub struct FilterParams {
+    #[param(name = "Cutoff", group = "Filter", range = "log(20, 20000)", unit = "Hz")]
+    pub cutoff: FloatParam,
+    #[param(name = "Resonance", group = "Filter", range = "linear(0, 1)")]
+    pub resonance: FloatParam,
+}
+
 #[derive(Params)]
 pub struct PluginParams {
     #[nested] pub filter:   FilterParams,
     #[nested] pub envelope: EnvelopeParams,
 }
+```
+
+A nested group's params **auto-number locally from 0**; you don't write ids inside the group. The parent rebases each group into the plugin's id space by a *base*: bare `#[nested]` auto-packs each group right after the preceding params (own params first, then each group in order). Above, `filter` lands at ids 0-1 and `envelope` follows.
+
+### Reusing a group
+
+Because the parent assigns the base, the **same group type can be nested more than once** without an id clash:
+
+```rust
+#[derive(Params)]
+pub struct ChannelStrip {
+    #[param(name = "Gain", range = "linear(-60, 12)", unit = "dB")]
+    pub gain: FloatParam,
+    #[param(name = "Mute")]
+    pub mute: BoolParam,
+}
 
 #[derive(Params)]
-pub struct FilterParams {
-    #[param(id = 10, name = "Cutoff", group = "Filter",
-            range = "log(20, 20000)", unit = "Hz")]
-    pub cutoff: FloatParam,
+pub struct UtilityParams {
+    #[nested] pub left:  ChannelStrip,   // ids 0-1
+    #[nested] pub right: ChannelStrip,   // ids 2-3
 }
 ```
 
-**Assign explicit `id` values when nesting.** Auto-IDs are per-struct, so without `id =` the nested structs collide at 0, 1, 2, ... Pick a non-overlapping ID block per struct (10–19 for filter, 20–29 for envelope, etc.). Nested params are flattened for the host — it sees one list.
+The two `ChannelStrip`s flatten to disjoint id ranges. (Their param *names* are shared, since they come from one type, so a host's flat list shows `Gain` twice; label them per-instance in your editor's sections.)
+
+### Pinning a base for stable ids
+
+Auto bases shift if you reorder groups or add a param to an earlier group. When the flattened ids must stay fixed across releases - so saved sessions, presets, and host automation keep resolving - pin each group with `#[nested(base = N)]`, the same way you pin a param `id`:
+
+```rust
+#[derive(Params)]
+pub struct EqParams {
+    #[nested(base = 0)] pub low:  LowBand,   // ids 0-2
+    #[nested(base = 3)] pub mid:  MidBand,   // ids 3-5
+    #[nested(base = 6)] pub high: HighBand,  // ids 6-8
+    #[param(id = 9, name = "Output", range = "linear(-18, 18)", unit = "dB")]
+    pub output: FloatParam,
+}
+```
+
+The derive panics at construction if any two flattened ids collide, so a bad base is a loud failure, not silent state corruption.
+
+### Addressing nested params in the editor
+
+The generated `ParamId` enum (below) covers a struct's *own* params, not its nested children - the derive can't see inside another type. Reach a nested param by its runtime id off the field itself:
+
+```rust
+knob(self.params.filter.cutoff.id(), "Cutoff")
+```
+
+`.id()` returns the rebased (flattened) id, so it stays correct under reuse and pinning alike.
+
+See the `synth` (distinct groups), `stereo-utility` (one group reused), and `eq` (pinned bases) examples for the three shapes.
+
+> **Meters** can't live in a nested group that's used more than once - meter ids occupy a separate fixed range and aren't rebased, so two nested groups each declaring a meter collide (the derive rejects it at construction). Keep meters in a single, non-reused `Params` struct.
 
 ## Generated `ParamId` enum
 
