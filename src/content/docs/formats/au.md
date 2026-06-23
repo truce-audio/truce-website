@@ -14,6 +14,21 @@ Both AU v2 and AU v3 ship from the **same `au` feature flag** and
 the **same Rust staticlib**. What differs is only the bundle layout
 and the host integration path.
 
+## AU v3 and the standalone are one app
+
+On macOS an AU v3 appex can't ship on its own — Apple requires it inside a
+container `.app`. Truce makes that container do double duty: **if your
+plugin ships a [standalone](standalone.md) binary, the container *is* the
+standalone host.** `cargo truce install --au3` and `cargo truce package`
+produce a single `/Applications/{Name}.app` that is both the AU v3 bundle
+the DAW loads *and* the playable app you can double-click to run — there is
+no second standalone app, and the Standalone format collapses into this one.
+
+The `.pkg` installer reflects it too: the pair shows up as a single
+**"AU3 + Standalone"** choice rather than two. A plugin with **no**
+standalone binary still ships its appex inside a minimal, informational stub
+app.
+
 ## Enable
 
 ```toml
@@ -77,8 +92,9 @@ at `/Applications/...` with a one-line note.
 
 The AU v3 appex is embedded inside a container `.app` at
 `/Applications/`. Apple requires this — App Extensions cannot ship
-on their own. The container app is a minimal stub that exists only
-to host the appex; you don't interact with it.
+on their own. When your plugin has a standalone binary that container
+app **is** the playable standalone (double-click to run); otherwise it's
+a minimal stub. See [AU v3 and the standalone are one app](#au-v3-and-the-standalone-are-one-app).
 
 After an AU v3 install, `pkd` (the PluginKit daemon) picks up the
 new extension. If a host doesn't see it, run `cargo truce reset-au`

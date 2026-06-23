@@ -283,11 +283,18 @@ per-block meters, output-event capture.
 
 ## Distribution
 
-`cargo truce package` includes the standalone binary in the macOS `.pkg`
-and the Windows `.exe` installer alongside the plug-in formats — no extra
-flag, no separate build step. On Linux the standalone ships in the
-`.tar.gz` produced by `cargo truce package`; AppImage is still on the
-backlog.
+`cargo truce package` ships the standalone alongside the plug-in formats —
+no extra flag, no separate build step.
+
+On **macOS** the standalone and AU v3 are the **same app**: when AU v3 is
+also packaged, you get one `/Applications/{Name}.app` that is both the AU v3
+container the DAW loads and the playable standalone, offered in the `.pkg`
+as a single **"AU3 + Standalone"** choice. (With no AU v3 build the
+standalone ships as its own `.app`.) See
+[Audio Unit › AU v3 and the standalone are one app](au.md#au-v3-and-the-standalone-are-one-app).
+
+On **Windows** the standalone `.exe` ships in the installer; on **Linux**
+it ships in the `.tar.gz` (AppImage is still on the backlog).
 
 ## Limitations
 

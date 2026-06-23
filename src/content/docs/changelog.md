@@ -2,6 +2,12 @@
 
 Notable changes per release.
 
+## 0.62.0
+
+- **AU v3 and standalone are one macOS app.** A plugin with a standalone bin ships a single `{name}.app` that is both the AU v3 container and the playable standalone host; the separate Standalone format collapses into it and the installer choice reads "AU3 + Standalone". Plugins without a standalone bin still ship the appex, in an informational stub app.
+- **Fixed macOS standalone resize leaving a white margin around the editor;** non-resizable editor windows are now pinned so they can't be zoomed open.
+- **`package --suite <name>` matches a suite by bundle id or display name** and errors on an unknown name instead of silently skipping the suite.
+
 ## 0.61.0
 
 - **Reusable `#[nested]` param groups.** A nested `Params` struct's ids are rebased by a per-group base (auto-packed, or pinned with `#[nested(base = N)]`), so the same group type can be nested more than once without id clashes and nested groups need no per-param ids.
