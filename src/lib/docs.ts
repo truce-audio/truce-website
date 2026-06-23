@@ -276,6 +276,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "guide/gui/slint.md",
     "guide/gui/vizia.md",
     "guide/gui/raw-window-handle.md",
+    "guide/gui/keyboard.md",
     "guide/gui/screenshot-testing.md",
   ];
 

@@ -226,5 +226,7 @@ CLI for renders that don't need a `#[test]`.
   constructor, all the cell options, theming.
 - **[Screenshot testing](gui/screenshot-testing.md)** — diff
   rendered pixels against committed PNGs.
+- **[Keyboard input](gui/keyboard.md)** — read the keyboard in
+  egui / iced editors, plus the host-focus caveats.
 - **[GUI backends](gui/)** — deep-dives per framework when the
   built-in GUI isn't enough.
