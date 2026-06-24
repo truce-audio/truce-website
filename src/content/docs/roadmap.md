@@ -49,6 +49,13 @@
     Play, status, hamburger overlay). Plug-ins that need a bespoke
     shell hand-author it outside the pipeline and load the
     `.appex` truce builds.
+- **Editor keyboard input** is wired for `truce-egui`, `truce-iced`,
+  `truce-slint`, and `truce-vizia` (and the standalone host). The
+  **built-in GUI** editor currently drops key events, so editor text
+  fields and keyboard shortcuts aren't available there yet. Use egui,
+  iced, slint, or vizia when the editor needs the keyboard.
+  (Embedded-editor keys are host-dependent regardless of backend; see
+  [Keyboard input](guide/gui/keyboard.md).)
 - **MIDI 2.0 over LV2.** LV2 Atom carries MIDI 1.0 byte streams,
   so plugins emitting MIDI 2.0 channel-voice, per-note, or
   ParamChange events drop those messages when loaded as LV2.

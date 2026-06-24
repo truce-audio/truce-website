@@ -75,15 +75,52 @@ An iced `KeyPressed` carries both the layout-resolved logical key and the
 layout-independent `physical_key`, so shortcuts (logical) and
 whole-keyboard input (physical, e.g. a tab editor) are both covered.
 
+## Slint
+
+Keys flow into Slint's own input system, so handle them the Slint way in
+your `.slint` markup — a focused `LineEdit` / `TextInput` receives typed
+text, and a `FocusScope` with a `key-pressed(event)` callback captures keys
+when focused:
+
+```slint
+focus := FocusScope {
+    key-pressed(event) => {
+        root.last-key = event.text;
+        accept
+    }
+    // give it focus (e.g. a TouchArea calling focus()), then type
+}
+```
+
+## Vizia
+
+Keys flow into Vizia's own reactive event system. A focused `Textbox`
+receives typed text automatically; for shortcuts or a key mirror, catch
+`WindowEvent::KeyDown` in a `Model` (it propagates up to the root even
+while a textbox holds focus):
+
+```rust
+impl Model for KeyCapture {
+    fn event(&mut self, _cx: &mut EventContext, event: &mut Event) {
+        event.map(|e: &WindowEvent, _| {
+            if let WindowEvent::KeyDown(code, _) = e {
+                self.last_key.set(format!("{code:?}"));
+            }
+        });
+    }
+}
+```
+
 ## Other backends
 
-The built-in GUI, Slint, and Vizia editors don't route keyboard to your
-code yet — reach for **egui** or **iced** when the editor needs keys. (The
-native window may still receive them; truce just doesn't surface them to
-those backends.)
+The built-in GUI editor doesn't route keyboard to your code yet. Reach for
+**egui**, **iced**, **Slint**, or **Vizia** when the editor needs keys. (The
+native window may still receive them; truce just doesn't surface them to the
+built-in editor.)
 
 ## See also
 
-- [egui integration](egui.md) · [iced integration](iced.md)
+- [egui integration](egui.md) · [iced integration](iced.md) ·
+  [Slint integration](slint.md) · [Vizia integration](vizia.md)
 - [Standalone](../../formats/standalone.md) — its in-window hotkeys and
   QWERTY-MIDI mapping
