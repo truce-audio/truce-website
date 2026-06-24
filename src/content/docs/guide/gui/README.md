@@ -36,7 +36,9 @@ tabs, custom drawing — pick a framework:
   files, wire properties in Rust. Has an IDE live preview.
 - **[Vizia](vizia.md)** — retained-mode with reactive data binding
   and CSS. Per-param `Signal<f32>` keeps widgets in sync. Desktop
-  only (no iOS, no Windows ARM64).
+  only (no iOS, no Windows ARM64). **Not recommended for production**
+  — a vizia-internal panic on editor teardown can abort the host; see
+  the [stability warning](vizia.md).
 
 All four integrate the same way: return the backend's editor from
 `editor()`, finishing with `.into_editor()`. The rest of your plugin

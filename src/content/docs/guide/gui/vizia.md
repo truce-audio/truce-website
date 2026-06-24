@@ -1,5 +1,15 @@
 # Vizia Integration
 
+> **Not recommended for production.** `truce-vizia` is provided as a
+> basic, working integration, but vizia is the least stable of the
+> backends: it can panic from inside its own transform system during
+> editor teardown or resize in a host (a non-invertible transform hits
+> an `invert().unwrap()`), and because that panic unwinds across the
+> host's native event loop it **aborts the whole host process**. Until
+> the upstream is patched, prefer the built-in editor, `truce-egui`,
+> `truce-iced`, or `truce-slint` for plugins you ship. Vizia stays
+> useful for prototyping and for exercising the reactive / CSS workflow.
+
 [Vizia](https://github.com/vizia/vizia) is a declarative GUI
 framework with reactive data binding and CSS styling. `truce-vizia`
 embeds it via baseview and bridges parameter reads/writes through a
