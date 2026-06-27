@@ -2,6 +2,25 @@
 
 Notable changes per release.
 
+## 1.0.0
+
+### Breaking
+
+- **Auto-assigned parameter IDs are now a stable hash of the field name** instead of a declaration-order counter. Reordering or inserting parameters - including inside `#[nested]` groups - no longer shifts later IDs, so host automation and presets keep mapping to the right parameter across plugin versions. Explicit `#[param(id = N)]` still wins. *Migration:* a plugin already shipped with the old order-based IDs must add `#[params(id_scheme = "ordinal")]` to keep them, or its hosts' saved automation and presets will rebind to the wrong parameters.
+- **`truce-iced` no longer depends on the `iced` umbrella crate.** It uses iced's sub-crates directly (`iced_core` / `iced_widget` / `iced_renderer` / `iced_wgpu` / `iced_runtime` / `iced_futures`), re-exported as `truce_iced::iced`, which drops the transitive `iced_winit` dependency whose desktop-only keyboard API broke the iOS build. *Migration:* plugins that imported types from the `iced` crate import the same ones from `truce_iced::iced` instead.
+- **Removed the deprecated `selector` / `param_selector` widget.** The `selector()` layout builder and each backend's `param_selector` (egui / iced / vizia / slint), deprecated since 0.56, are gone along with the underlying `Selector` widget. *Migration:* use `dropdown()` / `param_dropdown` - the same single-choice control, click-to-open.
+- **Removed the deprecated `FloatParam::read_block`.** The const-`N` block read, deprecated since 0.53, is gone. *Migration:* use `read_into(&mut scratch[..n])`, which advances the smoother by exactly the number of samples consumed.
+
+### Other changes
+
+- **iced editors run on iOS.** `truce-iced` renders through a `CAMetalLayer`-backed `UIView` under AU v3 - touch input plus a soft keyboard for focused `text_input` - so iced plugins build and run on iOS like the egui backend. `gain-iced`, `gui-zoo-iced`, and `midi-inspector` are now iOS examples.
+- **AU v3 factory presets ship on iOS.** `cargo truce install --ios` / `package --ios` now bundle a plugin's `presets/` library into the embedded framework's `Presets/`, so AU v3 hosts list them on iOS like macOS. iOS frameworks are shallow bundles, so the presets sit in a flat `Presets/` directory rather than `Resources/Presets/` (a `Resources/` subdir makes iOS installd reject the framework).
+- **New `truce-example-midi-inspector` (iced).** An audio effect with MIDI in/out that passes the track's audio through untouched and decodes every event truce can deliver - MIDI 1.0 + 2.0 channel voice, SysEx (with manufacturer id + hex), transport, and param automation - into a live scrolling log (newest first), with a raw line for anything not yet richly interpreted. Forwards MIDI through (toggle with the `MIDI Thru` param) and demonstrates streaming *structured* realtime data from `process()` to an editor via a lock-free ring carried in a `#[skip]` params field.
+- **`#[derive(Params)]` supports `#[skip]` fields.** A field marked `#[skip]` is not a parameter: it's plugin-owned state that the editor reaches through the `Arc<Params>` both sides already hold (e.g. a lock-free queue of audio-thread events). The derive `Default`-initializes it in `new()` and excludes it from parameter ids, infos, state, and count.
+- **CLAP and LV2 state save/load are now panic-guarded** like VST3 / VST2 / AU / AAX: a panic in a user's `save_state` / `load_state` reports failure to the host instead of unwinding across the `extern "C"` boundary and aborting it.
+- **Rendering performance fixes on Windows.** Embedded editors run their frame loop on the host's GUI thread, where the iced / egui backends repainted every tick and blocked on a vsync present - so a heavy editor (GUI Zoo) made the host (REAPER) laggy and could lock out other plugin windows. Editors now skip frames when nothing changed, present non-blocking on Windows, and skip rendering while the host window is hidden or minimized.
+- **Smoother editor repaints on Windows.** Editors no longer render in slow, bursty spurts inside busy DAWs - the frame loop is now driven by a steady high-resolution timer (via the `baseview-truce` 0.1.1-truce.10 dependency), and the same fix closes a crash that heavy repainting could trigger. Applies to both the iced and egui backends.
+
 ## 0.64.0
 
 - **Parameters can declare a default MIDI mapping** (`#[param(..., midi_cc = N)]`) - VST3, AU v2, and LV2 expose the binding to the host's MIDI controller assignment; CLAP / VST2 / AAX leave it host-driven.

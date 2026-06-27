@@ -1,10 +1,5 @@
 # Vizia Integration
 
-> **Not recommended for production.** `truce-vizia` is a basic, working
-> integration, but vizia has teardown/resize stability issues that can
-> crash the host. Prefer the built-in editor, `truce-egui`,
-> `truce-iced`, or `truce-slint` for plugins you ship.
-
 [Vizia](https://github.com/vizia/vizia) is a declarative GUI
 framework with reactive data binding and CSS styling. `truce-vizia`
 embeds it via baseview and bridges parameter reads/writes through a

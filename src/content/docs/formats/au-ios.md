@@ -211,32 +211,34 @@ au3_subtype = "MyF3"           # optional; iOS reuses au3_subtype
   meaningful UI; Apple rejects "stub" container apps. Truce's
   default container shows the plugin name + a description label.
   Customize via `truce.toml` `ios_icon_set` for branding.
-- **Alt-GUI backends:** `truce-egui` runs egui-wgpu on iOS through
-  a CAMetalLayer-backed UIView with a CADisplayLink-driven repaint
-  pump. `truce-slint` runs Slint's `MinimalSoftwareWindow`
-  software renderer into an RGBA buffer that's blitted to the
-  `UIView`'s `layer.contents` via `CGImage` (the same CPU path the
-  built-in iOS editor uses). Both translate `UITouch` events into
-  their backend's pointer-event shape. `truce-iced` and `truce-vizia`
-  are the hold-outs — see the iced gotcha below and the vizia
-  gotcha that follows.
+- **Alt-GUI backends:** `truce-egui` and `truce-iced` both run wgpu
+  on iOS through a CAMetalLayer-backed UIView with a
+  CADisplayLink-driven repaint pump (iced via `iced_wgpu`).
+  `truce-slint` runs Slint's `MinimalSoftwareWindow` software
+  renderer into an RGBA buffer that's blitted to the `UIView`'s
+  `layer.contents` via `CGImage` (the same CPU path the built-in iOS
+  editor uses). All translate `UITouch` events into their backend's
+  pointer-event shape; egui and iced also raise the iOS soft keyboard
+  (via `UIKeyInput`) for focused text widgets. `truce-vizia` is the
+  hold-out — see the vizia gotcha that follows.
 - **`truce-vizia` is desktop-only on iOS, upstream blocker.** Vizia
   hard-pins `vizia_baseview`, and baseview has no `target_os = "ios"`
   platform impl, so the chain
   `truce-vizia → vizia → vizia_baseview → baseview` doesn't link on
   iOS. `truce-vizia` is gated with `#![cfg(not(target_os = "ios"))]`.
-  Use the built-in editor, `truce-egui`, or `truce-slint` for iOS.
-- **`truce-iced` is desktop-only on iOS today, upstream blocker.**
-  iced's `iced` umbrella crate has a non-optional dependency on
-  `iced_winit`, and iced_winit calls
-  `winit::platform::modifier_supplement::KeyEventExtModifierSupplement`
-  methods inside a `cfg(not(target_arch = "wasm32"))` branch.
-  winit only ships that trait on desktop, so the branch fires on
-  iOS and fails to compile — and there's no feature flag to opt
-  out of iced_winit. Plugins built on `truce-iced` skip the iOS
-  build with a clear cfg gate until the upstream issue lands. Use
-  the built-in editor, `truce-egui`, or `truce-slint` for iOS
-  coverage in the meantime.
+  Use the built-in editor, `truce-egui`, `truce-iced`, or
+  `truce-slint` for iOS.
+- **`truce-iced` reaches iOS by bypassing the `iced` umbrella crate.**
+  The umbrella has a non-optional `iced_winit` dependency whose
+  keyboard conversion calls a desktop-only `winit` trait
+  (`KeyEventExtModifierSupplement`) under a
+  `cfg(not(target_arch = "wasm32"))` branch, so it can't compile for
+  iOS. `truce-iced` instead depends on iced's sub-crates directly
+  (`iced_core` / `iced_widget` / `iced_renderer` / `iced_wgpu` /
+  `iced_runtime` / `iced_futures`, re-exported as `truce_iced::iced`)
+  and drives the iced `UserInterface` against the CAMetalLayer itself,
+  so `iced_winit` never enters the build. Plugins consume iced types
+  through `truce_iced::iced` rather than the `iced` crate.
 
 ## iOS screenshot regression
 

@@ -6,7 +6,7 @@ Every attribute, range type, smoothing mode, and parameter type that the params 
 
 | Key | Example | Notes |
 |-----|---------|-------|
-| `id` | `id = 0` | Optional. Auto-assigned by field order if omitted. **Stable across releases — never change.** Required when nesting structs to avoid 0/1/2/… collisions. |
+| `id` | `id = 0` | Optional. When omitted, auto-assigned as a stable hash of the field name, so reordering or inserting params (including in nested structs) never shifts IDs. Set it to pin a specific value; an explicit `id` always wins. See [Parameter ID stability](#parameter-id-stability). |
 | `name` | `name = "Gain"` | **Required.** Display name in host and GUI. |
 | `short_name` | `short_name = "Gn"` | Abbreviated name for narrow strips. Defaults to `name`. |
 | `range` | `range = "linear(-60, 6)"` | Value mapping. Inferred for `BoolParam` and `EnumParam<T>`. |
@@ -247,9 +247,9 @@ pub struct UtilityParams {
 
 The two `ChannelStrip`s flatten to disjoint id ranges. (Their param *names* are shared, since they come from one type, so a host's flat list shows `Gain` twice; label them per-instance in your editor's sections.)
 
-### Pinning a base for stable ids
+### Pinning a base for a group
 
-Auto bases shift if you reorder groups or add a param to an earlier group. When the flattened ids must stay fixed across releases - so saved sessions, presets, and host automation keep resolving - pin each group with `#[nested(base = N)]`, the same way you pin a param `id`:
+Under the default (hash) id scheme, nested ids are already stable - a nested param's id is derived from its field name and its slot name, so reordering groups or inserting a param never shifts them (see [Parameter ID stability](#parameter-id-stability)). Pin a group's base with `#[nested(base = N)]` only when you want explicit numeric placement, or under the legacy `#[params(id_scheme = "ordinal")]` scheme where auto bases pack by order and do shift:
 
 ```rust
 #[derive(Params)]
@@ -277,6 +277,29 @@ knob(self.params.filter.cutoff.id(), "Cutoff")
 See the `synth` (distinct groups), `stereo-utility` (one group reused), and `eq` (pinned bases) examples for the three shapes.
 
 > **Meters** can't live in a nested group that's used more than once - meter ids occupy a separate fixed range and aren't rebased, so two nested groups each declaring a meter collide (the derive rejects it at construction). Keep meters in a single, non-reused `Params` struct.
+
+## Parameter ID stability
+
+Every parameter has a numeric ID, and the host persists it as the stable handle for automation lanes and saved presets - it becomes the CLAP `clap_id`, the VST3 `ParamID`, and the key in truce's saved-state envelope. So a parameter's ID must not change between releases, or a user's saved session reloads with automation pointing at the wrong parameter.
+
+truce keeps IDs stable for you by default. When you omit `#[param(id = N)]`, the derive assigns a **hash of the field name**. Reordering parameters, inserting a new one in the middle, or rearranging `#[nested]` groups all leave existing IDs put; only renaming a field (an explicit, reviewable edit) changes its ID. The same nested group type reused in two slots still gets distinct IDs, because each slot's name hashes differently.
+
+You rarely need to think about IDs. The escape hatches:
+
+- `#[param(id = N)]` pins one parameter to an exact value; an explicit ID always wins over the hash.
+- If two field names happen to hash to the same value, the derive fails the build with a duplicate-ID error - pin one of them with `id = N`.
+
+### Legacy ordinal scheme
+
+Before the hash default, IDs were a counter from `0` in declaration order, so reordering shifted them. A plugin already shipped with those order-based IDs must keep them, or its users' saved sessions break on upgrade. Opt back in at the struct level:
+
+```rust
+#[derive(Params)]
+#[params(id_scheme = "ordinal")]
+pub struct MyParams { /* ... */ }
+```
+
+This restores the counter-from-0 assignment and the base-packed nesting exactly. New plugins should leave it off and use the hash default.
 
 ## Generated `ParamId` enum
 

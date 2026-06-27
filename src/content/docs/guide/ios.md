@@ -8,9 +8,9 @@ deployment shape, the signing model, and the GUI dimensions are
 different enough to need their own chapter.
 
 This chapter covers the iteration loop. The wire-format details
-(host coverage, AU identifiers, the simulator's remote-VC quirks,
-the iced gotcha) live in [formats/au-ios](../formats/au-ios.md);
-return there once you're past the first install.
+(host coverage, AU identifiers, the simulator's remote-VC quirks)
+live in [formats/au-ios](../formats/au-ios.md); return there once
+you're past the first install.
 
 ## Prerequisites
 
@@ -358,11 +358,9 @@ simulator your CI matrix uses.
 | Feature | Why |
 |---------|-----|
 | `--shell` hot reload | iOS App Extensions reject `dlopen` of anything outside the signed bundle's `Frameworks/` |
-| `truce-iced` | iced's `iced_winit` dependency calls a desktop-only `winit` trait inside a non-iOS-gated branch — blocked upstream |
 | `truce-vizia` | Vizia hard-pins `vizia_baseview`, and baseview has no `target_os = "ios"` platform impl — desktop only |
 | CLAP / VST3 / VST2 / LV2 / AAX | Platform contract — iOS only hosts AU v3 |
 | Universal `.ipa` | Device + simulator slices have distinct Mach-O platform IDs and can't lipo together; use `--xcframework` packaging if you need both slices in one artifact |
-| Factory presets | iOS appex / framework preset locations aren't wired yet (planned, not a platform limit). `cargo truce install` ships them on every desktop format; on iOS they're skipped |
 
 ## What's next
 

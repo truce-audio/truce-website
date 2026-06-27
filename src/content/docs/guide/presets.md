@@ -186,7 +186,7 @@ store.delete(&uri)?;                     // user scope only
 | CLAP | Host preset browser via the discovery factory. Bitwig indexes it today; Reaper's support is in its `7.6x+dev` builds. |
 | VST3 | Host preset dropdown / browser (Reaper, Cubase, ...); subdirectory = category. |
 | AU v2 | Plugin-window preset menu in Logic / GarageBand, served by the factory-presets property. |
-| AU v3 | Same, on macOS. iOS preset locations aren't wired yet. |
+| AU v3 | Same, on macOS and iOS (bundled in the embedded framework's `Presets/`). |
 | LV2 | Host preset list (Ardour, Carla) from the bundle TTL. |
 | Standalone | Native [Presets menu](/docs/formats/standalone#presets) (macOS / Windows) — Load / Previous / Next / Save / Save As, plus Cmd-S / Cmd-Shift-S (the whole interface on Linux). User presets save to the same location your DAW reads. |
 | AAX | Not emitted yet. |
