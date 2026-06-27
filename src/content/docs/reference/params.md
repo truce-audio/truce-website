@@ -330,3 +330,24 @@ impl MyPlugin {
     }
 }
 ```
+
+## Skipped fields (`#[skip]`)
+
+A field marked `#[skip]` is **not a parameter** — it's plugin-owned state that lives in the params struct so both sides can reach it through the `Arc<MyParams>` they already share (see [Shared ownership](#shared-ownership)). The derive `Default`-initializes it in `new()` and excludes it from the parameter IDs, infos, saved state, and count, so it never appears as a host automation lane or in a preset. The field's type must implement `Default`.
+
+Use it for non-automatable state the editor needs to reach directly: a shared atomic flag, decoded or cached data, or a lock-free queue of audio-thread events for a live visualiser. Because the audio thread (writer) and the editor (reader) both hold the same `Arc<MyParams>`, no separate channel is needed.
+
+```rust
+#[derive(Params)]
+pub struct MyParams {
+    #[param(name = "Gain", range = "linear(-60, 6)", unit = "dB")]
+    pub gain: FloatParam,
+
+    // Lock-free audio-thread -> editor channel. Not a parameter:
+    // excluded from ids / state / count, default-initialised in `new()`.
+    #[skip]
+    pub events: Arc<EventRing>,
+}
+```
+
+`process()` pushes into `events` (real-time safe — no locks or allocations), and the editor drains it each frame through the same `Arc` — the pattern the MIDI-inspector example uses to stream decoded events to its UI.
