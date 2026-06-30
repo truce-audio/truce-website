@@ -2,6 +2,12 @@
 
 Notable changes per release.
 
+## 1.0.2
+
+- **Fixed iOS AU v3 packaging bugs for App Store submission.** `cargo truce package --ios` corrects code signing, framework embedding, entitlements, and the required Info.plist keys App Store Connect upload checks.
+- **Fixed `TransportInfo.position_samples` stuck at 0 during playback.** The VST3 shim read the host's `projectTimeSamples` (an `int64`) as a `double`, so any realistic sample count decoded to ~0; it's read as an integer now. CLAP, which exposes no sample position, derives it from the seconds timeline instead of always reporting 0.
+- **Vizia editors honor the host content-scale factor.** The backend ignored `set_scale_factor` and fell back to vizia's OS-detected scale, which can disagree with the host's on an embedded view (notably Windows DPI) and render the editor oversized and clipped. It now pins vizia's scale policy to the host's reported scale; the VST3 wrapper also replays a scale that arrived before the editor existed.
+
 ## 1.0.1
 
 - **`IcedPlugin::needs_redraw` keeps streaming editors live.** The iced editor's idle gate skips repaints when no UI input, param, or meter changed - which left a plugin streaming realtime data to its editor outside that system (a lock-free queue drained in `view()`) showing it late, only when a stray UI event forced a repaint. A plugin can now return `true` from `needs_redraw()` while it has new data, so the editor repaints and drains promptly and idles again when there's nothing new. `truce-example-midi-inspector` uses it so live MIDI scrolls in without lag.
