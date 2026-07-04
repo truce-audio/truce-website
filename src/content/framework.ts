@@ -5,7 +5,7 @@ export const framework = {
   description:
     "CLAP, VST3, LV2, AU v2, AU v3, AAX, and standalone — from a single Rust crate. Install and load your plugin in a DAW in five minutes.",
   github: "https://github.com/truce-audio/truce",
-  rustdoc: "https://truce-audio.github.io/truce/",
+  rustdoc: "https://rustdoc.truce.audio/",
   license: "MIT OR Apache-2.0",
   cargoCmd: "cargo install cargo-truce",
 } as const;

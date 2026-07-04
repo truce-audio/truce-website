@@ -348,16 +348,26 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
                     </div>
                     {section.items.map((item) => {
                       const isActive = item.href === pathname;
-                      return (
+                      const itemClass =
+                        "block px-4 py-1.5 text-sm transition-colors " +
+                        (isActive
+                          ? "text-[var(--cream)] font-medium border-l-2 border-[var(--pink)] -ml-px"
+                          : "text-[var(--fg-muted)] hover:text-[var(--cream)] hover:bg-[var(--bg)]");
+                      return item.external ? (
+                        <a
+                          key={item.href}
+                          href={item.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={itemClass}
+                        >
+                          <TitleWithCode text={item.title} /> ↗
+                        </a>
+                      ) : (
                         <Link
                           key={item.href}
                           href={item.href}
-                          className={
-                            "block px-4 py-1.5 text-sm transition-colors " +
-                            (isActive
-                              ? "text-[var(--cream)] font-medium border-l-2 border-[var(--pink)] -ml-px"
-                              : "text-[var(--fg-muted)] hover:text-[var(--cream)] hover:bg-[var(--bg)]")
-                          }
+                          className={itemClass}
                         >
                           <TitleWithCode text={item.title} />
                         </Link>

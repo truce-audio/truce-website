@@ -3,6 +3,7 @@ import { dirname, join, posix, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import matter from "gray-matter";
+import { framework } from "@/content/framework";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeShiki from "@shikijs/rehype";
 import rehypeSlug from "rehype-slug";
@@ -235,7 +236,7 @@ function rehypeRewriteLinks(options: RewriteLinksOptions) {
 /** Sidebar tree built from a curated order, falling back to the index for stragglers. */
 export type SidebarSection = {
   title: string;
-  items: Array<{ title: string; href: string; eyebrow?: string }>;
+  items: Array<{ title: string; href: string; eyebrow?: string; external?: boolean }>;
 };
 
 export async function getSidebar(): Promise<SidebarSection[]> {
@@ -357,7 +358,13 @@ export async function getSidebar(): Promise<SidebarSection[]> {
       ],
     },
     { title: "Guide", items: collect(guideOrder) },
-    { title: "Reference", items: collect(referenceOrder) },
+    {
+      title: "Reference",
+      items: [
+        ...collect(referenceOrder),
+        { title: "rustdoc", href: framework.rustdoc, external: true },
+      ],
+    },
     { title: "GUI backends", items: collect(guiOrder) },
     { title: "Formats", items: collect(formatOrder) },
     { title: "Examples", items: collect(examplesOrder) },

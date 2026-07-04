@@ -19,19 +19,27 @@ function SidebarSections({
           <ul className="border-l border-[var(--border)]">
             {section.items.map((item) => {
               const isActive = item.href === activeHref;
+              const className =
+                "-ml-px block border-l pl-3 py-[3px] text-[0.8125rem] leading-[1.55] transition-colors " +
+                (isActive
+                  ? "border-[var(--pink)] text-[var(--cream)] font-medium"
+                  : "border-transparent text-[var(--fg-muted)] hover:text-[var(--cream)] hover:border-[var(--border-strong)]");
               return (
                 <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={
-                      "-ml-px block border-l pl-3 py-[3px] text-[0.8125rem] leading-[1.55] transition-colors " +
-                      (isActive
-                        ? "border-[var(--pink)] text-[var(--cream)] font-medium"
-                        : "border-transparent text-[var(--fg-muted)] hover:text-[var(--cream)] hover:border-[var(--border-strong)]")
-                    }
-                  >
-                    <TitleWithCode text={item.title} />
-                  </Link>
+                  {item.external ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={className}
+                    >
+                      <TitleWithCode text={item.title} /> ↗
+                    </a>
+                  ) : (
+                    <Link href={item.href} className={className}>
+                      <TitleWithCode text={item.title} />
+                    </Link>
+                  )}
                 </li>
               );
             })}

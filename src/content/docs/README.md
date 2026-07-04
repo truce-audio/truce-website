@@ -36,9 +36,10 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 | 8 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, Vizia, raw window handle). |
 | 9 | [audio-testing](guide/audio-testing.md) | `truce_test::PluginDriver` for in-process audio + MIDI regression tests — no DAW required. |
 | 10 | [presets](guide/presets.md) | Factory presets in every format from `.preset` TOML; in-DAW authoring via `cargo truce preset pull`; cross-format conversion; preset packs. |
-| 11 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
-| 12 | [ios](guide/ios.md) | iOS-specific workflow: simulator iteration, device + `.ipa` signing, per-plugin `truce.toml` knobs, preview-audio mute, screenshot regression. |
-| 13 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
+| 11 | [state](guide/state.md) | Params vs state, `save_state` / `load_state` for extra state beyond params, what hosts persist, migrating pre-truce state with `migrate_state`. |
+| 12 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
+| 13 | [ios](guide/ios.md) | iOS-specific workflow: simulator iteration, device + `.ipa` signing, per-plugin `truce.toml` knobs, preview-audio mute, screenshot regression. |
+| 14 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |
 
 ### GUI backends
 
@@ -50,7 +51,7 @@ Pick a toolkit. The built-in widget set covers most plugin UIs; the alternatives
 
 ## Reference
 
-Not exhaustive — for the full Rust API surface, see the [rustdoc](https://truce-audio.github.io/truce/).
+Not exhaustive — for the full Rust API surface, see the [rustdoc](https://rustdoc.truce.audio/).
 
 | Page | What's in it |
 |------|--------------|
@@ -127,4 +128,4 @@ The **bold** cell in each row is the destination `cargo truce install` lands at 
 ## See also
 
 - [Changelog](changelog.md) — what's shipped, plus the [backlog](changelog.md#backlog) of known gaps and what's next.
-- [rustdoc](https://truce-audio.github.io/truce/) — the full Rust API surface, generated from `cargo doc`.
+- [rustdoc](https://rustdoc.truce.audio/) — the full Rust API surface, generated from `cargo doc`.
