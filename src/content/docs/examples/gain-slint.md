@@ -6,7 +6,7 @@ The gain plugin reimplemented with a
 [Slint](https://github.com/slint-ui/slint) GUI. Same DSP as the
 built-in [gain](./gain) example, different frontend.
 
-Source: [`examples/truce-example-gain-slint/`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain-slint).
+Source: [`crates/truce-slint/examples/truce-example-gain-slint/`](https://github.com/truce-audio/truce/tree/main/crates/truce-slint/examples/truce-example-gain-slint).
 
 ## What it demonstrates
 

@@ -25,11 +25,14 @@ or shell env vars instead. See
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | `name` | string | yes | Human name. Used for bundle filenames and DAW display names. |
-| `bundle_id` | string | yes | Short lowercase, no-dash identifier. Used internally for bundle / extension reverse-DNS IDs (`com.{vendor}.{bundle_id}.au`), install plist filenames, and scratch paths. Not used at the CLI. |
+| `bundle_id` | string | yes | Short lowercase identifier (`a-z0-9` plus `-`/`_`/`.` separators, alphanumeric at both ends, no consecutive separators; validated at compile time). The stable identity key: `clap_id` / `vst3_id` / the state-envelope hash derive from it, and it names bundles, extension reverse-DNS IDs (`com.{vendor}.{bundle_id}.au`), install plists, and scratch paths. Not used at the CLI. |
 | `crate` | string | yes | Cargo package name. CLI uses this for `-p <crate>`. Hyphens become underscores in built `.dll`/`.dylib`. |
 | `category` | string | yes | `"effect"` / `"instrument"` / `"midi"`. Drives AU/VST3/CLAP category metadata. |
 | `midi_input` | bool | no | Whether the host routes MIDI into the plugin. Defaults to `true` for instruments and note effects (`"midi"`); set `true` on an effect that reacts to MIDI (e.g. CC-controlled), or `false` to suppress. On AU, `true` on an effect promotes it to the `aumf` MusicEffect type so the host actually routes MIDI to it; `false` on an instrument is a no-op (an `aumu` receives MIDI by type). |
 | `midi_output` | bool | no | Whether the plugin emits MIDI to the host. Defaults to `true` for note effects (`"midi"`) only; set `true` on an instrument or effect that also emits MIDI so the host declares the MIDI output port/bus. |
+| `midi2` | bool | no | Opt the plugin's MIDI ports into MIDI 2.0 / UMP. Defaults to `false` (MIDI 1.0). Only formats with a UMP transport honor it - today that's CLAP, whose note ports then advertise the MIDI2 dialect and carry the native 16/32-bit + per-note + UMP-group `EventBody` variants in and out; other formats stay MIDI 1.0 regardless. Requires at least one MIDI port in either direction (compile error otherwise) and applies only to directions that have one; `midi2_input` / `midi2_output` must each match a direction that has a port. |
+| `midi_input_ports` | int | no | Number of MIDI input ports. Absent → one port when the plugin accepts MIDI input, none otherwise. A count is authoritative: any non-zero value enables MIDI input on every format (no `midi_input = true` needed), `0` disables it, and a value that contradicts `midi_input` is a compile error. Set `>1` for a multi-port plugin; the plugin then filters inbound events by `event.port`. CLAP (N note ports), VST3 (N event buses), and LV2 (N atom ports) carry more than one; VST2 / AU / AAX clamp to one and log a skip. |
+| `midi_output_ports` | int | no | Number of MIDI output ports. See `midi_input_ports`; the plugin stamps each outbound event with the port it should leave on via `Event::on_port`. |
 | `fourcc` | string | yes† | Exactly 4 ASCII chars. AU subtype + cross-format unique ID. |
 | `au_type` | string | no | Override AU type. Defaults: `"aumu"` for instruments, `"aumi"` for midi / note-effects, `"aumf"` for an effect with `midi_input = true`, else `"aufx"`. |
 | `au_subtype` | string | no | Synonym for `fourcc`. `fourcc` wins if both are set. |
@@ -79,6 +82,23 @@ Where the user-scope root resolves per OS:
 (`$XDG_DATA_HOME` falls back to `~/.local/share` when unset.) The
 override replaces the whole default subpath with no implicit
 `presets` suffix.
+
+## `[plugin.legacy_state]` — optional, per plugin
+
+Where the keyed formats should look for a pre-truce build's state
+when truce's own entry is absent, feeding the plugin's
+`migrate_state` hook ([guide chapter](../guide/state.md#migrating-state-from-a-pre-truce-build)).
+Stream formats (CLAP / VST3 / VST2) need no declaration - the
+wrapper already holds the foreign bytes.
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `au_keys` | string array | no | AU `ClassInfo` dictionary keys to probe (e.g. `"jucePluginState"` for a JUCE-era AU). |
+| `lv2_uris` | string array | no | LV2 state property URIs to probe. |
+| `aax_chunk_ids` | string array | no | AAX chunk fourccs to probe. Exactly 4 bytes each, at most 8. |
+
+Probing tries each entry in order; the first one whose bytes
+`migrate_state` accepts wins.
 
 ## `[[suite]]` — optional, repeatable
 

@@ -161,24 +161,6 @@ reference a preset keep resolving after you reorganise your
 library. A user preset with the same uuid as a factory preset
 overrides it.
 
-## The `PresetStore` API
-
-`truce_core::presets::PresetStore` is programmatic access to the
-preset library - the same enumeration, loading, and management
-operations the CLI and the format wrappers are built on:
-
-```rust
-use truce_core::presets::PresetStore;
-
-let store = PresetStore::new(info.vendor, info.name, plugin_id_hash, info.preset_user_dir);
-store.enumerate();                       // -> Vec<PresetRef>, deduped across scopes
-store.load(&uri)?;                       // -> DeserializedState
-store.save(meta, &params, &extra)?;      // same (category, name) keeps its uuid
-store.rename(&uri, "New Name")?;
-store.recategorise(&uri, "pads")?;
-store.delete(&uri)?;                     // user scope only
-```
-
 ## Per-host notes
 
 | Format | Where presets show up |
@@ -208,5 +190,5 @@ Formats by extension: `.preset` (authored TOML), `.trucepreset`,
 
 ## Where next
 
-- **[Chapter 11 → shipping](shipping.md)** - presets ride along
+- **[Chapter 12 → shipping](shipping.md)** - presets ride along
   with `cargo truce install`; packaging ships them to users.

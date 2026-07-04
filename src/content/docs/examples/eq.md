@@ -15,8 +15,16 @@ Source: [`examples/truce-example-eq/`](https://github.com/truce-audio/truce/tree
 - Auto-bypass when band gain is near 0 dB
 - **`f64` end-to-end** via `use truce::prelude64::*` — biquad
   coefficient computation is precision-sensitive (especially at
-  low Q × low frequency); the wrapper widens host `f32` to plugin
-  `f64` at the block boundary so the DSP path stays in `f64`.
+  low Q × low frequency). On formats with a 64-bit wire (VST3,
+  VST2, CLAP) the plugin processes the host's `f64` buffers
+  directly; elsewhere the wrapper widens host `f32` at the block
+  boundary so the DSP path stays in `f64` either way.
+- **Legacy state migration** — the reference `migrate_state`
+  implementation: a pre-truce `EQS1` blob translates into truce
+  params, tested with `assert_state_migration` (and
+  `assert_state_migration_rejected` for blobs the plugin must
+  refuse). See the
+  [state guide](../guide/state.md#migrating-state-from-a-pre-truce-build).
 
 ## Parameters
 

@@ -64,11 +64,11 @@ for why) rather than the top-level `examples/` directory.
 
 | Plugin | Demonstrates | Screenshot |
 |--------|--------------|-----------|
-| [block-gain](./block-gain) | `truce_simd::ops::mix_block` | <img src="/screenshots/examples/block-gain.png" width="208" height="251" alt="block-gain plugin"> |
-| [block-drywet](./block-drywet) | `truce_simd::ops::mac_block` | <img src="/screenshots/examples/block-drywet.png" width="139" height="182" alt="block-drywet plugin"> |
+| [block-gain](./block-gain) | `truce_simd::math::db_to_linear_block` | <img src="/screenshots/examples/block-gain.png" width="208" height="251" alt="block-gain plugin"> |
+| [block-drywet](./block-drywet) | `truce_simd::ops::mix_block` | <img src="/screenshots/examples/block-drywet.png" width="139" height="182" alt="block-drywet plugin"> |
 | [block-gate](./block-gate) | `truce_simd::ops::abs_max_block` + `zero_block` | <img src="/screenshots/examples/block-gate.png" width="139" height="113" alt="block-gate plugin"> |
 | [block-saturate](./block-saturate) | `truce_simd::math::tanh_block` | <img src="/screenshots/examples/block-saturate.png" width="139" height="182" alt="block-saturate plugin"> |
-| [block-widen](./block-widen) | `truce_simd::math::db_to_linear_block` | <img src="/screenshots/examples/block-widen.png" width="139" height="113" alt="block-widen plugin"> |
+| [block-widen](./block-widen) | `truce_simd::ops::mac_block` | <img src="/screenshots/examples/block-widen.png" width="139" height="113" alt="block-widen plugin"> |
 | [block-surround-meter](./block-surround-meter) | `truce_simd::math::linear_to_db_block` | <img src="/screenshots/examples/block-surround-meter.png" width="70" height="251" alt="block-surround-meter plugin"> |
 
 Each `block-*` example isolates one `truce_simd::ops::*` or

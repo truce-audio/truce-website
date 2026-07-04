@@ -307,7 +307,7 @@ Close and reopen the plugin in your DAW. You now have two knobs.
 - **A richer UI** — more widgets, `section()`, switching to
   egui/iced/Slint/Vizia → [chapter 8 → gui](gui.md).
 - **Shipping to users** — signed `.pkg` / `.exe` installers →
-  [chapter 10 → shipping](shipping.md).
+  [chapter 12 → shipping](shipping.md).
 - **Real examples** — [`examples/truce-example-gain`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain),
   [`examples/truce-example-eq`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-eq), [`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth),
   [`examples/truce-example-transpose`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-transpose),

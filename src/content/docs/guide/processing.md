@@ -27,8 +27,12 @@ to `buffer.output(ch)`. For instruments, output starts wherever the
 host left it (typically zero, but don't assume — write every sample).
 
 The slice element type is `f32` under `truce::prelude` and `f64`
-under `truce::prelude64`; the wrapper widens at the block boundary
-and narrows on the way back out. See
+under `truce::prelude64`. Where the format has a 64-bit wire - VST3
+(`kSample64`), VST2 (`processDoubleReplacing`), CLAP (64-bit ports) -
+a `prelude64` plugin reads and writes the host's `f64` buffers
+directly, zero conversion; elsewhere (and whenever the host runs a
+32-bit chain) the wrapper widens at the block boundary and narrows
+on the way back out. See
 [Precision (preludes)](plugin-anatomy.md#precision-preludes). The
 signatures below assume the default `prelude`:
 
@@ -338,7 +342,7 @@ Each shows a different `ops::` / `math::` shape:
 
 ## MIDI and parameter events
 
-`events` is a sorted list of `Event { sample_offset, body }`.
+`events` is a sorted list of `Event { sample_offset, port, body }` (`port` is `0` unless the plugin declares multiple MIDI ports).
 Pattern match the body:
 
 ```rust
@@ -603,7 +607,7 @@ The contract:
   the UI.
 - **[Chapter 9 → audio-testing](audio-testing.md)** — lock
   this code in with in-process regression tests before it ships.
-- **[Chapter 13 → hot-reload](hot-reload.md)** — keep your DAW
+- **[Chapter 14 → hot-reload](hot-reload.md)** — keep your DAW
   open while you iterate on this code.
 - **[`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo)** in the repo — host transport
   + egui UI in a small, real plugin.

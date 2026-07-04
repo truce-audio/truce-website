@@ -1,4 +1,4 @@
-# 12. iOS
+# 13. iOS
 
 iOS is the one platform where your truce plug-in runs as something
 other than a `.clap` / `.vst3` / `.component` in a desktop DAW: it
@@ -368,5 +368,5 @@ simulator your CI matrix uses.
   AU manufacturer / subtype identifiers, the AVAudioEngine source-
   node render-callback contract, MIDI 2.0 UMP forwarding details,
   the simulator remote-VC workaround.
-- **[Chapter 13 → hot reload](hot-reload.md)** — macOS / Windows /
+- **[Chapter 14 → hot reload](hot-reload.md)** — macOS / Windows /
   Linux dev-loop tool. iOS sits this one out (platform constraint).

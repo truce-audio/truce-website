@@ -52,7 +52,7 @@ The four variants follow fundsp's naming:
 |---------|--------|----------------|-------|
 | `prelude`    | `f32` | `f32` | Default. Alias for `prelude32`. |
 | `prelude32`  | `f32` | `f32` | Explicit form. |
-| `prelude64`  | `f64` | `f64` | End-to-end `f64`. The wrapper widens the host's audio buffer to `f64` at the block boundary and narrows on the way out. |
+| `prelude64`  | `f64` | `f64` | End-to-end `f64`. On formats with a 64-bit wire (VST3, VST2, CLAP) the plugin processes the host's `f64` buffers directly when the host runs a 64-bit chain; everywhere else the wrapper widens at the block boundary and narrows on the way out. |
 | `prelude64m` | `f32` | `f64` | Mixed precision: the buffer stays at host `f32` (no boundary widening) while reads and intermediate math run in `f64`. Write `.to_f32()` at the buffer-write site. |
 
 Each prelude swaps three things in lockstep: a `Sample` type alias,
@@ -63,8 +63,10 @@ so `impl PluginLogic for X { ... }` is the same line regardless of
 precision).
 
 Reach for `prelude64m` when you want to handle the `f32` buffer
-yourself; reach for `prelude64` when you want the framework to widen
-and narrow at the block boundary for you.
+yourself; reach for `prelude64` when you want `f64` end-to-end - the
+framework advertises 64-bit support to hosts that can use it (VST3
+`kSample64`, VST2 `processDoubleReplacing`, CLAP 64-bit ports) and
+converts at the block boundary for the rest.
 
 **Don't import two of these in the same file.** The `read` / `value` /
 `current` extension traits collide on method dispatch — that's the

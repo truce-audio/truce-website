@@ -99,6 +99,15 @@ I/O, silent-input behavior, real-time safety heuristics.
 | Cubase | — | not yet tested |
 | Studio One | — | not yet tested |
 
+## Double precision
+
+`prelude64` plugins advertise `kSample64`; hosts with a 64-bit
+processing mode (Reaper, Cubase) then hand the plugin `f64` buffers
+directly - no conversion at the boundary. 32-bit hosts and `f32`
+plugins are unaffected. pluginval reports it as
+`SupportsDoublePrecision: yes` and runs its audio tests in both
+precisions.
+
 ## Gotchas
 
 - **Class ID (`vst3_id`)** in `truce.toml` (auto-derived from

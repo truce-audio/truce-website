@@ -352,5 +352,5 @@ ordering so the same vocabulary works for audio + GUI.
 
 - **[Chapter 10 → presets](presets.md)** — factory presets ship
   through the same state path these tests exercise.
-- **[Chapter 11 → shipping](shipping.md)** — once the DSP is
+- **[Chapter 12 → shipping](shipping.md)** — once the DSP is
   green under audio tests, package + sign + notarize a release.

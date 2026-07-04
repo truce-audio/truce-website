@@ -6,6 +6,7 @@ Hello-world for `#[derive(State)]` — the per-instance non-numeric
 data plumbing.
 
 Source: [`examples/truce-example-state/`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-state).
+Guide: [chapter 11 → state](../guide/state.md).
 
 ## What it demonstrates
 

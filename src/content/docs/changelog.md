@@ -2,6 +2,66 @@
 
 Notable changes per release.
 
+## 2.0.0
+
+A MIDI overhaul: MIDI 2.0 / UMP and multiple MIDI ports, opt-in per plugin. Existing MIDI-1.0, single-port plugins are unchanged at runtime; the `Event` change below is a breaking API change.
+
+### Breaking
+
+- **`Event` gained a `port` field** - the MIDI port an event arrived on / should go out on (`0` for single-port plugins). **Migration:** build events with `Event::new(offset, body)` (port `0`, the common case) or `Event::on_port(offset, port, body)`; a struct literal must now spell `port` out. Reading events (`event.port`) is unaffected.
+- **Every plugin identity derives from `bundle_id`.** `clap_id` / `vst3_id` / the state-envelope hash no longer follow the display name, so renaming a plugin no longer changes its identity. **Migration:** hosts key sessions and presets to these ids, so a plugin already shipped under a 1.x name-derived id ("Truce Envelope" -> `com.truce.truceenvelope`) will appear as a new plugin after this change - to keep the old id, set `bundle_id` to the old name-derived slug. `bundle_id`'s shape is validated at compile time (lowercase `a-z0-9` plus `-`/`_`/`.` separators, alphanumeric at both ends, no separator runs).
+- **`EventList::sort` is removed.** It was a std stable sort, which allocates - unusable on the audio thread where wrappers sort merged input streams. **Migration:** call `ensure_sorted_by_offset()`, the allocation-free equivalent with the same stable-by-offset semantics.
+
+### MIDI 2.0 / UMP
+
+- Opt in per direction in `truce.toml`: `midi2 = true` sets both; `midi2_input` / `midi2_output` override one. Without the opt-in, 2.0 input down-converts to 1.0 before delivery. Opting a port-less direction (or a port-less plugin) into 2.0 is a compile error, and port-less directions normalize to a 1.0 dialect.
+- **CLAP** decodes `CLAP_EVENT_MIDI2` + note expressions on input and emits CLAP-native output (notes, expressions, raw MIDI).
+- **AU v3** declares `audioUnitMIDIProtocol` from the input dialect; output rides the host's `MIDIEventList` block for every dialect, protocol-pure in the host's `hostMIDIProtocol`, with the byte block as fallback (macOS 12+ / iOS 15+).
+- **VST3** carries per-note control as note expression both ways: `INoteExpressionController` is declared, host `noteId`s resolve back to `(channel, note)`, values cross at full `f64` precision, and unmapped per-note CCs degrade to channel CCs. Channel-level MIDI input rides hidden per-port `IMidiMapping` proxy parameters so event-consuming plugins hear CC / pitch bend / pressure.
+- **Per-note conventions are shared across formats**: pitch-bend full-scale is ±48 semitones, volume crosses in the `0..=4` linear-gain domain, and only registered per-note controllers map onto expressions and 1.0 CCs.
+- **VST2 / AU v2 / AAX / LV2 stay MIDI 1.0.**
+
+### Multiple MIDI ports
+
+- Declare `midi_input_ports = N`; the plugin filters by `event.port`. CLAP (note ports), VST3 (event buses), and LV2 (atom ports) deliver per-port; VST2 / AU / AAX clamp to one and log a skip.
+- A port count is authoritative - capability is `count > 0` - and a count that contradicts `midi_input` / `midi_output` is a compile error.
+- The standalone maps one MIDI device per port: `--midi-input` is repeatable, and macOS / Windows grow a per-port device menu (sixteen-port menu cap; the CLI has none).
+- `truce-example-multiport` is the reference; host routing quirks (REAPER's VST3-only bus mapping) are in the midi guide.
+- `midi_output_ports` declares output ports the same way; treat multi-port output as wire-level plumbing for now.
+
+### Legacy state migration
+
+- New `migrate_state` hook on `PluginLogic`: state that isn't this plugin's envelope (a pre-truce blob, or a truce envelope under another id) is offered to the hook instead of failing; keyed formats probe `[plugin.legacy_state]` (`au_keys` / `lv2_uris` / `aax_chunk_ids`). Unrecognized state now fails the load honestly instead of resetting to defaults. See the state guide; `truce-example-eq` + `assert_state_migration` are the reference.
+
+### Native f64 processing
+
+- `prelude64` plugins take the host's 64-bit wire directly on VST3 (`kSample64`), VST2 (`processDoubleReplacing`), and CLAP (`CLAP_AUDIO_PORT_SUPPORTS_64BITS`); the other formats keep the f32 wire with the existing widen/narrow. f32 plugins are unchanged.
+
+### Internals
+
+- **Instance mediation**: wrappers hold the plugin behind a `std::sync::Mutex` (on macOS it donates the waiting audio thread's priority to the lock owner); editors read meters from the lock-free `MeterStore`, and state reads block briefly - keep `save_state` cheap. (#175)
+- **Miri + fuzzing**: `cargo miri test` runs green on the pure-Rust core, and a `fuzz/` crate covers the state envelope, presets, MIDI/UMP decode, and SysEx reassembly with round-trip oracles. New `Miri` (PR gate) and `Fuzz` (weekly) workflows.
+- **The built-in font stack moved from fontdue to skrifa** - one glyph rasterizer in `truce-font`. Metrics unchanged; glyph edge anti-aliasing differs slightly.
+- **The hot-reload ABI canary is epoch-versioned** (`ABI_EPOCH` field + versioned `truce_abi_canary_v2` export), so layout changes invisible to size checks are caught and stale pre-2.0 logic dylibs are refused cleanly.
+- `EventBody` and `TransportInfo` derive `PartialEq`; `truce_core::midi` gained `upconvert_to_midi2` and the public spec up-scalers behind it.
+
+### Fixes
+
+- AU v2 answers `kAudioUnitProperty_ParameterStringFromValue`, so generic views and control surfaces show formatted values instead of raw numbers.
+- LV2 no longer declares `units:pc` on percent parameters (the raw `0..=1` value rendered as "1%" in Ardour).
+- AU shim callback ABI is append-only again, with a self-validating handshake: the fixed-offset version word carries a magic tag (a pre-2.0 binary's leading function pointer can't masquerade as a version), the registration symbol is versioned (`truce_au_register_v2`) so a mismatched staticlib/shim link fails at build time, and the AU v3 appex checks the version word at instantiation and refuses a pre-2.0 framework instead of reading shifted callback slots.
+- `cargo truce run` builds the standalone `--no-default-features`, keeping playback; a new `--features` flag re-adds extras.
+- The standalone pre-grows the f64 widening scratch before the stream starts, bounded by the device's reported maximum buffer size (8192-frame fallback when unreported).
+- A standalone device switch onto a larger buffer bound re-issues `reset`, so the plugin never receives blocks past the max it sized its DSP for.
+- VST3 rejects a processing setup or block whose sample size was never negotiated.
+- `cargo truce validate` scrubs cargo-injected dynamic-linker vars (`DYLD_*`, `LD_LIBRARY_PATH`, `LD_PRELOAD`) before spawning any bundle-loading validator - pluginval, clap-validator, auval, and the AAX runner.
+- CLAP: `CLAP_EVENT_NOTE_CHOKE` delivers a velocity-0 `NoteOff` instead of being dropped. (#174)
+- VST2: a SysEx output skipped for scratch exhaustion no longer leaves the host iterating an uninitialized event pointer.
+- Preset enumeration (CLAP discovery, AU factory lists, the standalone menu) lists only presets whose payload the plugin can load - foreign or corrupt files are skipped instead of listed-then-refused, and a skipped file no longer fails a CLAP crawl. `from_location` routes foreign envelopes through `migrate_state`, same as a session load.
+- CLAP: an out-of-range key/channel on a note event drops it instead of delivering note 255 / channel 255. Wildcard (`-1`) axes drop a `NOTE_ON` (the spec requires concrete addresses there) but fan a `NOTE_OFF` / `NOTE_CHOKE` / note expression out to the sounding notes they match - the port is an axis too - so note_id-addressing hosts can't leave voices ringing or lose expression.
+- CLAP: the output event queue is sorted by sample offset before reaching the host.
+- CLAP: note-port queries answer clap-validator's swapped-direction sweep.
+
 ## 1.0.5
 
 - **Editor performance and stability overhaul on Windows.** Every GPU call that can block inside the graphics driver - device creation, swapchain reconfigure / acquire / present - now runs off the host's GUI thread in all wgpu backends: egui renders on a dedicated thread, and the iced / Slint / built-in editors route those calls through a per-editor surface-pump thread that pre-acquires frames. Repaint-heavy editors (meters, animations) no longer bog down the host's UI; editors open without stalling the DAW; resizing reflows live and lands crisp on release instead of showing a stretched frame for seconds (dropping an acquired DX12 frame unpresented starves the swapchain's frame-latency wait - stale frames are now presented, keeping paints flowing through resize churn); and a wedged driver costs a blank or paused editor instead of a frozen, previously unkillable, DAW. Corrective resize requests also moved out of the host's resize dispatch, and an out-of-bounds host size is letterboxed rather than pushed back into a fight with the host. vizia (OpenGL, frame loop in upstream `vizia_baseview`) probes for working WGL up front and keeps the editor closed when the GL driver is broken, rather than aborting the host from its window proc.
@@ -9,7 +69,6 @@ Notable changes per release.
 - **HiDPI (2x) plugin editors render correctly on Linux.** Under desktop display scaling (e.g. Ubuntu at 200%) embedded editors were mis-sized across every backend and format - rendered at half size or clipped, and in REAPER the LV2 editor opened at half size because REAPER reads the `ui:resize` request as physical then divides by the scale to size its pane. The surface now tracks the window's physical size on every resize, the LV2 request is scaled to compensate, and standalone editors no longer jitter at 2x. (#163)
 - **Right- and middle-click now reach iced and Slint editors.** Both backends forwarded only the left button from baseview, so right-click-to-reset (and any custom-widget use of other buttons) never fired; all mouse buttons map through now. (#168)
 - **Fixed a crash when closing and reopening plugin editors on macOS.** The editor's frame timer could fire after its window state was freed (a use-after-free most visible as an AU v3 editor crash on reopen); the timer is now invalidated at teardown and holds only a weak reference. Via the `baseview-truce` 0.1.1-truce.12 dependency, all GUI backends.
-
 
 ## 1.0.4
 

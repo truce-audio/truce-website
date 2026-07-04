@@ -130,9 +130,15 @@ cargo truce run -- --help          # pass flags through to the binary
 cargo truce run -- --list-devices  # standalone CLI flag
 ```
 
+The standalone is built `--no-default-features` — no format wrapper is
+needed to preview a plugin. Use `--features` to enable extras alongside
+`standalone` (a format, or a plugin-specific feature).
+
 | Flag | Notes |
 |------|-------|
-| `--debug` | Cargo dev profile (default for `run` since you're at a terminal, not in a DAW). |
+| `--features <list>` | Extra cargo features (comma- or space-separated) enabled alongside `standalone`. |
+| `--no-build` | Skip rebuild; run the existing staged binary. |
+| `--debug` | Cargo dev profile (faster compile, slower DSP). |
 | `--target-cpu <value>` | Same semantics as [`build`](#--target-cpu). |
 | `-- <args>` | Pass everything after `--` to the standalone binary. |
 
@@ -235,6 +241,30 @@ cargo truce screenshot --out spectrum.png --scale 2       # @2× retina render
 | `-p <crate>` | Target plugin in a workspace. |
 
 For the testing workflow, see [`gui/screenshot-testing`](../guide/gui/screenshot-testing.md).
+
+## `preset`
+
+Preset library management, format conversion, and the in-DAW authoring round-trip. See the [presets guide](../guide/presets.md) for the authoring workflow.
+
+```sh
+cargo truce preset list    [-p <crate>]
+cargo truce preset init    [-p <crate>]
+cargo truce preset convert <in> <out> [-p <crate>]
+cargo truce preset import  <file|pack.zip> [--category <c>] [-p <crate>]
+cargo truce preset export  <out.zip> [-p <crate>]
+cargo truce preset pull    [--category <c>] [--new] [--watch] [-p <crate>]
+```
+
+| Subcommand | Notes |
+|------------|-------|
+| `list` | Every preset across factory (authored library), user, and pack scopes. |
+| `init` | Stamp uuids into hand-authored `.preset` files. |
+| `convert <in> <out>` | Re-envelope a preset between any two native formats — every container wraps the same canonical state blob (truce plugins only). |
+| `import <file>` | One native preset file into the authored library as `.preset` TOML, or a `.zip` pack into the user pack directory. |
+| `export <out.zip>` | The authored library as a shareable pack of per-format native files. |
+| `pull [--watch]` | Harvest host-saved presets from the OS preset locations into the authored library — the DAW's own "save preset" UI becomes the authoring frontend. `--watch` keeps harvesting as you save. |
+
+Formats are recognized by extension: `.preset` (authored TOML), `.trucepreset`, `.vstpreset`, `.aupreset`, `.ttl` (LV2).
 
 ## Cache resets
 

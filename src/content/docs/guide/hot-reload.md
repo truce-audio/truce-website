@@ -1,4 +1,4 @@
-# 13. Hot reload
+# 14. Hot reload
 
 Edit DSP or layout code, rebuild, hear the change in ~2 seconds.
 No DAW restart. No plugin window close. Same source file, same
@@ -121,10 +121,11 @@ feature is on:
 11. The new instance is reset with the current sample rate, then
     state is restored.
 
-The plugin instance is behind a `parking_lot::Mutex`. Audio thread
-locks for `process()`, main thread locks for `render()`. Mouse
-event handlers release the lock before calling host callbacks, to
-avoid deadlocks.
+The plugin instance is behind a `std::sync::Mutex` (on macOS that is
+`os_unfair_lock`, which donates the waiting audio thread's priority
+to the lock owner). Audio thread locks for `process()`, main thread
+locks for `render()`. Mouse event handlers release the lock before
+calling host callbacks, to avoid deadlocks.
 
 ## Troubleshooting
 

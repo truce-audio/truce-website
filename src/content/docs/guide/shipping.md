@@ -1,4 +1,4 @@
-# 11. Shipping
+# 12. Shipping
 
 From a plugin that works on your machine to a signed installer
 users can double-click. Four commands get you there:

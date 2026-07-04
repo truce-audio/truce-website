@@ -84,7 +84,9 @@ other truce-produced artifact.
                            Toggle live from the Plugin menu (Cmd+O / Ctrl+O).
   --sample-rate <hz>       e.g. 44100, 48000, 96000
   --buffer <frames>        Audio buffer size
-  --midi-input <name>      MIDI input device (substring match)
+  --midi-input <name>      MIDI input device (substring match).
+                           Repeatable — the Nth flag feeds the
+                           plugin's Nth MIDI input port
   --bpm <n>                Transport BPM (default 120)
   --state <path>           Load a state file on launch (a .trucepreset
                            preset or a saved state blob)
@@ -173,7 +175,7 @@ Ctrl-S** to Save, **Cmd-Shift-S / Ctrl-Shift-S** to Save As. You can
 also load a sound straight from the command line with
 `--preset <name>`, or list what's available with `--list-presets`.
 
-See the [presets guide](/docs/guide/presets) for authoring libraries.
+See the [presets guide](../guide/presets.md) for authoring libraries.
 
 ## In-window hotkeys
 
@@ -301,6 +303,10 @@ it ships in the `.tar.gz` (AppImage is still on the backlog).
 - **Wayland** unparented top-level windows still lag X11; XWayland is
   the validated path.
 - **No parameter automation record / replay**.
+- **The MIDI device menu shows at most sixteen plugin MIDI input
+  ports** (macOS and Windows). Deeper multi-port plugins route their
+  remaining ports with the repeatable `--midi-input` flag, which has
+  no cap.
 - **State files have no migration layer**: bumping `STATE_VERSION`
   invalidates saved `.state` files; the plugin logs a clear error.
 

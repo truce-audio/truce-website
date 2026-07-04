@@ -82,6 +82,15 @@ state round-trips, and buffer polarity.
 | Bitwig Studio | tested on macOS (loads the bundle-layout `.clap` directly) |
 | MultitrackStudio | should work; validation pending |
 
+## Double precision
+
+`prelude64` plugins flag their audio ports
+`CLAP_AUDIO_PORT_SUPPORTS_64BITS` (and `PREFERS_64BITS`); a host
+that takes the offer delivers `f64` buffers the plugin processes
+directly - no conversion at the boundary. The wire precision is
+per-port and per-activation, and the f32 path stays as the
+fallback. `f32` plugins are unaffected.
+
 ## Gotchas
 
 - **Parameter modulation** (`ParamMod` events) is CLAP-specific.

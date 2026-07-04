@@ -11,7 +11,7 @@ Every attribute, range type, smoothing mode, and parameter type that the params 
 | `short_name` | `short_name = "Gn"` | Abbreviated name for narrow strips. Defaults to `name`. |
 | `range` | `range = "linear(-60, 6)"` | Value mapping. Inferred for `BoolParam` and `EnumParam<T>`. |
 | `default` | `default = 0.0` | Default value in plain units. Defaults to range min. |
-| `unit` | `unit = "dB"` | Display unit. Shapes the default formatter. Valid: `dB`, `Hz`, `ms`, `s`, `%`, `pan`, `st`. |
+| `unit` | `unit = "dB"` | Display unit. Shapes the default formatter. Valid: `dB`, `Hz`, `ms`, `s`, `%`, `pan`, `st`. `%` is display-only scaling: the plain value is a `0..=1` fraction and the formatter multiplies by 100, so a 0-150% param is `range = "linear(0, 1.5)"`. Every other unit formats the plain value as-is. |
 | `smooth` | `smooth = "exp(5)"` | Smoothing style + time in ms. See [Smoothing](#smoothing). |
 | `group` | `group = "Filter"` | Parameter group surfaced by the host (CLAP module path / VST3 unit / AU group). |
 | `flags` | `flags = "automatable \| bypass"` | Combination of: `automatable`, `hidden`, `readonly`, `bypass`. |

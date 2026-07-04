@@ -104,6 +104,13 @@ bundles (strictness 5), same as VST3.
 | Logic Pro | — | AU only, no VST2 |
 | Pro Tools | — | AAX only, no VST2 |
 
+## Double precision
+
+`prelude64` plugins set `effFlagsCanDoubleReplacing` and wire
+`processDoubleReplacing`, so hosts that process in 64-bit hand the
+plugin `f64` buffers directly - no conversion at the boundary.
+32-bit hosts and `f32` plugins are unaffected.
+
 ## Gotchas
 
 - **Four-char plugin ID**: `fourcc` in `truce.toml` becomes the VST2

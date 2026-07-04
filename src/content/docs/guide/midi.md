@@ -47,11 +47,73 @@ consistently across CLAP, VST3, VST2, AU, AAX, and LV2:
   an envelope-to-CC follower) sets `midi_output = true` so every
   format declares its MIDI output port/bus.
 
+### Multiple MIDI ports
+
+Most plugins have one MIDI in and/or out port. A plugin that needs
+more - a router, a merger, a per-destination sequencer - declares the
+count with `midi_input_ports` / `midi_output_ports` in `truce.toml`:
+
+```toml
+[[plugin]]
+category = "midi"
+midi_output_ports = 4    # one input port, four output ports
+```
+
+A port count is authoritative: a non-zero `midi_input_ports` /
+`midi_output_ports` enables that direction's MIDI capability on every
+format by itself, `0` disables it, and a count that contradicts
+`midi_input` / `midi_output` is a compile error.
+
+Each `Event` carries a `port` field. Inbound, filter by `event.port`;
+outbound, stamp the target port with `Event::on_port(offset, port, body)`
+(the plain `Event::new(offset, body)` uses port `0`). CLAP (N note ports),
+VST3 (N event buses), and LV2 (N atom ports) carry more than one MIDI
+port in both directions. On VST3 this includes the channel controllers
+(CC / pitch bend / pressure), which VST3 delivers as parameter changes
+rather than events: truce advertises a separate bank of hidden mapping
+parameters per event bus, so each port's controllers decode back onto
+that port instead of merging. AU v3 carries multiple MIDI *output* ports
+(`MIDIOutputNames`, one per declared output; host support varies); its
+MIDI input, plus VST2, AU v2, and AAX, clamp to a single port and route
+everything to port `0`, logging a one-line skip so the truncation isn't
+silent.
+
+#### Getting MIDI onto a port in a host
+
+Declaring the ports is the easy half. Whether the host lets a user
+*route* a distinct MIDI source to each port is entirely up to the
+host, and the story is bumpier than the API suggests:
+
+- **REAPER** maps its per-track MIDI buses (B1–B16) to plugin ports,
+  but only for the **VST3** build, and only after you enable
+  **Map REAPER MIDI Buses to VST3 MIDI Buses** — it's off by default.
+  Find it in the FX window: click the pin-connector button (the one
+  showing e.g. `2/64 out`), then the small **I/O** button in the
+  top-right of the grid, and tick the mapping. Then a track send set
+  to `Bus 2` reaches the plugin's port `1`. REAPER does **not** map
+  buses to CLAP note ports today, so a CLAP plugin gets everything on
+  port `0` — bus-2 traffic even arrives wrapped in a proprietary
+  SysEx envelope (`F0 FF 52 50 …`), which is REAPER's tell that the
+  mapping is off or unsupported.
+- **Bitwig** indexes CLAP note ports (it's ahead of REAPER on most
+  CLAP surfaces), so it's the better host for testing multi-port
+  CLAP.
+
+If notes you routed to port 1 come out sounding like port 0's patch,
+that's a host not delivering the second port. Confirm the plugin
+itself dispatches `event.port` correctly before suspecting your code:
+the `driver!` harness scripts on port `0` only, so build `Event`s
+directly with `Event::on_port(offset, port, body)`, push them into an
+`EventList`, and call `process` — the same delivery path a real
+host's port routing hits. `truce-example-multiport` does exactly this
+in its tests.
+
 ## The event model
 
 ```rust
 pub struct Event {
     pub sample_offset: u32,    // 0..num_samples in this block
+    pub port: u8,              // MIDI port; 0 unless the plugin declares more
     pub body: EventBody,
 }
 
@@ -69,7 +131,7 @@ pub enum EventBody {
     NoteOn2 / NoteOff2     { ..., velocity: u16, attribute_type, attribute },
     PolyPressure2          { ..., pressure: u32 },
     PerNoteCC              { ..., cc, value: u32, registered },
-    PerNotePitchBend       { ..., value: u32 },                 // 0x8000_0000 = center
+    PerNotePitchBend       { ..., value: u32 },                 // 0x8000_0000 = center, full-scale ±48 st
     PerNoteManagement      { ..., flags },
     ControlChange2         { ..., cc, value: u32 },
     ChannelPressure2       { ..., pressure: u32 },
@@ -187,13 +249,13 @@ Available helpers (`truce_core::midi::*`, re-exported from
 Push events onto `context.output_events`:
 
 ```rust
-context.output_events.push(Event {
-    sample_offset: e.sample_offset,
-    body: EventBody::NoteOn {
+context.output_events.push(Event::new(
+    e.sample_offset,
+    EventBody::NoteOn {
         group: 0, channel: 0,
         note: 60, velocity: 100,
     },
-});
+));
 ```
 
 Sample offsets must fall within the current block
@@ -207,33 +269,48 @@ walks held-note tracking + step scheduling:
 EventBody::NoteOn  { note, .. } => self.held.push(*note),
 EventBody::NoteOff { note, .. } => self.held.retain(|n| n != note),
 // ...later, on each step boundary:
-context.output_events.push(Event {
-    sample_offset: step_offset,
-    body: EventBody::NoteOn {
+context.output_events.push(Event::new(
+    step_offset,
+    EventBody::NoteOn {
         group: 0, channel: 0,
         note: chosen_note, velocity: 96,
     },
-});
+));
 ```
 
 ## Format coverage
 
-| Format | MIDI 1.0 in | MIDI 1.0 out | MIDI 2.0 in | SysEx in/out | Notes |
-|---|---|---|---|---|---|
-| CLAP | ✅ | ✅ | — | ✅ / ✅ | Host MIDI 2.0 events arrive downconverted by the host as MIDI 1.0; truce-clap doesn't currently demux `CLAP_EVENT_MIDI2` or `CLAP_EVENT_NOTE_EXPRESSION` |
-| VST3 | ✅ | ✅ | partial† | ✅ / ✅ | Per-note expression (volume, pan, tuning, vibrato, expression, brightness) is mapped into `PerNoteCC` / `PerNotePitchBend` |
-| VST2 | ✅ | ✅ | — | ✅ / ✅ | MIDI 1.0 only; opt-in per VST2's `canDo("receiveVstMidiEvent")` |
-| AU v2 | ✅ | ✅ | — | — | `MusicDeviceMIDIEvent` is MIDI 1.0 only; no host path exists for MIDI 2.0 |
-| AU v3 | ✅ | ✅ | ✅† | ✅ / ✅ | Decodes UMP channel-voice MT 0x4 + reassembles SysEx-7 (MT 0x3) / SysEx-8 (MT 0x5). Requires the AU v3 host's `MIDIEventList` path (iOS 17+ / macOS 14+) |
-| AAX | ✅ | ✅ | — | ✅ / ✅ | Pro Tools' MIDI tracks; see [`formats/aax`](../formats/aax.md) |
-| LV2 | ✅ | ✅ | — | ✅ / ✅ | Hosts deliver `atom:Sequence`; emits one in turn for note effects |
+| Format | MIDI 1.0 in | MIDI 1.0 out | MIDI 2.0 in | MIDI 2.0 out | SysEx in/out | Notes |
+|---|---|---|---|---|---|---|
+| CLAP | ✅ | ✅ | ✅† | ✅† | ✅ / ✅ | With `midi2 = true`, advertises the MIDI2 note dialect and demuxes `CLAP_EVENT_MIDI2` UMP (channel voice + per-note, with group) both in and out; without it, host MIDI 2.0 arrives downconverted to 1.0 |
+| VST3 | ✅ | ✅ | partial† | partial† | ✅ / ✅ | Per-note expression (volume, pan, tuning, vibrato, expression, brightness) maps to/from `PerNoteCC` / `PerNotePitchBend`, in *and* out; the plugin declares `INoteExpressionController` so hosts offer per-note input; outgoing `noteId` is keyed `(channel << 7) \| note`, incoming host `noteId`s resolve back to `(channel, note)`; per-note CCs with no predefined expression type degrade to channel CCs |
+| VST2 | ✅ | ✅ | — | — | ✅ / ✅ | MIDI 1.0 only; opt-in per VST2's `canDo("receiveVstMidiEvent")` |
+| AU v2 | ✅ | ✅ | — | — | — | `MusicDeviceMIDIEvent` is MIDI 1.0 only; no host path exists for MIDI 2.0 |
+| AU v3 | ✅ | ✅ | ✅† | ✅† | ✅ / ✅ | With `midi2 = true` the appex declares `audioUnitMIDIProtocol` = 2.0 so a host delivers native UMP in; output rides `midiOutputEventListBlock` for every dialect, protocol-pure in the host's `hostMIDIProtocol` (all MT 0x4 in 2.0 lists, all MT 0x2 in 1.0 lists; SysEx as MT 0x3 chains), with the byte block as fallback (macOS 12+ / iOS 15+) |
+| AAX | ✅ | ✅ | — | — | ✅ / ✅ | Pro Tools' MIDI tracks; see [`formats/aax`](../formats/aax.md) |
+| LV2 | ✅ | ✅ | — | — | ✅ / ✅ | Hosts deliver `atom:Sequence`; emits one in turn for note effects |
 
-† Demux of MIDI 2.0 *channel-voice* messages (`NoteOn2`,
-`ControlChange2`, …) is wired up for AU v3 and as VST3 per-note
-expression today. CLAP / VST2 / AAX / LV2 either don't expose a
-MIDI 2.0 input path or rely on the host's own downconvert to
-MIDI 1.0. Emitting MIDI 2.0 variants from a plugin back to the
-host is not wired end-to-end on any wrapper yet.
+† Native MIDI 2.0 *channel-voice* messages (`NoteOn2`,
+`ControlChange2`, …) reach a plugin on CLAP and AU v3 - both gated on
+`midi2 = true` in `truce.toml` (CLAP advertises the MIDI2 note
+dialect; AU v3 declares `audioUnitMIDIProtocol` = 2.0). Without the
+opt-in the host down-converts to 1.0, so a plugin that didn't ask for
+MIDI 2.0 never sees the 2.0 variants. VST3 instead maps the per-note
+subset through note expression. For emitting back to the host (also
+gated on `midi2`): CLAP and AU v3 send the full 2.0 variants over UMP
+end-to-end (CLAP via `CLAP_EVENT_MIDI2`, AU v3 via
+`midiOutputEventListBlock`); VST3 sends the per-note subset (`PerNoteCC`
+for the six predefined expression types, `PerNotePitchBend` for tuning)
+as note-expression value events - a lossy, `noteId`-correlated mapping,
+not UMP. The other wrappers stay MIDI 1.0 or rely on the host's own
+downconvert.
+
+Per-note conventions are shared across formats so the same event
+sounds the same everywhere: `PerNotePitchBend` full-scale is ±48
+semitones (the MPE convention; wider host bends saturate), and
+per-note volume crosses in the `0..=4` linear-gain domain both CLAP
+and VST3 define (`+12 dB` at wire full-scale, unity at the quarter
+point).
 
 ## Testing MIDI plugins
 
@@ -277,7 +354,7 @@ cover the full MIDI-in / MIDI-out shape end to end.
 
 - **[Chapter 8 → gui](gui.md)** — visualise note state,
   expose CC mappings as parameters.
-- **[Chapter 13 → hot-reload](hot-reload.md)** — iterate on
+- **[Chapter 14 → hot-reload](hot-reload.md)** — iterate on
   arp logic without restarting the DAW.
 - **[`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)** in the repo — full
   MIDI in → MIDI out plugin with state, transport, and tests.
