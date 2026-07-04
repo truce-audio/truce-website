@@ -33,7 +33,7 @@ function SidebarSections({
                       rel="noreferrer"
                       className={className}
                     >
-                      <TitleWithCode text={item.title} /> ↗
+                      <TitleWithCode text={item.title} />
                     </a>
                   ) : (
                     <Link href={item.href} className={className}>

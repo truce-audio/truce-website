@@ -361,7 +361,7 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
                           rel="noreferrer"
                           className={itemClass}
                         >
-                          <TitleWithCode text={item.title} /> ↗
+                          <TitleWithCode text={item.title} />
                         </a>
                       ) : (
                         <Link
