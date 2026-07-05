@@ -146,7 +146,7 @@ and channel count by default (override with `--sample-rate` if
 needed); output WAV is always 32-bit float at the resolved SR.
 Mute (`--output-enabled off`) silences the speakers but **does
 not** affect what `--output-file` captures — bounce-to-disk
-behaviour matches what every DAW does.
+behavior matches what every DAW does.
 
 ## Presets
 

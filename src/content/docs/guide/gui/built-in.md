@@ -70,12 +70,9 @@ If you don't specify a widget type, the default is inferred from
 the parameter type: `BoolParam` → toggle, `EnumParam` →
 dropdown, everything else → knob.
 
-> `selector(P::X, "Label")` is deprecated since 0.56.0; use
-> `dropdown` instead.
-
 ## Sections
 
-Group widgets under labelled headers with `section()`. Use
+Group widgets under labeled headers with `section()`. Use
 `widgets()` for the ungrouped rows.
 
 ```rust
@@ -151,8 +148,8 @@ meter(&[P::MeterLeft, P::MeterRight], "Level").rows(3)
 
 ## Theming
 
-Colours come from a named theme. Dark is the default. Switch
-themes or override individual colours:
+Colors come from a named theme. Dark is the default. Switch
+themes or override individual colors:
 
 ```rust
 use truce_gui_types::theme::{Theme, Color};
@@ -171,10 +168,10 @@ GridLayout::build(sections)
     })
 ```
 
-Fonts: fontdue rasterisation with JetBrains Mono Regular embedded
+Fonts: fontdue rasterization with JetBrains Mono Regular embedded
 at compile time. No font file on disk, no runtime load.
 
-Rendering: tiny-skia CPU rasterisation by default. Opt into GPU
+Rendering: tiny-skia CPU rasterization by default. Opt into GPU
 rendering through wgpu (Metal on macOS, DX12 on Windows, Vulkan on
 Linux) with the `gpu` feature on `truce-gui`.
 

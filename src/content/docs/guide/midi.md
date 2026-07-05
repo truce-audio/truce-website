@@ -47,6 +47,44 @@ consistently across CLAP, VST3, VST2, AU, AAX, and LV2:
   an envelope-to-CC follower) sets `midi_output = true` so every
   format declares its MIDI output port/bus.
 
+### MIDI 2.0
+
+The wire dialect is opt-in per plugin. Without the opt-in
+everything is MIDI 1.0: a host speaking MIDI 2.0 gets its channel
+voice down-converted before delivery, so a plugin that didn't ask
+never sees the 2.0 `EventBody` variants.
+
+```toml
+[[plugin]]
+category = "instrument"
+midi2 = true              # both directions
+```
+
+`midi2 = true` covers both directions; `midi2_input` /
+`midi2_output` override one at a time (absent, each follows
+`midi2`). The keys require a MIDI port in the direction they
+name: `midi2_input = true` on a plugin with no MIDI input is a
+compile error, and the blanket `midi2 = true` needs at least one
+port in either direction.
+
+What the opt-in buys per format:
+
+- **CLAP** advertises the MIDI2 note dialect and carries the
+  native 16/32-bit and per-note variants both ways
+  (`CLAP_EVENT_MIDI2` UMP in; CLAP-native notes, expressions,
+  and raw MIDI out).
+- **AU v3** declares `audioUnitMIDIProtocol` = 2.0 so the host
+  delivers native UMP; output rides the host's `MIDIEventList`
+  block in the host's protocol, with the byte block as fallback
+  (macOS 12+ / iOS 15+).
+- **VST3** has no UMP transport; the per-note subset crosses as
+  note expression instead - see the coverage table below.
+- **VST2, AU v2, AAX, LV2** stay MIDI 1.0 regardless.
+
+[`examples/truce-example-midi-inspector`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-midi-inspector)
+decodes every event truce can deliver into a live scrolling log -
+useful for eyeballing what a host actually sends on each dialect.
+
 ### Multiple MIDI ports
 
 Most plugins have one MIDI in and/or out port. A plugin that needs
@@ -244,6 +282,25 @@ Available helpers (`truce_core::midi::*`, re-exported from
   MSB. Format wrappers use these internally; plugins rarely
   need them.
 
+MIDI 2.0 companions, same module:
+
+- `upscale_7_to_16(u8) -> u16`, `upscale_7_to_32(u8) -> u32`,
+  `upscale_14_to_32(u16) -> u32` - the spec's min-center-max
+  up-scaling, not a plain shift: center and max map exactly
+  (`64 → 0x8000`, `127 → 0xFFFF`), so a centered 1.0 value stays
+  centered in 2.0.
+- `upconvert_to_midi2(&EventBody) -> Option<EventBody>` and
+  `downconvert_to_midi1(&EventBody) -> Option<EventBody>` -
+  whole-event dialect conversion. Going up, a `NoteOn` with
+  velocity 0 becomes a `NoteOff2` (the spec's translation rule).
+  Going down, per-note controllers collapse onto their note's
+  channel, MPE-style. `None` means the body is already in the
+  target dialect or has no equivalent there.
+- `per_note_bend_semitones(u32) -> f64` and
+  `per_note_bend_from_semitones(f64) -> u32` - 32-bit per-note
+  pitch bend to and from semitones at the shared ±48 st
+  full-scale (saturating on the way in).
+
 ## Emitting MIDI output
 
 Push events onto `context.output_events`:
@@ -259,8 +316,12 @@ context.output_events.push(Event::new(
 ```
 
 Sample offsets must fall within the current block
-(`0..num_samples`). The framework forwards each event to the
-host's MIDI output as a MIDI 1.0 byte stream.
+(`0..num_samples`). Each wrapper translates outbound events into
+its host transport: a MIDI 1.0 byte stream on VST2 / AU v2 / AAX /
+LV2, CLAP-native events on CLAP, the host's `MIDIEventList`
+protocol on AU v3. On a MIDI 1.0 path, 2.0 bodies down-convert
+where a 1.0 equivalent exists and are dropped otherwise - emit
+the 2.0 variants only from plugins opted into `midi2`.
 
 The arpeggiator example in [`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)
 walks held-note tracking + step scheduling:

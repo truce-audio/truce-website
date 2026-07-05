@@ -19,7 +19,7 @@ Source: [`examples/truce-example-block-surround-meter/`](https://github.com/truc
   touched.
 - Per block: trim each channel (`gain_block`), find linear peak
   (`abs_max_block`), convert the peak array to dB in one SIMD
-  call (`linear_to_db_block`), then clamp / re-normalise to
+  call (`linear_to_db_block`), then clamp / re-normalize to
   `[0, 1]` for the meter widget.
 - Linear meter on a logarithmic dB scale — the perceptually
   correct visual.

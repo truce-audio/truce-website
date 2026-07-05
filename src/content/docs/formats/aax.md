@@ -41,7 +41,7 @@ for `install`, universal for `package --universal`). The build is
 cached — subsequent runs are a no-op.
 
 Tell `cargo truce` where the SDK lives via the `AAX_SDK_PATH` env
-var (preferred — gitignored):
+var:
 
 ```toml
 # .cargo/config.toml  (gitignored)
@@ -54,16 +54,6 @@ Or export it:
 ```sh
 export AAX_SDK_PATH=/Users/you/sdk/aax-sdk-2-9-0
 ```
-
-Or — least preferred, because it's repo-committed — under
-`[macos]` / `[windows]` in `truce.toml`:
-
-```toml
-[macos]
-aax_sdk_path = "/Users/you/sdk/aax-sdk-2-9-0"
-```
-
-The env var takes precedence over the toml field if both are set.
 
 ### 2. A compiler
 

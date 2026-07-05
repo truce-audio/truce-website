@@ -157,7 +157,7 @@ users have already saved. Full field reference in
 
 A preset keeps its identity (a uuid in its metadata) across
 rename, recategorise, and scope moves, so host sessions that
-reference a preset keep resolving after you reorganise your
+reference a preset keep resolving after you reorganize your
 library. A user preset with the same uuid as a factory preset
 overrides it.
 

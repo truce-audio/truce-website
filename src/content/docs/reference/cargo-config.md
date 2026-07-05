@@ -1,8 +1,8 @@
 # `.cargo/config.toml` reference (build-environment vars)
 
 Per-developer credentials and machine-specific paths live in
-your project's `.cargo/config.toml` `[env]` table — gitignored,
-machine-local, never in `truce.toml`.
+your project's `.cargo/config.toml` `[env]` table — gitignored
+and machine-local.
 
 Cargo injects everything in `[env]` into the environment of any
 subcommand it spawns, so values you set here are visible to

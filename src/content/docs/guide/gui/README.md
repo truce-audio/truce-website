@@ -6,9 +6,9 @@ system, so switching between them is straightforward.
 
 ## Starting out
 
-If you haven't built a GUI in Rust before, start with the
-**[built-in GUI](built-in.md)**. You define a layout in code and truce
-renders the widgets for you — no custom editor code required.
+The **[built-in GUI](built-in.md)** is the fastest way to get a
+working editor. You define a layout in code and truce renders the
+widgets for you — no custom editor code required.
 
 ```rust
 fn editor(&self) -> Box<dyn Editor> {
@@ -21,12 +21,14 @@ fn editor(&self) -> Box<dyn Editor> {
 ```
 
 That gives you a working GUI with knobs, mouse interaction, automation,
-and host integration. Most plugins start here.
+and host integration. Treat it as a starting point: good for
+prototypes and simple utilities.
 
-## Moving to a framework
+## Shipping a production plugin
 
-When you need something the built-in GUI doesn't support — text input,
-tabs, custom drawing — pick a framework:
+For production plugins, the recommended path is a framework
+backend - text input, lists, custom drawing, and a look of your
+own:
 
 - **[egui](egui.md)** — immediate-mode. Write UI code that runs every
   frame. Large widget library, lots of third-party crates.

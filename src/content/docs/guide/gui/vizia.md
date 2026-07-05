@@ -11,6 +11,12 @@ Desktop only. macOS (x86_64 + aarch64), Windows (x86_64), and Linux
 unsupported** — see [Platform support](#platform-support) below.
 Use the built-in GUI, `truce-egui`, or `truce-slint` on those.
 
+Vizia is the least stable of the GUI backends: the crate rides an
+unreleased vizia main-branch rev (no crates.io release), editor
+resize is a no-op, and platform coverage is the narrowest. Pick
+egui, iced, or Slint when you don't specifically want vizia's
+reactive-binding + CSS model.
+
 > **Editor resize is currently a no-op on vizia.**
 > `ViziaEditor::set_size` records the new logical size but the
 > running view doesn't repaint at it - vizia's `WindowHandle` has
@@ -132,9 +138,6 @@ use truce_vizia::widgets::{
     level_meter,    // vertical bar meter
 };
 ```
-
-> `param_selector` (click-to-cycle) is deprecated since 0.56.0;
-> use `param_dropdown` instead.
 
 Typical layout:
 

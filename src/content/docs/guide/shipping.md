@@ -128,7 +128,7 @@ cargo truce validate --clap --pluginval -p my-gain   # subset, single plugin
   <https://github.com/Tracktion/pluginval>) runs at strictness 10
   (max) against the installed VST3 bundle.
 - **auval** (macOS only, built into CoreAudio) exercises AU v2 +
-  AU v3 lifecycle and parameter behaviour.
+  AU v3 lifecycle and parameter behavior.
 - **VST2 smoke** is built in — it `dlopen`s the dylib and verifies
   `VSTPluginMain` returns a well-formed `AEffect`.
 
@@ -413,7 +413,7 @@ and run `cargo truce install` themselves.
 
 Signing identities, AAX SDK paths, notary credentials — anything
 machine- or developer-specific — go in `.cargo/config.toml`
-(gitignored), not `truce.toml` (committed):
+(gitignored):
 
 ```toml
 # .cargo/config.toml
@@ -425,8 +425,6 @@ APPLE_ID                         = "you@example.com"
 TEAM_ID                          = "TEAMID"
 TRUCE_PFX_PASSWORD               = "…"          # if using .pfx
 ```
-
-Env vars take precedence over equivalent `truce.toml` fields.
 
 ## CI
 

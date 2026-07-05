@@ -9,6 +9,6 @@ Source: [`reiss-mcpherson-wahwah/`](https://github.com/truce-audio/reiss-mcphers
 
 ## What it demonstrates
 
-- A resonant band-pass biquad with a sweepable centre frequency
+- A resonant band-pass biquad with a sweepable center frequency
 - Three modulation sources selected by `EnumParam`
 - An envelope-follower with attack / release

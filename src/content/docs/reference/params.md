@@ -135,8 +135,6 @@ works through `Arc<Params>` without `&mut`.
 
 All four are trait methods (`FloatParamReadF32` / `FloatParamReadF64`) that the preludes bring into scope; the return type follows the prelude in use. `use truce::prelude::*;` gives you `f32`-returning versions, `use truce::prelude64::*;` gives you `f64`-returning versions, same call sites either way.
 
-> The older `.read_block::<N>() -> [f32; N]` (and its `f64` variant) is deprecated since 0.53.0: it advanced the smoother by exactly `N` regardless of how many samples the caller consumed, which silently stepped the value at the next block boundary whenever the chunk length wasn't `N`. `.read_into(&mut scratch[..n])` is the same code shape on the same atomic-amortized fast path, with the hazard removed.
-
 The canonical case for `.value()` is a parameter that drives a
 *discrete* downstream decision rather than a continuous gain. The
 [fundsp reverb](../examples/fundsp-reverb-worker) example reads
@@ -344,7 +342,7 @@ pub struct MyParams {
     pub gain: FloatParam,
 
     // Lock-free audio-thread -> editor channel. Not a parameter:
-    // excluded from ids / state / count, default-initialised in `new()`.
+    // excluded from ids / state / count, default-initialized in `new()`.
     #[skip]
     pub events: Arc<EventRing>,
 }

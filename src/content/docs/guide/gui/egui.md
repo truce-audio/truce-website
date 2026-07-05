@@ -83,9 +83,6 @@ use truce_egui::widgets::{
 };
 ```
 
-> `param_selector` (click-to-cycle) is deprecated since 0.56.0;
-> use `param_dropdown` instead.
-
 Typical layout:
 
 ```rust

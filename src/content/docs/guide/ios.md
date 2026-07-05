@@ -228,7 +228,7 @@ After a device install, the container `.app` shows up on the home
 screen under **Apps from Developer *<your name>*** in
 **Settings → General → VPN & Device Management**. Plug-in authors
 using an individual (personal-team) Apple Developer account see
-their personal name there — this is iOS's behaviour for
+their personal name there — this is iOS's behavior for
 personal-team certificates, nothing truce sets.
 
 ## Per-plugin iOS knobs in `truce.toml`

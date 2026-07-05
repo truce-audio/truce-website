@@ -5,10 +5,12 @@ declare a layout — rows of widgets — and the framework draws it,
 routes input events, and keeps everything in sync with the
 parameter `Arc`. Zero pixel math.
 
-If that's not enough, truce has adapters for egui, iced, Slint, and
-Vizia, plus a raw-window-handle escape hatch for anything else.
-Start with the built-in and reach for a framework when you hit its
-limits.
+The built-in GUI is a starting point: it gets a prototype on
+screen in a dozen lines and is fine to keep for a simple utility.
+For a production plugin, ship one of the framework backends -
+egui, iced, Slint, or Vizia - or bring your own renderer through
+the raw-window-handle escape hatch. See
+[the framework backends](#the-framework-backends) below.
 
 ## The built-in GUI
 
@@ -41,7 +43,7 @@ impl PluginLogic for MyPlugin {
 ```
 
 `GridLayout::build(sections)` — each section is either a
-`widgets(vec![...])` row or a labelled `section("NAME", vec![...])`
+`widgets(vec![...])` row or a labeled `section("NAME", vec![...])`
 group. Widgets flow left-to-right; use `.cols(n)` / `.rows(n)` to
 span cells. By default there's no header, `cols` resolves to the
 widest section's widget count, and the cell size is 50 logical
@@ -86,6 +88,31 @@ builders, where `min_size` / `max_size` are **logical points** rather
 than grid cells. Ship vizia plugins fixed-size — don't call
 `.resizable(true)` there.
 
+### Locking the aspect ratio
+
+The egui, iced, and slint builders can also constrain resizes to a
+fixed shape:
+
+```rust
+EguiEditor::new(self.params.clone(), (600, 450), my_ui)
+    .resizable(true)
+    .aspect_ratio(Some((4, 3)))   // (numerator, denominator)
+    .into_editor()
+```
+
+`None` (the default) means free resizing. The ratio is an integer
+pair rather than a float to sidestep a Cubase aspect-rounding
+quirk. CLAP, VST3, AU v3, LV2, and the standalone honor the
+lock; VST2 and AAX silently ignore it. Hosts that resize the
+embedded window directly without negotiating (Bitwig on X11)
+still get fitted: the editor renders at the nearest on-ratio size
+within its bounds and the leftover margin is painted black rather
+than stretched.
+
+The built-in grid has no aspect lock - its resizes snap to whole
+cells instead - and vizia editors are fixed-size, so the lock is
+moot there.
+
 ### The seven widgets
 
 | Constructor | Widget | Typical use |
@@ -96,9 +123,6 @@ than grid cells. Ship vizia plugins fixed-size — don't call
 | `dropdown(P::X, "Label")` | click-to-open list | `EnumParam<T>` / `IntParam` |
 | `meter(&[P::L, P::R], "Label")` | vertical level meters | peak / RMS output |
 | `xy_pad(P::X, P::Y, "Label")` | 2-axis pad | two continuous params on one surface |
-
-> `selector(P::X, "Label")` is deprecated since 0.56.0; use
-> `dropdown` instead.
 
 ### Spanning cells
 
@@ -135,49 +159,44 @@ value every frame.
   enter value).
 
 You don't write any of this. The framework knows the widget kind
-from the layout and the parameter behaviour from the `ParamId`.
+from the layout and the parameter behavior from the `ParamId`.
 
 ### Rendering and theming
 
-The built-in GUI rasterises on the CPU through tiny-skia by
+The built-in GUI rasterizes on the CPU through tiny-skia by
 default. Opt into GPU rendering (wgpu → Metal on macOS, DX12 on
 Windows, Vulkan on Linux) with the `gpu` feature on `truce-gui`.
 
-Colours come from a named theme — dark by default. Swap to light or
-a custom palette:
+Colors come from a named theme - dark by default,
+`.theme(Theme::light())` for light, or a custom palette. Text
+renders via fontdue with JetBrains Mono embedded at compile time.
+The [built-in GUI reference](gui/built-in.md) covers every widget
+constructor, cell-spanning option, and theming detail.
 
-```rust
-GridLayout::build(sections)
-    .with_title("MY PLUGIN")
-    .theme(truce_gui_types::theme::Theme::light())
-```
+## The framework backends
 
-Text renders via fontdue with JetBrains Mono Regular embedded at
-compile time — no font file on disk, no runtime load.
-
-See the [built-in GUI reference](gui/built-in.md) for every
-widget constructor, cell-spanning option, and theming detail.
-
-## Alternatives
-
-The built-in GUI covers knobs / sliders / meters / dropdowns —
-the common audio-plugin shape. Reach for an alternative backend
-when you need:
+The built-in GUI is deliberately small: knobs / sliders / meters /
+dropdowns, one theme system, no free-form drawing. It's the right
+way to get a plugin working; production plugins should ship a
+framework backend instead, which unlocks:
 
 - **Text input fields** beyond the built-in value pop-in.
 - **Lists or tables** (preset browsers, modulation matrices, sample
   browsers).
-- **Custom graphics** — analyzer curves, waveforms, drawable
+- **Custom graphics** - analyzer curves, waveforms, drawable
   envelopes.
-- **Specific aesthetics** the built-in theme system can't reach.
+- **A visual identity of your own**, past what theming the stock
+  widgets can express.
 
-All alternatives integrate the same way: return the backend's
+All backends integrate the same way: return the backend's
 editor from `editor()` on `PluginLogic`, finishing the builder
-chain with `.into_editor()`.
+chain with `.into_editor()`. Params, DSP, and format export are
+untouched, so prototyping on the built-in GUI and switching
+later is cheap.
 
 | Backend | Crate | When |
 |---------|-------|------|
-| **egui** | `truce-egui` | Immediate-mode. Good for prototyping, CPU-graph-heavy debugging UIs, and dev tools. Full guide: [gui/egui](gui/egui.md). |
+| **egui** | `truce-egui` | Immediate-mode. Fastest to iterate on, large widget ecosystem. Full guide: [gui/egui](gui/egui.md). |
 | **iced** | `truce-iced` | Retained-mode with Elm architecture. Good for complex custom UIs where you want a proper widget tree and state machine. Auto-generated from `GridLayout` is also available. [gui/iced](gui/iced.md). |
 | **Slint** | `truce-slint` | Declarative markup (`.slint` files) with data binding. Good for visually rich UIs designed outside Rust. [gui/slint](gui/slint.md). |
 | **Vizia** | `truce-vizia` | Retained-mode with reactive data binding and CSS. Per-param `Signal<f32>` keeps widgets in sync without manual wiring. Desktop only — no iOS, no Windows ARM64. [gui/vizia](gui/vizia.md). |
@@ -228,5 +247,5 @@ CLI for renders that don't need a `#[test]`.
   rendered pixels against committed PNGs.
 - **[Keyboard input](gui/keyboard.md)** — read the keyboard in
   egui / iced editors, plus the host-focus caveats.
-- **[GUI backends](gui/)** — deep-dives per framework when the
-  built-in GUI isn't enough.
+- **[GUI backends](gui/)** — deep-dives per framework backend for
+  when you're ready to ship.

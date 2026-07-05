@@ -37,8 +37,7 @@ alone don't carry the iPhoneOS / iPhoneSimulator SDKs.
 
 ### Per-developer credentials
 
-Put these in `.cargo/config.toml` `[env]` (gitignored — never in
-`truce.toml`):
+Put these in `.cargo/config.toml` `[env]` (gitignored):
 
 ```toml
 [env]

@@ -152,9 +152,6 @@ meter(&[P::MeterLeft, P::MeterRight], params).size(16.0, 200.0)
 
 All use builder pattern. Call `.el()` to push into iced layouts.
 
-> `param_selector` is deprecated since 0.56.0; use `param_dropdown`
-> instead.
-
 ## Handling custom messages
 
 If your UI has buttons, tabs, or other interactive elements, define

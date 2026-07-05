@@ -185,14 +185,6 @@ Precision follows the prelude: `prelude64` plugins import
 `FloatParamReadF64` instead and the same call takes `&mut [f64]`.
 See [parameters](parameters.md) for the full smoother surface.
 
-> The older `read_block::<N>() -> [f32; N]` is deprecated since
-> 0.53.0. It always advanced the smoother by exactly `N`, regardless
-> of how many samples the caller consumed — which silently stepped
-> the smoothed value at the next block boundary whenever the host's
-> block size wasn't a multiple of `N`. `read_into` is the same code
-> shape on the same one-atomic-pair fast path, with the hazard
-> removed.
-
 ### Walking the buffer in chunks
 
 `AudioBuffer::chunks_mut::<N>()` iterates `(channel, sample_offset,
