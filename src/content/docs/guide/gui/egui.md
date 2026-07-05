@@ -9,7 +9,7 @@ hosting handled for you.
 
 ```toml
 [dependencies]
-truce-egui = { workspace = true }
+truce-egui = "2.0"
 egui = "0.34"
 ```
 

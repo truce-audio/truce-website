@@ -10,7 +10,7 @@ Add the dependencies:
 
 ```toml
 [dependencies]
-truce-iced = { workspace = true }
+truce-iced = "2.0"
 iced = { version = "0.14", default-features = false, features = ["canvas", "wgpu"] }
 ```
 

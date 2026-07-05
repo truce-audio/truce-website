@@ -26,7 +26,7 @@ Add `truce-test` to `[dev-dependencies]`:
 
 ```toml
 [dev-dependencies]
-truce-test = { workspace = true }
+truce-test = "2.0"
 ```
 
 Drop a test into your `lib.rs`:

@@ -37,7 +37,7 @@ required-features = ["standalone"]
 standalone = ["dep:truce-standalone"]
 
 [dependencies]
-truce-standalone = { workspace = true, features = ["gui"], optional = true }
+truce-standalone = { version = "2.0", features = ["gui"], optional = true }
 ```
 
 `<crate_name>` is your crate's `[package].name` — the convention
@@ -274,7 +274,7 @@ Opt in from the plugin crate:
 
 ```toml
 [dev-dependencies]
-truce-test = { workspace = true }
+truce-test = "2.0"
 ```
 
 Good for tail-silence / release-decay tests, sustained-load stability,
