@@ -11,11 +11,11 @@ Add the dependencies:
 
 ```toml
 [dependencies]
-truce-slint = "0.34"
+truce-slint = "2.0"
 slint = { version = "=1.15.1", default-features = false, features = ["compat-1-2", "renderer-software", "std"] }
 
 [build-dependencies]
-truce-slint-build = "0.34"
+truce-slint-build = "2.0"
 ```
 
 Create `build.rs`:
