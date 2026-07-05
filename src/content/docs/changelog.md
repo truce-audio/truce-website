@@ -2,6 +2,16 @@
 
 Notable changes per release.
 
+## 2.0.2
+
+- Audio Unit plugins now report their latency and tail time to the host, so lookahead limiters and linear-phase EQs stay time-aligned in the mix instead of playing early.
+- Plugins ship correctly under any vendor identity: VST2 bundle IDs and Audio Unit registrations use your configured reverse-DNS vendor ID everywhere, so third-party plugins install, update, and uninstall cleanly (some IDs previously assumed a `com.truce` prefix).
+- Plugin and vendor names with special characters (`&`, `{`, `<`, quotes, `$`) no longer break installer generation on Windows, macOS, or Linux.
+- macOS `--user` installers that include AAX, AU v3, or the standalone app now install those components instead of silently skipping them.
+- `cargo truce preset import` / `pull --category` no longer overwrites a same-named preset that lives in a different category.
+- Loading a preset or session into an inactive plugin no longer drops the plugin's custom state on the next save.
+- Stability fixes: a Windows standalone crash when an editor reports inconsistent size limits, an audio-thread hang when `min_subblock_samples` is set to 0, and a buffer-overrun risk in dense LV2 MIDI output; plus smoother real-time behavior under heavy MIDI-controller automation.
+
 ## 2.0.1
 
 - The built-in editor on Windows no longer occasionally opens stretched (until a manual resize) when the host resizes the editor right after open: resize requests that raced the threaded GPU init used to be dropped, leaving the swapchain at the open-time size for the compositor to stretch over the real window. They are now replayed once init lands, and the swapchain is additionally reconciled against the window's actual client rect on the first ready frame.
