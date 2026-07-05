@@ -373,6 +373,112 @@ per-note volume crosses in the `0..=4` linear-gain domain both CLAP
 and VST3 define (`+12 dB` at wire full-scale, unity at the quarter
 point).
 
+## Host MIDI compatibility
+
+The table above is truce's half of the contract. The other half is
+the host: which slots accept a MIDI plugin, what survives
+plugin-to-plugin routing, and how much of MIDI 2.0 is carried all
+vary enough that the host - not the wrapper - usually decides what
+your plugin actually sees. Notes from testing real hosts,
+**current as of July 2026**; expect the details to shift host by
+host.
+
+### Bitwig Studio
+
+- The reference host for CLAP MIDI 2.0: it honors the advertised
+  MIDI2 note dialect and delivers native `CLAP_EVENT_MIDI2` UMP to
+  a `midi2` plugin.
+- On the *output* side its note graph consumes CLAP-native events -
+  `clap_event_note` plus `CLAP_EVENT_NOTE_EXPRESSION` - not UMP. A
+  plugin emitting only raw UMP is silent in Bitwig, which is why
+  truce emits 2.0 output CLAP-natively (notes with full 16-bit
+  velocity through the `f64` field, per-note control as note
+  expressions, channel voice down-converted to raw MIDI).
+- Per-note expressions ride `note_id` addressing, and stopping a
+  clip sends wildcard note-offs - Bitwig is the host that exercises
+  the wildcard paths.
+- Overall the best desktop host for testing per-note and multi-port
+  CLAP.
+
+### Logic Pro
+
+- On AU v3 the protocol negotiation works as Apple documents it:
+  the appex receives input in its declared `audioUnitMIDIProtocol`,
+  and CoreAudio auto-converts its output to the host's
+  `hostMIDIProtocol`. A 2.0-emitting plugin needs no 1.0 fallback
+  path of its own.
+- The MIDI FX → instrument hop runs at the MIDI 1.0 byte level:
+  notes survive the down-conversion, but per-note pitch bend and
+  per-note CCs (no 1.0 equivalent) are silently dropped, and the
+  UMP group is flattened. Channel-level pitch bend survives -
+  MPE-style channel rotation is the portable way to push per-note
+  bends through Logic's MIDI FX slot.
+- A `.component` loads as AU **v2**, whose MIDI I/O
+  (`MusicDeviceMIDIEvent`) is 1.0-only - the v2 build can't carry
+  native 2.0 in either direction regardless of what Logic supports.
+  UMP I/O exists only on the AU v3 appex.
+
+### Cubase
+
+- The home of VST3 note expression: it queries
+  `INoteExpressionController` and sends nothing to a plugin that
+  doesn't declare it (truce does).
+- It sends release-phase expression - value events arriving after
+  the note-off - so expression handling can't assume the note is
+  still sounding. truce keeps its note-id mappings alive past
+  note-off for exactly this.
+- Third-party VST3 plugins can't be MIDI inserts in Cubase, so a
+  note-effect → synth chain can't be built there at all. Note
+  expression in Cubase is host-originated (its editor, an MPE
+  controller) and delivered straight to the instrument.
+
+### REAPER
+
+- Routes one plugin's MIDI output onward by flattening it to a
+  MIDI 1.0 byte stream - VST3 note expression doesn't survive the
+  plugin-to-plugin hop. Same attrition rule as Logic's MIDI FX
+  path: 1.0-expressible data survives, per-note data doesn't.
+- Channel controllers reach a VST3 plugin only as `IMidiMapping`
+  parameter changes; truce synthesizes the bend / CC / pressure
+  events back from its hidden proxy parameters, so plugin code
+  never notices.
+- Its CLAP support trails its VST3 support: note effects don't
+  surface as MIDI effects, and per-track MIDI buses map to VST3
+  event buses only (see
+  [multi-port routing](#getting-midi-onto-a-port-in-a-host)).
+
+### Ableton Live
+
+- No inline path for MIDI-processing plugins at all: the MIDI-effect
+  slot accepts only Live's own devices and Max for Live, audio
+  effects receive audio (never the track's MIDI), and only the
+  instrument slot receives the track's MIDI. A note effect has to
+  pose as an instrument and be routed track-to-track.
+- Live also thins high-rate CC streams before they reach a plugin,
+  so don't calibrate CC-driven DSP against what Live delivers.
+
+### AUM (iOS)
+
+- The practical test bench for AU v3 MIDI: a 2.0-capable host that
+  honors `MIDIOutputNames`, so multi-cable MIDI output routing
+  actually works there.
+- Lists `aumi` note effects in a dedicated MIDI-effect slot and
+  routes MIDI to them - coverage of the newer AU v3 MIDI APIs is
+  uneven across AU hosts, and AUM is ahead of most desktop ones.
+
+### The pattern
+
+Host → plugin and plugin → host native 2.0 work where the format
+table says they do. The consistently weak link is **plugin →
+plugin** routing, which nearly every host performs at the MIDI 1.0
+byte level: per-note data with a 1.0 equivalent survives the hop,
+everything else is dropped. Emit per-note events for the hosts that
+carry them, and fall back to MPE-style channel spread plus channel
+pitch bend when output must survive an inter-plugin hop. The same
+skepticism applies inbound - hosts don't always honor the
+advertised dialect, so truce down-converts stray 2.0 packets for
+1.0 plugins rather than dropping them.
+
 ## Testing MIDI plugins
 
 `truce_test::driver!` scripts MIDI events sample-accurately —
