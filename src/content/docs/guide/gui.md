@@ -113,7 +113,7 @@ The built-in grid has no aspect lock - its resizes snap to whole
 cells instead - and vizia editors are fixed-size, so the lock is
 moot there.
 
-### The seven widgets
+### The six widgets
 
 | Constructor | Widget | Typical use |
 |-------------|--------|-------------|
