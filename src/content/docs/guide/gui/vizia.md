@@ -6,23 +6,19 @@ embeds it via baseview and bridges parameter reads/writes through a
 `ParamLens<P>` whose per-param signals keep every widget bound to
 the same `id` in sync.
 
-Desktop only. macOS (x86_64 + aarch64), Windows (x86_64), and Linux
-(x86_64 + aarch64) all work. **iOS and Windows on ARM64 are
-unsupported** — see [Platform support](#platform-support) below.
-Use the built-in GUI, `truce-egui`, or `truce-slint` on those.
-
-Vizia is the least stable of the GUI backends: the crate rides an
-unreleased vizia main-branch rev (no crates.io release), editor
-resize is a no-op, and platform coverage is the narrowest. Pick
-egui, iced, or Slint when you don't specifically want vizia's
-reactive-binding + CSS model.
-
-> **Editor resize is currently a no-op on vizia.**
-> `ViziaEditor::set_size` records the new logical size but the
-> running view doesn't repaint at it - vizia's `WindowHandle` has
-> no resize entry point callable from outside its event loop.
-> Ship vizia plugins fixed-size; don't call `.resizable(true)`.
-> Pending a `vizia_baseview` upstream patch.
+> **Vizia is the least stable of the GUI backends.** It's desktop
+> only: macOS (x86_64 + aarch64), Windows (x86_64), and Linux
+> (x86_64 + aarch64) work; iOS and Windows on ARM64 are
+> unsupported - see [Platform support](#platform-support) below.
+> Editor resize is currently a no-op: `ViziaEditor::set_size`
+> records the new logical size but the running view doesn't
+> repaint at it (vizia's `WindowHandle` has no resize entry point
+> callable from outside its event loop; pending a `vizia_baseview`
+> upstream patch), so ship vizia plugins fixed-size and don't call
+> `.resizable(true)`. The crate also rides an unreleased vizia
+> main-branch rev - no crates.io release. Pick egui, iced, or
+> Slint when you don't specifically want vizia's reactive-binding
+> + CSS model.
 
 ## Setup
 

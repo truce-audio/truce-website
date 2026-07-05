@@ -17,6 +17,16 @@ sitting.
 | [arpeggio](./arpeggio) | MIDI | Built-in | <img src="/screenshots/examples/arpeggio.png" width="139" height="182" alt="arpeggio plugin"> |
 | [tremolo](./tremolo) | Effect | egui | <img src="/screenshots/examples/tremolo.png" width="270" height="162" alt="tremolo plugin"> |
 | [state](./state) | Effect | egui | <img src="/screenshots/examples/state.png" width="320" height="120" alt="state plugin"> |
+| [envelope](./envelope) | Effect | Built-in | <img src="/screenshots/examples/envelope.png" width="139" height="113" alt="envelope plugin"> |
+| [cc-filter](./cc-filter) | Effect | Built-in | <img src="/screenshots/examples/cc-filter.png" width="139" height="113" alt="cc-filter plugin"> |
+| [chord](./chord) | Instrument | Built-in | <img src="/screenshots/examples/chord.png" width="139" height="113" alt="chord plugin"> |
+| [stereo-utility](./stereo-utility) | Effect | Built-in | <img src="/screenshots/examples/stereo-utility.png" width="208" height="210" alt="stereo-utility plugin"> |
+| [dasp-bitcrusher](./dasp-bitcrusher) | Effect | Built-in | <img src="/screenshots/examples/dasp-bitcrusher.png" width="208" height="113" alt="dasp-bitcrusher plugin"> |
+| [sysex-echo](./sysex-echo) | MIDI | Built-in | <img src="/screenshots/examples/sysex-echo.png" width="70" height="113" alt="sysex-echo plugin"> |
+| [multiport](./multiport) | Instrument | Built-in | <img src="/screenshots/examples/multiport.png" width="277" height="210" alt="multiport plugin"> |
+| [midi-inspector](./midi-inspector) | Effect | Iced | <img src="/screenshots/examples/midi-inspector.png" width="380" height="230" alt="midi-inspector plugin"> |
+| [mpe-spreader](./mpe-spreader) | MIDI | Built-in | <img src="/screenshots/examples/mpe-spreader.png" width="208" height="182" alt="mpe-spreader plugin"> |
+| [mpe-synth](./mpe-synth) | Instrument | Built-in | <img src="/screenshots/examples/mpe-synth.png" width="208" height="113" alt="mpe-synth plugin"> |
 | [fundsp-reverb-simple](./fundsp-reverb-simple) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-simple.png" width="208" height="182" alt="fundsp-reverb-simple plugin"> |
 | [fundsp-reverb-worker](./fundsp-reverb-worker) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-worker.png" width="208" height="182" alt="fundsp-reverb-worker plugin"> |
 
@@ -38,6 +48,9 @@ see how each framework handles the same layout.
 | [gain-iced](./gain-iced) | Iced | <img src="/screenshots/examples/gain-iced.png" width="176" height="290" alt="gain-iced"> |
 | [gain-slint](./gain-slint) | Slint | <img src="/screenshots/examples/gain-slint.png" width="176" height="290" alt="gain-slint"> |
 | [gain-vizia](./gain-vizia) | Vizia | <img src="/screenshots/examples/gain-vizia.png" width="176" height="260" alt="gain-vizia"> |
+
+A sixth variant, [gain-egui-aspect](./gain-egui-aspect), is the
+egui gain with a 2:3 aspect-ratio lock on host resize.
 
 ### GUI Zoo (every widget kind, mixed spans + positions)
 
