@@ -17,8 +17,7 @@ the same `id` in sync.
 > upstream patch), so ship vizia plugins fixed-size and don't call
 > `.resizable(true)`. The crate also rides an unreleased vizia
 > main-branch rev - no crates.io release. Pick egui, iced, or
-> Slint when you don't specifically want vizia's reactive-binding
-> and CSS model.
+> Slint for new projects.
 
 ## Setup
 
