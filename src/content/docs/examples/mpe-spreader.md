@@ -35,10 +35,3 @@ Source: [`examples/truce-example-mpe-spreader/`](https://github.com/truce-audio/
 | Channels | 1 to 16 | -- | Fan width for channel round-robin modes |
 | Vibrato Rate | 0.1 to 12 (log) | Hz | Vibrato LFO rate |
 | Vibrato Depth | 0 to 2 | st | Vibrato depth in semitones |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-mpe-spreader
-cargo test -p truce-example-mpe-spreader
-```

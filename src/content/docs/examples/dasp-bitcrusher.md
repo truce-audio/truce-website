@@ -30,10 +30,3 @@ Source: [`examples/truce-example-dasp-bitcrusher/`](https://github.com/truce-aud
 | Bits | 2 to 16 (discrete, default 16) | bits |
 | Hold | 1 to 32 (discrete, default 1) | samples |
 | Mix | 0 to 1 (default 1.0) | % |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-dasp-bitcrusher
-cargo test -p truce-example-dasp-bitcrusher
-```

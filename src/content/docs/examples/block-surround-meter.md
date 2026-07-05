@@ -29,11 +29,3 @@ Source: [`examples/truce-example-block-surround-meter/`](https://github.com/truc
 | Name | Range | Unit | Default |
 |------|-------|------|---------|
 | Trim | -24 to +24 | dB | 0.0 |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-block-surround-meter
-cargo test -p truce-example-block-surround-meter
-cargo truce install -p truce-example-block-surround-meter
-```

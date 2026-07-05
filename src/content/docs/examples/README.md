@@ -126,17 +126,6 @@ implementations). Sources in
 |--------|---------------|
 | [truce-analyzer](https://github.com/truce-audio/truce-analyzer) | Real-time spectrum analyzer with diff overlay; non-trivial GUI built on truce. |
 
-## Building
-
-```bash
-cargo build --workspace                       # build all
-cargo test --workspace                        # run all tests
-cargo truce build                             # build every format into target/bundles/
-cargo truce install -p truce-example-gain     # install one plugin
-cargo truce run -p truce-example-synth        # run a plugin standalone
-cargo truce validate -p truce-example-gain    # auval + pluginval + clap-validator
-```
-
 ## Project structure
 
 Each example follows the same layout:

@@ -36,10 +36,3 @@ Source: [`examples/truce-example-stereo-utility/`](https://github.com/truce-audi
 | Right Gain | -60 to +12 (default 0) | dB |
 | Right Invert | off/on | toggle |
 | Right Delay | 0 to 50 (default 0) | ms |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-stereo-utility
-cargo test -p truce-example-stereo-utility
-```

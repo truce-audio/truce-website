@@ -19,10 +19,3 @@ Source: [`examples/truce-example-transpose/`](https://github.com/truce-audio/tru
 |------|-------|------|-------------|
 | Semitones | -12 to 12 | st | Transpose by semitones |
 | Octave | -3 to 3 | -- | Transpose by octaves |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-transpose
-cargo test -p truce-example-transpose
-```

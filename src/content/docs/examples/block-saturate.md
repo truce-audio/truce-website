@@ -24,11 +24,3 @@ Source: [`examples/truce-example-block-saturate/`](https://github.com/truce-audi
 |------|-------|------|---------|
 | Drive | 0 to 36 | dB | 6.0 |
 | Output | -24 to +6 | dB | 0.0 |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-block-saturate
-cargo test -p truce-example-block-saturate
-cargo truce install -p truce-example-block-saturate
-```

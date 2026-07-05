@@ -84,12 +84,3 @@ in (L,R) ───────────────────────�
   mix to stereo manually with `var(&mix) | var(&mix)`. fundsp's
   payoff (graph composition with `>>` / `|` / `&`) costs this
   kind of explicit plumbing.
-
-## Build
-
-```sh
-cargo build -p truce-example-fundsp-reverb-worker
-cargo test  -p truce-example-fundsp-reverb-worker --release
-cargo truce install -p truce-example-fundsp-reverb-worker
-cargo truce run     -p truce-example-fundsp-reverb-worker
-```

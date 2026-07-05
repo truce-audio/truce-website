@@ -23,11 +23,3 @@ Source: [`examples/truce-example-block-drywet/`](https://github.com/truce-audio/
 |------|-------|------|---------|
 | Drive | 0 to 24 | dB | 6.0 |
 | Mix | 0 to 1 | % | 0.5 |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-block-drywet
-cargo test -p truce-example-block-drywet
-cargo truce install -p truce-example-block-drywet
-```

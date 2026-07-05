@@ -34,10 +34,3 @@ Source: [`examples/truce-example-gain-egui-aspect/`](https://github.com/truce-au
 
 Two meter slots (left/right output peak) feed the level meter;
 they are display-only, not automatable parameters.
-
-## Build and test
-
-```bash
-cargo build -p truce-example-gain-egui-aspect
-cargo test -p truce-example-gain-egui-aspect
-```

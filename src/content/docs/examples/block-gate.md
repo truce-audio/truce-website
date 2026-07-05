@@ -26,11 +26,3 @@ here to keep the diff tight.
 | Name | Range | Unit | Default |
 |------|-------|------|---------|
 | Threshold | -80 to 0 | dB | -40.0 |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-block-gate
-cargo test -p truce-example-block-gate
-cargo truce install -p truce-example-block-gate
-```

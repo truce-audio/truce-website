@@ -35,10 +35,3 @@ Source: [`examples/truce-example-mpe-synth/`](https://github.com/truce-audio/tru
 | Master Cutoff | 0 to 1 | % | Master filter cutoff macro scaling every voice's brightness |
 | Release | 0.01 to 4 | s | Amp envelope release time |
 | Volume | -60 to 6 | dB | Output level |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-mpe-synth
-cargo test -p truce-example-mpe-synth
-```

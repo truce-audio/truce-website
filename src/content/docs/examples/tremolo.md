@@ -30,11 +30,3 @@ Source: [`examples/truce-example-tremolo/`](https://github.com/truce-audio/truce
 | Depth | 0 to 1                             | LFO → amplitude modulation depth |
 | Rate  | 1/1, 1/2, 1/4, 1/8, 1/16, 1/32    | LFO cycle length in note values |
 | Shape | Sine / Triangle / Square           | LFO waveform                    |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-tremolo
-cargo test -p truce-example-tremolo
-cargo truce install -p truce-example-tremolo
-```

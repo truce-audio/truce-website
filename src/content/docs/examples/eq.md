@@ -45,10 +45,3 @@ Source: [`examples/truce-example-eq/`](https://github.com/truce-audio/truce/tree
 
 - `src/lib.rs` — plugin logic, GUI layout with sections
 - `src/biquad.rs` — standalone biquad filter implementation
-
-## Build and test
-
-```bash
-cargo build -p truce-example-eq
-cargo test -p truce-example-eq
-```

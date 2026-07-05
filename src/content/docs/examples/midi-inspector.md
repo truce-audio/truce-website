@@ -35,10 +35,3 @@ Source: [`examples/truce-example-midi-inspector/`](https://github.com/truce-audi
 | Name | Range | Unit | Description |
 |------|-------|------|-------------|
 | MIDI Thru | on/off | -- | Forward every MIDI event to the output (on, default) or monitor only (off) |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-midi-inspector
-cargo test -p truce-example-midi-inspector
-```

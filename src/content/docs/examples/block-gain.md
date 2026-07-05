@@ -25,11 +25,3 @@ Source: [`examples/truce-example-block-gain/`](https://github.com/truce-audio/tr
 |------|-------|------|
 | Gain | -60 to +6 | dB |
 | Pan | -1 to +1 | pan |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-block-gain
-cargo test -p truce-example-block-gain
-cargo truce install -p truce-example-block-gain
-```

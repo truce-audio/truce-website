@@ -26,10 +26,3 @@ Source: [`examples/truce-example-sysex-echo/`](https://github.com/truce-audio/tr
 | Name | Range | Unit | Description |
 |------|-------|------|-------------|
 | Enabled | off/on | -- | When off, incoming SysEx is not echoed |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-sysex-echo
-cargo test -p truce-example-sysex-echo
-```

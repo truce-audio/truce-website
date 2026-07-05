@@ -31,10 +31,3 @@ Guide: [chapter 11 → state](../guide/state.md).
 | Field | Type | Description |
 |-------|------|-------------|
 | `label` | `String` | User-entered plugin instance label |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-state
-cargo test -p truce-example-state
-```

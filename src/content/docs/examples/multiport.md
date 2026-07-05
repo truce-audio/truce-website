@@ -37,10 +37,3 @@ Source: [`examples/truce-example-multiport/`](https://github.com/truce-audio/tru
 | P1 Cutoff | 0 to 1 | % | Port 1 one-pole low-pass cutoff |
 | P1 Release | 0.01 to 4 | s | Port 1 release time |
 | P1 Volume | -60 to 6 | dB | Port 1 lane volume |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-multiport
-cargo test -p truce-example-multiport
-```

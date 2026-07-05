@@ -27,10 +27,3 @@ Source: [`examples/truce-example-cc-filter/`](https://github.com/truce-audio/tru
 |------|-------|------|-------------|
 | Cutoff | 20 to 20000 (log) | Hz | Cutoff used before any CC arrives; incoming CC overrides it |
 | CC | 0 to 127 | -- | CC number that steers the cutoff |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-cc-filter
-cargo test -p truce-example-cc-filter
-```

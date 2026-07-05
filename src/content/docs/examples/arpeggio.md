@@ -24,10 +24,3 @@ Source: [`examples/truce-example-arpeggio/`](https://github.com/truce-audio/truc
 | Gate | 0.1 to 1.0 | % | Note length as fraction of step |
 | Octaves | 1 to 4 | -- | Octaves to stack above held notes |
 | Pattern | Up/Down/Up-Down/Random | -- | Arp direction |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-arpeggio
-cargo test -p truce-example-arpeggio
-```

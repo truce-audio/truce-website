@@ -23,11 +23,3 @@ Source: [`examples/truce-example-block-widen/`](https://github.com/truce-audio/t
 | Name | Range | Default |
 |------|-------|---------|
 | Width | 0 to 2 | 1.0 |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-block-widen
-cargo test -p truce-example-block-widen
-cargo truce install -p truce-example-block-widen
-```

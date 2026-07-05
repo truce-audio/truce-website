@@ -30,10 +30,3 @@ Source: [`examples/truce-example-envelope/`](https://github.com/truce-audio/truc
 |------|-------|------|
 | CC | 0 to 127 (discrete, default 1) | CC number |
 | Release | 1 to 1000 (log, default 100) | ms |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-envelope
-cargo test -p truce-example-envelope
-```

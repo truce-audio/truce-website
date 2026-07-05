@@ -29,10 +29,3 @@ Source: [`examples/truce-example-chord/`](https://github.com/truce-audio/truce/t
 |------|-------|------|-------------|
 | Chord | Major, Minor, Maj7, Min7, Sus4 | -- | Chord quality as intervals from the played root |
 | Gain | 0 to 1 | % | Output level, smoothed (`smooth = "exp(5)"`) |
-
-## Build and test
-
-```bash
-cargo build -p truce-example-chord
-cargo test -p truce-example-chord
-```

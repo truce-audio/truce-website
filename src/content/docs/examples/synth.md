@@ -39,11 +39,3 @@ Source: [`examples/truce-example-synth/`](https://github.com/truce-audio/truce/t
 
 - `src/lib.rs` — plugin logic, MIDI dispatch, GUI layout
 - `src/voice.rs` — `Voice`, `Envelope`, `OnePoleFilter`
-
-## Build and test
-
-```bash
-cargo build -p truce-example-synth
-cargo test -p truce-example-synth
-cargo run -p truce-example-synth --features standalone
-```
