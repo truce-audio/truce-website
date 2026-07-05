@@ -191,10 +191,6 @@ au3_subtype = "MyF3"           # optional; iOS reuses au3_subtype
   rendering pipeline as a real AU host, just without the remote-VC
   indirection. Production hosts use the registered factory; this
   workaround is simulator-only.
-- **Universal `.ipa` isn't a thing.** iOS device (`platform 2`) +
-  simulator (`platform 7`) slices have distinct Mach-O platform
-  IDs and aren't lipo-able. Use `xcframework` if you need both;
-  the install / package paths build a single slice each.
 - **MIDI 2.0 forwarding.** iOS 17+ / macOS 14+ AU hosts deliver
   MIDI via `AURenderEvent.MIDIEventList` (UMPs) rather than the
   legacy 3-byte `AURenderEvent.MIDI`. Truce decodes both. MIDI 2.0
