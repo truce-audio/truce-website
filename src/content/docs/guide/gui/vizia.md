@@ -18,7 +18,7 @@ the same `id` in sync.
 > `.resizable(true)`. The crate also rides an unreleased vizia
 > main-branch rev - no crates.io release. Pick egui, iced, or
 > Slint when you don't specifically want vizia's reactive-binding
-> + CSS model.
+> and CSS model.
 
 ## Setup
 
