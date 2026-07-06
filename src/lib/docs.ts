@@ -366,7 +366,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
       title: "Overview",
       items: [
         { title: "Quick start", href: "/docs", eyebrow: undefined },
-        ...collect(["changelog.md", "roadmap.md"]),
+        ...collect(["changelog.md", "migrations.md", "roadmap.md"]),
       ],
     },
     { title: "Guide", items: collect(guideOrder) },
