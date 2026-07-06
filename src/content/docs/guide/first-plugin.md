@@ -313,7 +313,7 @@ Close and reopen the plugin in your DAW. You now have two knobs.
 - **Real examples** — [`examples/truce-example-gain`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain),
   [`examples/truce-example-eq`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-eq), [`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth),
   [`examples/truce-example-transpose`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-transpose),
-  [`examples/truce-example-arpeggio-paranoid`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio-paranoid),
+  [`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio),
   [`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo),
   [`examples/truce-example-fundsp-reverb-simple`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-fundsp-reverb-simple),
   [`examples/truce-example-fundsp-reverb-worker`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-fundsp-reverb-worker) in the repo.
