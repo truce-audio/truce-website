@@ -281,6 +281,102 @@ result.write_wav("out.wav")?;
 Same engine the standalone host's offline path uses — your test
 output and your CI render matrix produce byte-identical results.
 
+## Catching audio-thread allocations
+
+Allocating on the audio thread - a `Vec` that grows past capacity, a
+stray `format!`, a `Box::new` - is the classic cause of dropouts under
+load, and it's invisible on a quiet dev machine. The optional
+`rt-paranoid` checker makes it a loud, pinpointed failure at test time.
+Because a `driver!` run drives your real `process` through the exact same
+path a host does, wrapping one in the checker turns any audio test into
+an allocation test.
+
+Opt in per crate. Add the feature and install the checker's allocator at
+your crate root (a no-op unless the feature is on):
+
+```toml
+# Cargo.toml
+[features]
+rt-paranoid = ["truce/rt-paranoid"]
+```
+
+```rust
+// lib.rs
+truce::enable_rt_paranoid!();
+```
+
+Then assert on a render. `assert_no_audio_alloc` fails if `process`
+allocated anywhere during the run:
+
+```rust
+use truce_test::{assert_no_audio_alloc, driver, InputSource};
+
+#[test]
+fn process_is_allocation_free() {
+    assert_no_audio_alloc(|| {
+        driver!(MyEffect)
+            .duration(Duration::from_millis(50))
+            .input(InputSource::Constant(0.5))
+            .run()
+    });
+}
+```
+
+Run it with the feature on; without it the helper is a no-op, so your
+ordinary `cargo test` is unaffected:
+
+```sh
+cargo test --features rt-paranoid
+```
+
+The checker is **off and zero-cost by default** - the guard around
+`process` compiles away and no custom allocator is installed unless the
+feature is enabled.
+
+### Driving the conditional paths
+
+The checker only flags allocations on code a test actually runs. A
+constant-input render exercises the steady-state DSP; an allocation that
+only happens on a **parameter change** or a **state load** stays hidden
+until a test triggers it. Script those paths so they're covered:
+
+```rust
+assert_no_audio_alloc(|| {
+    driver!(MyEffect)
+        .duration(Duration::from_millis(50))
+        .input(InputSource::Constant(0.5))
+        .script(|sc| {
+            sc.set_param(P::Size, 0.1);
+            sc.wait_ms(20);
+            sc.set_param(P::Size, 0.9); // does resizing allocate?
+        })
+        .run()
+});
+```
+
+If a block genuinely must allocate (a rare, accepted first-block
+init), wrap just that region in `truce::rt::allow_alloc(|| { ... })` so
+it isn't flagged.
+
+### Modes
+
+Outside the scoped assertions, the mode decides what a violation does.
+Set it in code with `truce::rt::set_mode`, called once in a test harness
+or `main` (the last call wins):
+
+```rust
+truce::rt::set_mode(truce::rt::Mode::Panic);
+```
+
+| Mode | Reaction |
+|---|---|
+| `Mode::Count` (default) | Log the count and a backtrace after the block; keep running |
+| `Mode::Panic` | Fail the block - gate a whole suite in one line |
+| `Mode::Trap` | Abort at the exact allocation, to catch the live stack in a debugger |
+
+`TRUCE_RT_PARANOID=count` (or `panic` / `trap`) sets it from the shell
+for CI, no code change needed.
+
 ## API surface
 
 ```rust

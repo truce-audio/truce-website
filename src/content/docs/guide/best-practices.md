@@ -138,6 +138,10 @@ gate on them:
 - Use the [audio-testing driver](audio-testing.md) to assert state
   round-trips, the editor exists, and known input produces known output -
   no host needed.
+- Gate on [audio-thread allocations](audio-testing.md#catching-audio-thread-allocations):
+  wrap a `driver!` run in `assert_no_audio_alloc` under the `rt-paranoid`
+  feature and a `process` that starts allocating fails the test, before
+  it ever becomes a dropout in someone's session.
 - [Screenshot-test](gui.md#screenshot-tests) the editor so layout
   regressions fail in CI.
 - Run [`cargo truce validate`](shipping.md#validate) (auval, pluginval,

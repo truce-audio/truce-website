@@ -323,7 +323,7 @@ protocol on AU v3. On a MIDI 1.0 path, 2.0 bodies down-convert
 where a 1.0 equivalent exists and are dropped otherwise - emit
 the 2.0 variants only from plugins opted into `midi2`.
 
-The arpeggiator example in [`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)
+The arpeggiator example in [`examples/truce-example-arpeggio-paranoid`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio-paranoid)
 walks held-note tracking + step scheduling:
 
 ```rust
@@ -514,7 +514,7 @@ something else? `Script::raw(EventBody)` is the escape hatch and
 takes any variant including MIDI 2.0 ones.
 
 The arpeggiator example's tests
-([`examples/truce-example-arpeggio/src/lib.rs`](https://github.com/truce-audio/truce/blob/main/examples/truce-example-arpeggio/src/lib.rs))
+([`examples/truce-example-arpeggio-paranoid/src/lib.rs`](https://github.com/truce-audio/truce/blob/main/examples/truce-example-arpeggio-paranoid/src/lib.rs))
 cover the full MIDI-in / MIDI-out shape end to end.
 
 ## What's next
@@ -523,7 +523,7 @@ cover the full MIDI-in / MIDI-out shape end to end.
   expose CC mappings as parameters.
 - **[Chapter 14 → hot-reload](hot-reload.md)** — iterate on
   arp logic without restarting the DAW.
-- **[`examples/truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)** in the repo — full
+- **[`examples/truce-example-arpeggio-paranoid`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio-paranoid)** in the repo — full
   MIDI in → MIDI out plugin with state, transport, and tests.
 - **[`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth)** — MIDI in → audio out
   with sample-accurate event handling.

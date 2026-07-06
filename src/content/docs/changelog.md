@@ -2,6 +2,11 @@
 
 Notable changes per release.
 
+## 3.1.0
+
+- New `rt-paranoid` feature: a development-time checker that flags any allocation your DSP makes on the audio thread inside `process`, with `truce_test::assert_no_audio_alloc` helpers to gate it in tests. Off and zero-cost by default.
+- `cargo truce new` wires `rt-paranoid` into fresh plugins (the feature plus `enable_rt_paranoid!()`), so a new project can gate on audio-thread allocations from its first test.
+
 ## 3.0.0
 
 Refactored `editor` into an associated function: it takes the parameter store as an argument (`Arc<Self::Params>`) instead of borrowing the plugin (`&self`). This turns a runtime convention into a compile-time guarantee - the editor is now, by construction, a function of its parameters, so building it can't take the plugin lock or reach into DSP state at all. An editor that genuinely needs shared DSP-derived state (an analyzer's spectrum, say) routes it through a `#[skip]` field on the params struct, keeping the store the single thing the editor sees.
@@ -57,7 +62,7 @@ Refactored `editor` into an associated function: it takes the parameter store as
 
 ### Added
 
-- **Lock-free state save, opt-in.** If a plugin has custom state (beyond parameters) that's expensive to serialize, it can override `snapshot_into(&self, buf)` *instead of* `save_state` to take the whole save off the plugin lock: the audio thread serializes the state into a lock-free slot each block and the host reads it back on save without ever locking the plugin. Because it runs on the audio thread every block, keep it cheap and allocation-free (clear and refill `buf`, which keeps its capacity) - it's a win only when a `save_state` stall would otherwise be long. Overriding it is the entire opt-in: which method you implement is the choice, the default `save_state` delegates to it, and plugins that override neither (or stick with `save_state`) are unchanged.
+- **Lock-free state save, opt-in.** If a plugin has custom state (beyond parameters) that's expensive to serialize, it can override `snapshot_into(&self, buf)` *instead of* `save_state` to take the whole save off the plugin lock: the audio thread serializes the state into a lock-free slot each block and the host reads it back on save without ever locking the plugin. Because it runs on the audio thread every block, keep it cheap and allocation-free (`buf` arrives cleared with its capacity kept, so just refill it) - it's a win only when a `save_state` stall would otherwise be long. Overriding it is the entire opt-in: which method you implement is the choice, the default `save_state` delegates to it, and plugins that override neither (or stick with `save_state`) are unchanged.
 
 ## 2.0.2
 

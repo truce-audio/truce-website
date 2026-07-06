@@ -5,7 +5,14 @@
 Tempo-synced arpeggiator that sequences held notes in configurable
 patterns.
 
-Source: [`examples/truce-example-arpeggio/`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio).
+Ships as a pair that shows off the [rt-paranoid](../guide/audio-testing#catching-audio-thread-allocations)
+allocation checker:
+[`truce-example-arpeggio-paranoid`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio-paranoid)
+rebuilds its sequence into reused, pre-sized buffers so `process` never
+allocates, and
+[`truce-example-arpeggio-simple`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio-simple)
+is the same arpeggiator written the naive way (a fresh `Vec` every
+block) - its test asserts the checker trips.
 
 ## What it demonstrates
 
@@ -15,6 +22,8 @@ Source: [`examples/truce-example-arpeggio/`](https://github.com/truce-audio/truc
   gate timing
 - Octave stacking and directional patterns (Up, Down, Up/Down,
   Random)
+- Rebuilding per-block DSP state without allocating on the audio thread
+  (the paranoid version), versus the naive allocating shape (simple)
 
 ## Parameters
 
