@@ -11,12 +11,12 @@ working editor. You define a layout in code and truce renders the
 widgets for you — no custom editor code required.
 
 ```rust
-fn editor(&self) -> Box<dyn Editor> {
+fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         knob(P::Pan, "Pan"),
     ])])
-    .into_editor(&self.params)
+    .into_editor(&params)
 }
 ```
 

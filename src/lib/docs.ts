@@ -261,6 +261,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "guide/parameters.md",
     "guide/processing.md",
     "guide/fundsp.md",
+    "guide/workers.md",
     "guide/midi.md",
     "guide/gui.md",
     "guide/audio-testing.md",

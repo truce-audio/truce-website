@@ -3,7 +3,7 @@
 The built-in GUI renders widgets from a layout you define in code.
 No framework dependency — declare what you want and truce draws it.
 Build a `GridLayout` and return it from `editor()` with
-`.into_editor(&self.params)`.
+`.into_editor(&params)`.
 
 For a first walkthrough see [the GUI chapter](../gui.md). This page
 is the reference for every option.
@@ -15,13 +15,13 @@ use truce_gui::IntoLayoutEditor;
 use truce_gui_types::layout::{GridLayout, knob, slider, toggle, widgets};
 use MyParamsParamId as P;
 
-fn editor(&self) -> Box<dyn Editor> {
+fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         slider(P::Pan, "Pan"),
         toggle(P::Bypass, "Bypass"),
     ])])
-    .into_editor(&self.params)
+    .into_editor(&params)
 }
 ```
 
@@ -196,7 +196,7 @@ use GainParamsParamId as P;
 use truce_gui::IntoLayoutEditor;
 use truce_gui_types::layout::{GridLayout, knob, meter, widgets, xy_pad};
 
-fn editor(&self) -> Box<dyn Editor> {
+fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         knob(P::Pan,  "Pan"),
@@ -204,7 +204,7 @@ fn editor(&self) -> Box<dyn Editor> {
         meter(&[P::MeterLeft, P::MeterRight], "Level").rows(2),
     ])])
     .with_title("GAIN")
-    .into_editor(&self.params)
+    .into_editor(&params)
 }
 ```
 

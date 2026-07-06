@@ -1,4 +1,4 @@
-# 13. iOS
+# 14. iOS
 
 iOS is the one platform where your truce plug-in runs as something
 other than a `.clap` / `.vst3` / `.component` in a desktop DAW: it

@@ -103,6 +103,8 @@ impl Gain {
 }
 
 impl PluginLogic for Gain {
+    type Params = GainParams;
+
     fn reset(&mut self, sr: f64, _bs: usize) {
         self.params.set_sample_rate(sr);
     }
@@ -119,9 +121,9 @@ impl PluginLogic for Gain {
         ProcessStatus::Normal
     }
 
-    fn editor(&self) -> Box<dyn Editor> {
+    fn editor(params: Arc<GainParams>) -> Box<dyn Editor> {
         GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])])
-            .into_editor(&self.params)
+            .into_editor(&params)
     }
 }
 

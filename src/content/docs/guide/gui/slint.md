@@ -76,9 +76,11 @@ slint::include_modules!();
 use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
-    fn editor(&self) -> Box<dyn Editor> {
+    type Params = MyParams;
+
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         SlintEditor::new(
-            self.params.clone(),
+            params.clone(),
             (200, 120),
             |state: PluginContext<MyParams>| -> SyncFn<MyParams> {
                 let ui = MyPluginUi::new().unwrap();

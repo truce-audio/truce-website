@@ -470,6 +470,8 @@ roughly this shape:
 
 ```rust
 impl PluginLogic for Synth {
+    type Params = MyParams;
+
     fn bus_layouts() -> Vec<BusLayout> {
         // Instrument: output only, no audio input.
         vec![BusLayout::new().with_output("Main", ChannelConfig::Stereo)]
@@ -522,7 +524,7 @@ impl PluginLogic for Synth {
         if self.voices.is_empty() { ProcessStatus::Tail(0) } else { ProcessStatus::Normal }
     }
 
-    fn editor(&self) -> Box<dyn Editor> { /* ... */ }
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor> { /* ... */ }
 }
 ```
 
@@ -535,7 +537,7 @@ The macro is the same for every plugin shape:
 ```rust
 truce::plugin! {
     logic: Synth,
-    params: SynthParams,
+    params: MyParams,
 }
 ```
 
@@ -556,6 +558,7 @@ read+write the shared buffer directly:
 
 ```rust
 impl PluginLogic for MyEffect {
+    type Params = MyEffectParams;
     fn supports_in_place() -> bool { true }
     // ...
     fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,

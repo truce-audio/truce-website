@@ -1,4 +1,4 @@
-# 10. Presets
+# 11. Presets
 
 Declare a presets directory once and every format truce builds
 surfaces your factory presets in the host's preset browser - CLAP,

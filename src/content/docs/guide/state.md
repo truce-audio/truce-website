@@ -1,4 +1,4 @@
-# 11. State
+# 12. State
 
 Everything the host persists for your plugin - session save, preset
 recall, duplicating an instance - is one blob: the parameter values,
@@ -41,8 +41,15 @@ pub struct InstanceMemo {
 }
 
 impl PluginLogic for StateExample {
-    fn save_state(&self) -> Vec<u8> {
-        self.memo.serialize()
+    type Params = StateExampleParams;
+
+    // Lock-free save: the audio thread serializes into a reused buffer
+    // each block, and the host reads it back without ever locking the
+    // plugin. `serialize_into` clears and refills `buf`, so it is
+    // allocation-free once warm.
+    fn snapshot_into(&self, buf: &mut Vec<u8>) -> bool {
+        self.memo.serialize_into(buf);
+        true
     }
 
     fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> {
@@ -57,6 +64,26 @@ impl PluginLogic for StateExample {
 Return `Err` for bytes you can't interpret - the wrapper logs it,
 and on formats whose state API has a failure return, reports it to
 the host.
+
+### Two ways to save: `save_state` vs `snapshot_into`
+
+There are two hooks for serializing extra state, and you override
+exactly one:
+
+- `save_state(&self) -> Vec<u8>` - the simple form. The host calls it
+  on its own thread while the audio thread is held at a block
+  boundary, so an expensive serialize can stall audio. Fine for small,
+  cheap state.
+- `snapshot_into(&self, buf: &mut Vec<u8>) -> bool` - the lock-free
+  form (shown above). The audio thread serializes into a reused buffer
+  after each block and publishes it to a slot the host reads without
+  ever taking the plugin lock, so saving never stalls audio. Because
+  it runs every block, keep it cheap and allocation-free (use
+  `serialize_into`, which reuses the buffer's capacity). Returning
+  `true` is a static opt-in: once you return `true`, always return
+  `true` (write an empty `buf` if there's nothing), never flip back to
+  `false`. The default `save_state` delegates here, so overriding
+  `snapshot_into` alone covers both paths.
 
 The [state example](../examples/state.md) is the runnable version of
 this pattern, including the editor side.
@@ -108,6 +135,7 @@ them instead:
 
 ```rust
 impl PluginLogic for Eq {
+    type Params = EqParams;
     fn migrate_state(foreign: &ForeignState) -> Option<MigratedState> {
         let ForeignState::Raw { bytes, .. } = foreign else {
             return None;

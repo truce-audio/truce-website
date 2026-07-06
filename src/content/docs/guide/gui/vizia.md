@@ -58,9 +58,11 @@ use truce_vizia::{ParamLens, ViziaEditor};
 use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
-    fn editor(&self) -> Box<dyn Editor> {
+    type Params = MyParams;
+
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         ViziaEditor::new(
-            self.params.clone(),
+            params.clone(),
             (240, 160),
             |cx: &mut Context, lens: ParamLens<MyParams>| {
                 HStack::new(cx, |cx| {
@@ -210,7 +212,7 @@ needed for establishing a working baseline. Plugins that want a
 particular palette layer their own stylesheet via `with_stylesheet`:
 
 ```rust
-ViziaEditor::new(self.params.clone(), (240, 160), my_view)
+ViziaEditor::new(params.clone(), (240, 160), my_view)
     .with_stylesheet(widgets::BASE_CSS)
     .with_stylesheet(include_str!("../assets/dark.css"))
     .with_font(JETBRAINS_MONO)

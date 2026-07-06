@@ -13,7 +13,7 @@ Guide: [chapter 11 → state](../guide/state.md).
 - The split between **params** (numeric atoms — automatable, host
   knows about them) and **state** (anything else — strings, file
   paths, view modes, nested structs — the framework round-trips
-  bytes on `save_state` / `load_state` but the host never sees
+  bytes on `snapshot_into` / `load_state` but the host never sees
   the shape).
 - `#[derive(State)]` on a `StateBinding`-bound struct.
 - A custom egui editor that reads + writes the instance label.

@@ -1,4 +1,4 @@
-# 7. MIDI
+# 8. MIDI
 
 MIDI events ride the same `EventList` as parameter automation —
 they're just variants of `EventBody`. Reading them is a `match`

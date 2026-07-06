@@ -1,4 +1,4 @@
-# 9. Audio testing
+# 10. Audio testing
 
 Audio tests catch DSP regressions by running your plugin against
 scripted input — silence, a constant tone, a buffer you generated,

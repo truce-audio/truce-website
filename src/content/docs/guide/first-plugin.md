@@ -80,6 +80,8 @@ impl MyGain {
 }
 
 impl PluginLogic for MyGain {
+    type Params = MyGainParams;
+
     fn reset(&mut self, sample_rate: f64, _max_block_size: usize) {
         self.params.set_sample_rate(sample_rate);
         self.params.snap_smoothers();
@@ -97,11 +99,11 @@ impl PluginLogic for MyGain {
         ProcessStatus::Normal
     }
 
-    fn editor(&self) -> Box<dyn Editor> {
+    fn editor(params: Arc<MyGainParams>) -> Box<dyn Editor> {
         use truce_gui::IntoLayoutEditor;
         use truce_gui_types::layout::{GridLayout, knob, widgets};
         GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])])
-            .into_editor(&self.params)
+            .into_editor(&params)
     }
 }
 ```
@@ -277,12 +279,12 @@ for i in 0..buffer.num_samples() {
 Show it in the GUI:
 
 ```rust
-fn editor(&self) -> Box<dyn Editor> {
+fn editor(params: Arc<MyGainParams>) -> Box<dyn Editor> {
     GridLayout::build(vec![widgets(vec![
         knob(P::Gain, "Gain"),
         knob(P::Pan,  "Pan"),
     ])])
-    .into_editor(&self.params)
+    .into_editor(&params)
 }
 ```
 

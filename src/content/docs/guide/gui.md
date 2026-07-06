@@ -1,4 +1,4 @@
-# 8. GUI
+# 9. GUI
 
 truce ships a built-in GUI designed for audio plugins. You
 declare a layout — rows of widgets — and the framework draws it,
@@ -23,9 +23,11 @@ use truce_gui_types::layout::{GridLayout, knob, slider, toggle,
 use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
+    type Params = MyParams;
+
     // ... reset, process ...
 
-    fn editor(&self) -> Box<dyn Editor> {
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         GridLayout::build(vec![
             widgets(vec![
                 knob(P::Gain, "Gain"),
@@ -37,7 +39,7 @@ impl PluginLogic for MyPlugin {
                 knob(P::Resonance, "Reso"),
             ]),
         ])
-        .into_editor(&self.params)
+        .into_editor(&params)
     }
 }
 ```
@@ -72,7 +74,7 @@ GridLayout::build(sections)
     .min_size((4, 3))     // grid: (cols, rows) cells
     .max_size((12, 9))
     .maximizable(true)
-    .into_editor(&self.params)
+    .into_editor(&params)
 ```
 
 `.maximizable(true)` lets the standalone host's window be maximized.
@@ -94,7 +96,7 @@ The egui, iced, and slint builders can also constrain resizes to a
 fixed shape:
 
 ```rust
-EguiEditor::new(self.params.clone(), (600, 450), my_ui)
+EguiEditor::new(params, (600, 450), my_ui)
     .resizable(true)
     .aspect_ratio(Some((4, 3)))   // (numerator, denominator)
     .into_editor()

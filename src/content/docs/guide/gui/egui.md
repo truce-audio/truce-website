@@ -22,9 +22,11 @@ use truce_egui::widgets::param_knob;
 use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
-    fn editor(&self) -> Box<dyn Editor> {
+    type Params = MyParams;
+
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         EguiEditor::new(
-            self.params.clone(),
+            params.clone(),
             (400, 300),
             |ui: &mut egui::Ui, state: &PluginContext<MyParams>| {
                 ui.heading("My Plugin");
@@ -116,11 +118,11 @@ own:
 
 ```rust
 // Use egui's built-in light theme
-EguiEditor::new(self.params.clone(), (400, 300), my_ui)
+EguiEditor::new(params.clone(), (400, 300), my_ui)
     .with_visuals(egui::Visuals::light())
 
 // Or customize the truce dark theme as a starting point
-EguiEditor::new(self.params.clone(), (400, 300), my_ui)
+EguiEditor::new(params.clone(), (400, 300), my_ui)
     .with_visuals(truce_egui::theme::dark())
     .with_font(truce_gui::font::JETBRAINS_MONO)
 ```
@@ -157,7 +159,7 @@ impl EditorUi<MyParams> for MyUi {
 }
 
 // In editor():
-EguiEditor::with_ui(self.params.clone(), (640, 480), MyUi { tab: 0 }).into_editor()
+EguiEditor::with_ui(params.clone(), (640, 480), MyUi { tab: 0 }).into_editor()
 ```
 
 `EditorUi<P>` has three methods:
@@ -210,7 +212,7 @@ self.state.update(|s| s.instance_name = new_name);
 For the closure API, use `.on_state_changed()`:
 
 ```rust
-EguiEditor::new(self.params.clone(), (400, 300), |ui, state| { /* ui */ })
+EguiEditor::new(params.clone(), (400, 300), |ui, state| { /* ui */ })
     .on_state_changed(|state| { /* re-read cached state */ })
 ```
 

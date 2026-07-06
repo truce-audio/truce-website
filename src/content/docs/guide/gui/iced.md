@@ -24,9 +24,11 @@ use truce_iced::IcedEditor;
 use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
-    fn editor(&self) -> Box<dyn Editor> {
+    type Params = MyParams;
+
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         let layout = GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])]);
-        IcedEditor::from_layout(self.params.clone(), layout).into_editor()
+        IcedEditor::from_layout(params.clone(), layout).into_editor()
     }
 }
 ```
@@ -80,8 +82,8 @@ impl IcedPlugin<MyParams> for MyEditor {
 Wire it up:
 
 ```rust
-fn editor(&self) -> Box<dyn Editor> {
-    IcedEditor::<MyParams, MyEditor>::new(self.params.clone(), (400, 300)).into_editor()
+fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
+    IcedEditor::<MyParams, MyEditor>::new(params.clone(), (400, 300)).into_editor()
 }
 ```
 

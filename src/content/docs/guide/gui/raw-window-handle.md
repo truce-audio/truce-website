@@ -121,7 +121,9 @@ Same as every other backend:
 
 ```rust
 impl PluginLogic for MyPlugin {
-    fn editor(&self) -> Box<dyn Editor> {
+    type Params = MyParams;
+
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         MyEditor {
             size: (800, 600),
             context: None,

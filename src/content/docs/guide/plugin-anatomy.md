@@ -102,7 +102,7 @@ pub trait PluginLogic: Send + 'static {
     fn tail(&self) -> u32 { 0 }
 
     // --- GUI (main thread) ---
-    fn editor(&self) -> Box<dyn Editor>;
+    fn editor(params: Arc<MyParams>) -> Box<dyn Editor>;
 }
 ```
 
@@ -113,7 +113,7 @@ pub trait PluginLogic: Send + 'static {
 | `reset` | Sample rate or block size changes; before the first `process` | no | Clear delay lines, reset filter state, call `params.set_sample_rate` + `snap_smoothers`. |
 | `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing](processing.md). |
 | `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo in/out; instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
-| `save_state` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | no | **Extra** state only — params are serialized automatically. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. |
+| `save_state` / `snapshot_into` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | `snapshot_into` only (audio thread, per block) | **Extra** state only — params are serialized automatically. Save via `save_state` (simple, runs while audio is held) or override `snapshot_into` for the lock-free path that never stalls audio. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. See [state](state.md). |
 | `state_changed` | After `load_state` returns | yes (audio thread, between blocks) | Plugin-side cache invalidation — re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
 | `latency` | Host bus reconfiguration | no | Samples of processing delay, for PDC. |
 | `tail` | Host transport stop | no | Samples of audio produced after input stops (reverb, delay). |
@@ -122,7 +122,7 @@ pub trait PluginLogic: Send + 'static {
 
 | Method | When called | Real-time? | Notes |
 |--------|-------------|------------|-------|
-| `editor` | Editor open | no | Return the editor to display. For the built-in widget set, build a `GridLayout` and finish with `.into_editor(&self.params)`; for a framework backend, construct an `EguiEditor` / `IcedEditor` / `SlintEditor` / hand-rolled `Editor` and finish with `.into_editor()`. See [gui](gui.md). |
+| `editor` | Editor open | no | Associated function `fn editor(params: Arc<Self::Params>)` - it takes the param store, not `&self`. For the built-in widget set, build a `GridLayout` and finish with `.into_editor(&params)`; for a framework backend, construct an `EguiEditor` / `IcedEditor` / `SlintEditor` / hand-rolled `Editor` and finish with `.into_editor()`. See [gui](gui.md). |
 
 `editor()` is required: the renderer is whichever editor you return,
 and which crate your `Cargo.toml` pulls in. Post-load-state cache
@@ -216,6 +216,8 @@ alone for a stereo effect:
 
 ```rust
 impl PluginLogic for MyGain {
+    type Params = MyParams;
+
     // bus_layouts omitted → [BusLayout::stereo()]
     fn reset(/* … */) { /* … */ }
     fn process(/* … */) -> ProcessStatus { /* … */ }
@@ -226,6 +228,7 @@ impl PluginLogic for MyGain {
 
 ```rust
 impl PluginLogic for MySynth {
+    type Params = MySynthParams;
     fn bus_layouts() -> Vec<BusLayout> {
         vec![BusLayout::new().with_output("Main", ChannelConfig::Stereo)]
     }
@@ -237,6 +240,7 @@ impl PluginLogic for MySynth {
 
 ```rust
 impl PluginLogic for Widener {
+    type Params = WidenerParams;
     fn bus_layouts() -> Vec<BusLayout> {
         vec![
             BusLayout::new()
@@ -253,6 +257,7 @@ impl PluginLogic for Widener {
 
 ```rust
 impl PluginLogic for SidechainComp {
+    type Params = SidechainCompParams;
     fn bus_layouts() -> Vec<BusLayout> {
         vec![
             BusLayout::new()
@@ -298,6 +303,8 @@ pub struct MyPlugin {
 }
 
 impl PluginLogic for MyPlugin {
+    type Params = MyParams;
+
     fn save_state(&self) -> Vec<u8> { self.extra.serialize() }
 
     fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> {
