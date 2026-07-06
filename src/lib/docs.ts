@@ -270,6 +270,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "guide/shipping.md",
     "guide/ios.md",
     "guide/hot-reload.md",
+    "guide/best-practices.md",
   ];
 
   const guiOrder = [
