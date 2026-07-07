@@ -289,7 +289,6 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "reference/params.md",
     "reference/truce-toml.md",
     "reference/cargo-config.md",
-    "reference/badges.md",
   ];
 
   const examplesOrder = [
@@ -368,17 +367,12 @@ export async function getSidebar(): Promise<SidebarSection[]> {
       title: "Overview",
       items: [
         { title: "Quick start", href: "/docs", eyebrow: undefined },
-        ...collect(["changelog.md", "migrations.md", "roadmap.md"]),
-      ],
-    },
-    { title: "Guide", items: collect(guideOrder) },
-    {
-      title: "Reference",
-      items: [
-        ...collect(referenceOrder),
+        ...collect(["changelog.md", "migrations.md", "roadmap.md", "reference/badges.md"]),
         { title: "rustdoc", href: framework.rustdoc, external: true },
       ],
     },
+    { title: "Guide", items: collect(guideOrder) },
+    { title: "Reference", items: collect(referenceOrder) },
     { title: "GUI backends", items: collect(guiOrder) },
     { title: "Formats", items: collect(formatOrder) },
     { title: "Examples", items: collect(examplesOrder) },
