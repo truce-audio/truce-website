@@ -201,3 +201,10 @@ Valid `aax_category` values: `None`, `EQ`, `Dynamics`, `PitchShift`,
 - **Four-char codes must be stable.** `fourcc` (+ `au_manufacturer`
   from `[vendor]`) is how Pro Tools identifies the plugin in saved
   sessions. Don't change it after release.
+- **Multi-channel / MPE MIDI collapses to one channel.** Pro Tools
+  routes each MIDI channel as its own track, so a note effect that fans
+  notes across channels into an instrument on the same track loses the
+  spread (notes arrive on a single channel). The identical chain works
+  in CLAP, VST3, and AU. This is a Pro Tools MIDI-routing limitation,
+  not a wrapper bug - truce emits and preserves the per-note channels
+  correctly on the AAX wire. See [Known gaps](../roadmap).

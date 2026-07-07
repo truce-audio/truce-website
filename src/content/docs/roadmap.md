@@ -43,6 +43,17 @@
 - **MIDI 2.0 over LV2.** LV2 Atom carries MIDI 1.0 byte streams,
   so plugins emitting MIDI 2.0 channel-voice, per-note, or
   ParamChange events drop those messages when loaded as LV2.
+- **Multi-channel / MPE MIDI in Pro Tools (AAX).** Pro Tools treats
+  each MIDI channel as a separate track, so multi-channel MIDI does not
+  survive on a single instrument track: notes reaching an instrument are
+  collapsed onto one channel (a multi-channel file even imports as one
+  track per channel). A note effect that fans notes across channels into
+  an instrument on the same track (an MPE-style voice allocator) therefore
+  loses the spread in Pro Tools, though the same chain works in CLAP,
+  VST3, and AU hosts. This is a Pro Tools MIDI-routing limitation, not a
+  wrapper gap - truce emits and preserves the per-note channels correctly
+  on the AAX wire. Pro Tools' own native MPE support (recent versions) is
+  the only path to per-note expression there.
 - **Standalone Settings / Presets menu on Linux.** The X11
   standalone has no native menu bar, so the audio / MIDI Settings
   pickers and the Presets menu aren't drawn on Linux. Drive those
