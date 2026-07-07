@@ -52,8 +52,8 @@
   loses the spread in Pro Tools, though the same chain works in CLAP,
   VST3, and AU hosts. This is a Pro Tools MIDI-routing limitation, not a
   wrapper gap - truce emits and preserves the per-note channels correctly
-  on the AAX wire. Pro Tools' own native MPE support (recent versions) is
-  the only path to per-note expression there.
+  on the AAX wire. AAX-specific note expression has not been wired, so
+  there is no per-note-expression path to Pro Tools today.
 - **Standalone Settings / Presets menu on Linux.** The X11
   standalone has no native menu bar, so the audio / MIDI Settings
   pickers and the Presets menu aren't drawn on Linux. Drive those
