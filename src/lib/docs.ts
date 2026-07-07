@@ -368,11 +368,16 @@ export async function getSidebar(): Promise<SidebarSection[]> {
       items: [
         { title: "Quick start", href: "/docs", eyebrow: undefined },
         ...collect(["changelog.md", "migrations.md", "roadmap.md", "reference/badges.md"]),
-        { title: "rustdoc", href: framework.rustdoc, external: true },
       ],
     },
     { title: "Guide", items: collect(guideOrder) },
-    { title: "Reference", items: collect(referenceOrder) },
+    {
+      title: "Reference",
+      items: [
+        ...collect(referenceOrder),
+        { title: "rustdoc", href: framework.rustdoc, external: true },
+      ],
+    },
     { title: "GUI backends", items: collect(guiOrder) },
     { title: "Formats", items: collect(formatOrder) },
     { title: "Examples", items: collect(examplesOrder) },
