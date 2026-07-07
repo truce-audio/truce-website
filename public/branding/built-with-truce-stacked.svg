@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="172" height="86" viewBox="0 0 172 86" role="img" aria-label="Built with Truce">
+  <rect x="0.5" y="0.5" width="171" height="85" rx="13.5" fill="#1A0B2E" stroke="#2E1A45"></rect>
+  <text x="28" y="26" font-family='Helvetica, "Helvetica Neue", Arial, sans-serif' font-size="11" font-weight="600" letter-spacing="3" fill="#6B5B7E">BUILT WITH</text>
+  <g transform="translate(27 62)">
+    <text x="-2" y="0" font-family='Helvetica, "Helvetica Neue", Arial, sans-serif' font-size="32" font-weight="800" letter-spacing="1" fill="#FF2D7B" transform="scale(1,0.86)">TRUCE</text>
+    <text x="2" y="0" font-family='Helvetica, "Helvetica Neue", Arial, sans-serif' font-size="32" font-weight="800" letter-spacing="1" fill="#14F0E0" transform="scale(1,0.86)">TRUCE</text>
+    <text x="0" y="0" font-family='Helvetica, "Helvetica Neue", Arial, sans-serif' font-size="32" font-weight="800" letter-spacing="1" fill="#F0E4D0" transform="scale(1,0.86)">TRUCE</text>
+  </g>
+</svg>

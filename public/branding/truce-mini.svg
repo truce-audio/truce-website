@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="34" viewBox="0 0 112 34" role="img" aria-label="Truce">
+  <rect x="0.5" y="0.5" width="111" height="33" rx="16.5" fill="#1A0B2E" stroke="#2E1A45"></rect>
+  <path d="M 12.6 17.6 C 17.8 11.6, 21.8 11.6, 27.0 17.6 C 32.2 23.6, 36.2 23.6, 41.4 17.6" fill="none" stroke="#FF2D7B" stroke-width="1.32" stroke-linecap="round"></path><path d="M 12.6 17.6 C 17.8 23.6, 21.8 23.6, 27.0 17.6 C 32.2 11.6, 36.2 11.6, 41.4 17.6" fill="none" stroke="#14F0E0" stroke-width="1.32" stroke-linecap="round"></path><circle cx="27.0" cy="17.6" r="0.60" fill="#F0E4D0"></circle>
+  <text x="53" y="17.5" font-family='Helvetica, "Helvetica Neue", Arial, sans-serif' font-size="12" font-weight="800" letter-spacing="1" fill="#F0E4D0" dominant-baseline="central">TRUCE</text>
+</svg>
