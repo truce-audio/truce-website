@@ -1,5 +1,6 @@
 import type { DocPage as DocPageType } from "@/lib/docs";
 import { TitleWithCode } from "@/components/TitleWithCode";
+import { CopySnippets } from "@/components/CopySnippets";
 
 export function DocPage({ page }: { page: DocPageType }) {
   return (
@@ -19,6 +20,7 @@ export function DocPage({ page }: { page: DocPageType }) {
       </header>
 
       <div className="prose-doc" dangerouslySetInnerHTML={{ __html: page.html }} />
+      <CopySnippets />
     </article>
   );
 }
