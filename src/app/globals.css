@@ -291,6 +291,11 @@ pre.shiki {
 .prose-doc .badge-row a:hover {
   border-bottom: none;
 }
+/* Badges are self-contained artwork — strip the default prose image border. */
+.prose-doc .badge-row img {
+  border: none;
+  border-radius: 0;
+}
 
 .prose-doc .copy-snippet {
   border-radius: 0.375rem;
