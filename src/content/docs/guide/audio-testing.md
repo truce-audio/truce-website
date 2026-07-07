@@ -358,6 +358,33 @@ If a block genuinely must allocate (a rare, accepted first-block
 init), wrap just that region in `truce::rt::allow_alloc(|| { ... })` so
 it isn't flagged.
 
+### Also checking frees and locks
+
+`assert_no_audio_alloc` flags allocations. Two more real-time hazards are
+opt-in:
+
+- **Frees.** `truce::rt::set_check_dealloc(true)` also counts frees inside
+  `process` (a value allocated in an earlier block and dropped on the audio
+  thread).
+- **Locks.** `truce::rt::Mutex` and `truce::rt::RwLock` are drop-in
+  replacements for the `std::sync` types that flag a `lock` / `read` /
+  `write` taken inside `process`. Use them for state your DSP shares with
+  another thread and the checker catches a lock on the audio thread. (Only
+  locks taken through these types are seen, not `std::sync::Mutex` or
+  `parking_lot`.)
+
+`assert_realtime_clean` bundles all three - it enables dealloc flagging for
+the run and fails on any allocation, free, or truce-typed lock in `process`:
+
+```rust
+assert_realtime_clean(|| {
+    driver!(MyEffect)
+        .duration(Duration::from_millis(50))
+        .input(InputSource::Constant(0.5))
+        .run()
+});
+```
+
 ### Modes
 
 Outside the scoped assertions, the mode decides what a violation does.
@@ -374,8 +401,14 @@ truce::rt::set_mode(truce::rt::Mode::Panic);
 | `Mode::Panic` | Fail the block - gate a whole suite in one line |
 | `Mode::Trap` | Abort at the exact allocation, to catch the live stack in a debugger |
 
-`TRUCE_RT_PARANOID=count` (or `panic` / `trap`) sets it from the shell
-for CI, no code change needed.
+The scoped `assert_no_audio_alloc` helper gates a test on its own,
+regardless of the mode - so most suites never call `set_mode` at all.
+
+By default only allocations are flagged. Freeing on the audio thread is
+also non-real-time; `truce::rt::set_check_dealloc(true)` (called once,
+like `set_mode`) also counts frees inside `process`, so
+`assert_no_audio_alloc` catches a value allocated in an earlier block and
+dropped on the audio thread.
 
 ## API surface
 
