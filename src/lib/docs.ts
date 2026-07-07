@@ -289,6 +289,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "reference/params.md",
     "reference/truce-toml.md",
     "reference/cargo-config.md",
+    "reference/badges.md",
   ];
 
   const examplesOrder = [
