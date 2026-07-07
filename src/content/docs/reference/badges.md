@@ -5,10 +5,6 @@ Shipped a plugin built with truce? You are welcome to show it off with a
 It is entirely optional - nothing about truce requires it - but it helps
 other developers find the framework, and we appreciate it.
 
-The badges are hosted on `truce.audio` with open CORS, so you can hot-link
-them directly; no need to copy the files into your own repo. Each one below
-links to <https://truce.audio/>.
-
 ## The badges
 
 <p>
@@ -19,6 +15,8 @@ links to <https://truce.audio/>.
 </p>
 <p>
   <a href="https://truce.audio/"><img src="/branding/built-with-truce-stacked.svg" alt="Built with Truce" height="86"></a>
+</p>
+<p>
   <a href="https://truce.audio/"><img src="/branding/truce-mini.svg" alt="Truce" height="34"></a>
 </p>
 
