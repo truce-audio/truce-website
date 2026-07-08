@@ -277,22 +277,29 @@ pre.shiki {
   }
 }
 
-/* Badges page: each badge sits on a row beside its Copy Markdown / Copy HTML
-   buttons. Flex-wrap so the buttons drop below the badge on narrow viewports. */
-.prose-doc .badge-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+/* Badges page: each badge sits in a table row with its Copy Markdown / Copy
+   HTML buttons, so the buttons line up in columns across rows. Strip the
+   generic prose-table chrome (borders, header fill, block layout). */
+.prose-doc .badge-table {
+  display: table;
+  width: auto;
+  border-collapse: collapse;
+}
+.prose-doc .badge-table td {
+  border: none;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  vertical-align: middle;
+}
+.prose-doc .badge-table tbody tr:nth-child(even) td {
+  background: none;
 }
 /* The badge is an image wrapped in a link — drop the prose link underline
-   so it doesn't cut across the badge artwork. */
-.prose-doc .badge-row a,
-.prose-doc .badge-row a:hover {
+   so it doesn't cut across the badge artwork, and the default image border. */
+.prose-doc .badge-table a,
+.prose-doc .badge-table a:hover {
   border-bottom: none;
 }
-/* Badges are self-contained artwork — strip the default prose image border. */
-.prose-doc .badge-row img {
+.prose-doc .badge-table img {
   border: none;
   border-radius: 0;
 }

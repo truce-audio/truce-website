@@ -7,26 +7,30 @@ other developers find the framework, and we appreciate it.
 
 ## The badges
 
-<p class="badge-row">
-  <a href="https://truce.audio/"><img src="/branding/built-with-truce-dark.svg" alt="Built with Truce" height="42"></a>
-  <button type="button" class="copy-snippet" data-copy="[![Built with Truce](https://truce.audio/branding/built-with-truce-dark.svg)](https://truce.audio/)">Copy Markdown</button>
-  <button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/built-with-truce-dark.svg" alt="Built with Truce" height="42"></a>'>Copy HTML</button>
-</p>
-<p class="badge-row">
-  <a href="https://truce.audio/"><img src="/branding/built-with-truce-light.svg" alt="Built with Truce" height="42"></a>
-  <button type="button" class="copy-snippet" data-copy="[![Built with Truce](https://truce.audio/branding/built-with-truce-light.svg)](https://truce.audio/)">Copy Markdown</button>
-  <button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/built-with-truce-light.svg" alt="Built with Truce" height="42"></a>'>Copy HTML</button>
-</p>
-<p class="badge-row">
-  <a href="https://truce.audio/"><img src="/branding/built-with-truce-stacked.svg" alt="Built with Truce" height="86"></a>
-  <button type="button" class="copy-snippet" data-copy="[![Built with Truce](https://truce.audio/branding/built-with-truce-stacked.svg)](https://truce.audio/)">Copy Markdown</button>
-  <button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/built-with-truce-stacked.svg" alt="Built with Truce" height="86"></a>'>Copy HTML</button>
-</p>
-<p class="badge-row">
-  <a href="https://truce.audio/"><img src="/branding/truce-mini.svg" alt="Truce" height="34"></a>
-  <button type="button" class="copy-snippet" data-copy="[![Truce](https://truce.audio/branding/truce-mini.svg)](https://truce.audio/)">Copy Markdown</button>
-  <button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/truce-mini.svg" alt="Truce" height="34"></a>'>Copy HTML</button>
-</p>
+<table class="badge-table">
+  <tbody>
+    <tr>
+      <td><a href="https://truce.audio/"><img src="/branding/built-with-truce-dark.svg" alt="Built with Truce" height="42"></a></td>
+      <td><button type="button" class="copy-snippet" data-copy="[![Built with Truce](https://truce.audio/branding/built-with-truce-dark.svg)](https://truce.audio/)">Copy Markdown</button></td>
+      <td><button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/built-with-truce-dark.svg" alt="Built with Truce" height="42"></a>'>Copy HTML</button></td>
+    </tr>
+    <tr>
+      <td><a href="https://truce.audio/"><img src="/branding/built-with-truce-light.svg" alt="Built with Truce" height="42"></a></td>
+      <td><button type="button" class="copy-snippet" data-copy="[![Built with Truce](https://truce.audio/branding/built-with-truce-light.svg)](https://truce.audio/)">Copy Markdown</button></td>
+      <td><button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/built-with-truce-light.svg" alt="Built with Truce" height="42"></a>'>Copy HTML</button></td>
+    </tr>
+    <tr>
+      <td><a href="https://truce.audio/"><img src="/branding/built-with-truce-stacked.svg" alt="Built with Truce" height="86"></a></td>
+      <td><button type="button" class="copy-snippet" data-copy="[![Built with Truce](https://truce.audio/branding/built-with-truce-stacked.svg)](https://truce.audio/)">Copy Markdown</button></td>
+      <td><button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/built-with-truce-stacked.svg" alt="Built with Truce" height="86"></a>'>Copy HTML</button></td>
+    </tr>
+    <tr>
+      <td><a href="https://truce.audio/"><img src="/branding/truce-mini.svg" alt="Truce" height="34"></a></td>
+      <td><button type="button" class="copy-snippet" data-copy="[![Truce](https://truce.audio/branding/truce-mini.svg)](https://truce.audio/)">Copy Markdown</button></td>
+      <td><button type="button" class="copy-snippet" data-copy='<a href="https://truce.audio/"><img src="https://truce.audio/branding/truce-mini.svg" alt="Truce" height="34"></a>'>Copy HTML</button></td>
+    </tr>
+  </tbody>
+</table>
 
 ## Add one to your README
 
