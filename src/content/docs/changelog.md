@@ -2,6 +2,12 @@
 
 Notable changes per release.
 
+## 3.1.4
+
+- AU v2 host automation fix. Based on a fix by [@fpbrault](https://github.com/fpbrault).
+- `cargo truce install` regenerates missing param-manifest sidecar files instead of failing
+- An AU v3 plugin with MIDI 2.0 output keeps a native 2.0 output stream even when the host negotiates 1.0 input
+
 ## 3.1.3
 
 - AU v3 editors resize to the host pane on iOS across all GUI backends (built-in, egui, iced, slint), honoring `resizable` / `min_size` / `max_size` / `aspect_ratio`. Ported from a fork by [@tothepoweroftom](https://github.com/tothepoweroftom).
