@@ -40,20 +40,36 @@
     Play, status, hamburger overlay). Plug-ins that need a bespoke
     shell hand-author it outside the pipeline and load the
     `.appex` truce builds.
-- **MIDI 2.0 over LV2.** LV2 Atom carries MIDI 1.0 byte streams,
-  so plugins emitting MIDI 2.0 channel-voice, per-note, or
-  ParamChange events drop those messages when loaded as LV2.
-- **Multi-channel / MPE MIDI in Pro Tools (AAX).** Pro Tools treats
-  each MIDI channel as a separate track, so multi-channel MIDI does not
-  survive on a single instrument track: notes reaching an instrument are
-  collapsed onto one channel (a multi-channel file even imports as one
-  track per channel). A note effect that fans notes across channels into
-  an instrument on the same track (an MPE-style voice allocator) therefore
-  loses the spread in Pro Tools, though the same chain works in CLAP,
-  VST3, and AU hosts. This is a Pro Tools MIDI-routing limitation, not a
-  wrapper gap - truce emits and preserves the per-note channels correctly
-  on the AAX wire. AAX-specific note expression has not been wired, so
-  there is no per-note-expression path to Pro Tools today.
+- **MIDI 2.0.** Full MIDI 2.0 (UMP channel-voice, high-resolution and
+  per-note controllers) only round-trips on **CLAP** and **AU v3**, and
+  only when the host negotiates the 2.0 protocol. A plugin that declares
+  a MIDI 2.0 port still receives MIDI 1.0 from a host that offers only
+  1.0 - most DAWs today - with the host down-converting on the way in.
+  - **VST3.** No UMP transport. Per-note messages round-trip through
+    VST3 note expression, but a MIDI 2.0 channel-voice message with no
+    note-expression equivalent (an unmapped per-note CC, say)
+    down-converts to a MIDI 1.0 channel message on output.
+  - **VST2, AU v2, AAX.** MIDI 1.0 only (3-byte packets). 2.0 output is
+    down-converted to 1.0; the AU v2 MIDI-2.0 port flag is ignored.
+  - **LV2.** LV2 Atom carries MIDI 1.0 byte streams. Input is always
+    MIDI 1.0; 2.0 channel-voice output down-converts to 1.0, and any
+    message with no 1.0 form (per-note controllers, per-note pitch bend)
+    is dropped.
+- **MPE / per-note expression.** Per-note expression - MPE (per-note
+  pitch bend + CC spread across MIDI channels) and MIDI 2.0 per-note
+  controllers - round-trips on CLAP, VST3, and AU hosts that route
+  multi-channel MIDI to an instrument.
+  - **Pro Tools (AAX).** Pro Tools treats each MIDI channel as a
+    separate track, so multi-channel MIDI does not survive on a single
+    instrument track: notes reaching an instrument collapse onto one
+    channel (a multi-channel file even imports as one track per
+    channel). A note effect that fans notes across channels into an
+    instrument on the same track (an MPE-style voice allocator) loses
+    the spread in Pro Tools, though the same chain works in CLAP, VST3,
+    and AU hosts. This is a Pro Tools MIDI-routing limitation, not a
+    wrapper gap - truce emits and preserves the per-note channels
+    correctly on the AAX wire. AAX-specific note expression has not been
+    wired, so there is no per-note-expression path to Pro Tools today.
 - **Standalone Settings / Presets menu on Linux.** The X11
   standalone has no native menu bar, so the audio / MIDI Settings
   pickers and the Presets menu aren't drawn on Linux. Drive those
