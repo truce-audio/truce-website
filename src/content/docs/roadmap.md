@@ -49,12 +49,11 @@
     VST3 note expression, but a MIDI 2.0 channel-voice message with no
     note-expression equivalent (an unmapped per-note CC, say)
     down-converts to a MIDI 1.0 channel message on output.
-  - **VST2, AU v2, AAX.** MIDI 1.0 only (3-byte packets). 2.0 output is
-    down-converted to 1.0; the AU v2 MIDI-2.0 port flag is ignored.
-  - **LV2.** LV2 Atom carries MIDI 1.0 byte streams. Input is always
-    MIDI 1.0; 2.0 channel-voice output down-converts to 1.0, and any
-    message with no 1.0 form (per-note controllers, per-note pitch bend)
-    is dropped.
+  - **VST2, AU v2, AAX, LV2.** MIDI 1.0 only - 3-byte packets on VST2 /
+    AU v2 / AAX, MIDI 1.0 byte streams in the LV2 Atom. Input is always
+    MIDI 1.0, and 2.0 channel-voice output down-converts to 1.0. Any
+    message with no 1.0
+    form (per-note controllers, per-note pitch bend) is dropped.
 - **MPE / per-note expression.** Per-note expression - MPE (per-note
   pitch bend + CC spread across MIDI channels) and MIDI 2.0 per-note
   controllers - round-trips on CLAP, VST3, and AU hosts that route
