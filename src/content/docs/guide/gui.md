@@ -24,8 +24,9 @@ use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
     type Params = MyParams;
+    type DspState = ();
 
-    // ... reset, process ...
+    // ... init, reset, process ...
 
     fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         GridLayout::build(vec![

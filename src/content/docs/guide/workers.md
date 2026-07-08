@@ -71,8 +71,8 @@ latest target and wakes the worker. `force_push` on a `Copy` request is
 safe here - the displaced value drops for free:
 
 ```rust
-self.rebuild.requests.force_push(RebuildRequest { sample_rate, time_s });
-self.worker_thread.unpark();
+state.rebuild.requests.force_push(RebuildRequest { sample_rate, time_s });
+state.worker_thread.unpark();
 ```
 
 The worker drains to the *newest* request and ignores the rest, so a
@@ -93,12 +93,12 @@ the current sample rate. A graph the worker was midway through building
 when `reset()` changed the rate is routed straight to `discard`:
 
 ```rust
-if let Some(ready) = self.rebuild.ready.pop() {
-    if ready.sample_rate.to_bits() == self.last_built_sr.to_bits() {
-        let old = std::mem::replace(&mut self.graph, ready.graph);
-        let _ = self.rebuild.discard.push(old);      // free off-thread
+if let Some(ready) = state.rebuild.ready.pop() {
+    if ready.sample_rate.to_bits() == state.last_built_sr.to_bits() {
+        let old = std::mem::replace(&mut state.graph, ready.graph);
+        let _ = state.rebuild.discard.push(old);      // free off-thread
     } else {
-        let _ = self.rebuild.discard.push(ready.graph); // stale: discard
+        let _ = state.rebuild.discard.push(ready.graph); // stale: discard
     }
 }
 ```
@@ -167,7 +167,7 @@ stores each spectrum bin as an `AtomicU32` (an `f32` bit-punned with
 `to_bits()` / `from_bits()`); the editor reads them each frame.
 
 Because `editor(params)` is an [associated function over the param
-store](gui.md) - it never gets `&self`, so it can't reach DSP state -
+store](gui.md) - it only gets the params, so it can't reach DSP state -
 the plugin hands the shared handle to the editor through a `#[skip]`
 field on the params struct:
 
@@ -176,20 +176,21 @@ field on the params struct:
 pub struct AnalyzerParams {
     #[param(/* ... */)] pub gain: FloatParam,
 
-    // `#[skip]` = not a parameter. The plugin's `new()` fills it so the
+    // `#[skip]` = not a parameter. The plugin's `init` fills it so the
     // receiverless `editor(params)` can reach the shared spectrum.
     #[skip]
     editor_bridge: Arc<OnceLock<EditorBridge>>,   // { spectrum, instance_id }
 }
 ```
 
-`new()` calls `params.editor_bridge.set(...)`; `editor(params)` reads it
+`init` calls `params.editor_bridge.set(...)`; `editor(params)` reads it
 back and hands the spectrum to the GUI. For a single scalar value,
 `#[meter]` + `context.set_meter()` already does all of this for you.
 
 ## Lifecycle
 
-Spawn the worker in your logic's `new()`, and **join it in `Drop`**:
+Spawn the worker in your logic's `init`, store its handle in the
+`DspState`, and **join it in `Drop`** on that state:
 
 ```rust
 let handle = thread::Builder::new()
@@ -197,7 +198,7 @@ let handle = thread::Builder::new()
     .spawn(move || { /* worker loop */ })
     .expect("spawn worker");
 
-impl Drop for MyPlugin {
+impl Drop for MyPluginDsp {
     fn drop(&mut self) {
         self.ctl.shutdown.store(true, Ordering::Release);
         self.worker_thread.unpark();          // if you park; wakes it to see shutdown
@@ -207,8 +208,8 @@ impl Drop for MyPlugin {
 ```
 
 Join, don't detach: the worker holds `Arc`s to shared state, and joining
-guarantees it has stopped touching that state before the plugin - and
-the state - drop. Under [`--shell` hot-reload](hot-reload.md) each logic
+guarantees it has stopped touching that state before the DSP state
+drops. Under [`--shell` hot-reload](hot-reload.md) each logic
 instance owns its own worker; on reload the old instance's `Drop` joins
 the old worker and the new instance spawns a fresh one, so there's
 nothing extra to do.

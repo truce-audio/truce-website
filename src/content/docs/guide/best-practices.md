@@ -44,8 +44,8 @@ Two kinds of mutable data, two homes:
   storage. Read them each block; don't cache their values in your logic
   struct.
 - **DSP state** is per-instance, mutated every sample, and touched only
-  by the audio thread. It lives in your logic struct as plain fields, not
-  in the params struct.
+  by the audio thread. It lives in a plain struct named by your logic's
+  `type DspState` (built by `init`), not in the params struct.
 
 Keeping the two separate is what lets the editor be a pure function of
 the params (below). See [plugin anatomy](plugin-anatomy.md) and
@@ -71,11 +71,11 @@ and [MIDI](midi.md).
 
 ## Set up in `reset()`, not construction
 
-Construction runs once; `reset()` runs on every activation and whenever
+`init` runs once; `reset()` runs on every activation and whenever
 the sample rate or block size changes. Put sample-rate-dependent setup
 there: `set_sample_rate`, `snap_smoothers`, clearing delay lines, sizing
-scratch to the new maximum block. Construction just wires up fields. See
-[lifecycle](plugin-anatomy.md#lifecycle).
+scratch to the new maximum block. `init` just wires up the DSP state's
+fields. See [lifecycle](plugin-anatomy.md#lifecycle).
 
 ## Report latency and tail
 
@@ -84,6 +84,13 @@ FFT frame - report it from `latency()` so the host delay-compensates and
 your plugin stays time-aligned in the mix. If it rings out after input
 stops - reverb, delay - report `tail()` so the host doesn't cut the tail
 when the transport stops.
+
+`latency()` may change at runtime: return a new value when the user flips
+a lookahead or oversampling mode and the host is notified automatically
+(CLAP, VST3, AU v2, AU v3, LV2; best-effort on VST2, static on AAX). On
+CLAP and VST3 a latency change is a restart-class event - the host may
+briefly deactivate and reactivate the plugin to apply it - so change
+latency on deliberate mode switches, not continuously per block.
 
 ## Keep `bundle_id` stable
 
@@ -97,12 +104,12 @@ loading the old blobs.
 
 ## The editor is a function of the params
 
-`editor(params)` has no `self` by design, so opening the GUI provably
-can't take the plugin lock or read DSP state. If the editor genuinely
-needs shared, DSP-derived data (an analyzer's spectrum, say), route it
-through a `#[skip]` field on the params struct - fill it in construction,
-read it back in `editor`. Don't try to smuggle DSP state to the GUI any
-other way. See [GUI](gui.md) and [state](state.md).
+`editor(params)` takes only the params by design, so opening the GUI
+provably can't take the plugin lock or read DSP state. If the editor
+genuinely needs shared, DSP-derived data (an analyzer's spectrum, say),
+route it through a `#[skip]` field on the params struct - fill it in
+`init`, read it back in `editor`. Don't try to smuggle DSP state to the
+GUI any other way. See [GUI](gui.md) and [state](state.md).
 
 ## Save state off the audio thread
 

@@ -25,8 +25,8 @@ bytes you hand it and nothing more.
 Two optional methods on `PluginLogic`:
 
 ```rust
-fn save_state(&self) -> Vec<u8> { Vec::new() }
-fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
+fn save_state(state: &Self::DspState) -> Vec<u8> { Vec::new() }
+fn load_state(state: &mut Self::DspState, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
 ```
 
 The defaults mean "no extra state" - a plugin whose entire identity
@@ -40,21 +40,26 @@ pub struct InstanceMemo {
     pub label: String,
 }
 
+pub struct StateExampleDsp {
+    memo: InstanceMemo,
+}
+
 impl PluginLogic for StateExample {
     type Params = StateExampleParams;
+    type DspState = StateExampleDsp;
 
     // Lock-free save: the audio thread serializes into a reused buffer
     // each block, and the host reads it back without ever locking the
     // plugin. `serialize_into` clears and refills `buf`, so it is
     // allocation-free once warm.
-    fn snapshot_into(&self, buf: &mut Vec<u8>) -> bool {
-        self.memo.serialize_into(buf);
+    fn snapshot_into(state: &StateExampleDsp, buf: &mut Vec<u8>) -> bool {
+        state.memo.serialize_into(buf);
         true
     }
 
-    fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> {
+    fn load_state(state: &mut StateExampleDsp, data: &[u8]) -> Result<(), StateLoadError> {
         match InstanceMemo::deserialize(data) {
-            Some(m) => { self.memo = m; Ok(()) }
+            Some(m) => { state.memo = m; Ok(()) }
             None => Err(StateLoadError::Malformed("InstanceMemo deserialize")),
         }
     }
@@ -70,12 +75,12 @@ the host.
 There are two hooks for serializing extra state, and you override
 exactly one:
 
-- `save_state(&self) -> Vec<u8>` - the simple form. The host calls it
-  on its own thread while the audio thread is held at a block
-  boundary, so an expensive serialize can stall audio. Fine for small,
-  cheap state.
-- `snapshot_into(&self, buf: &mut Vec<u8>) -> bool` - the lock-free
-  form (shown above). The audio thread serializes into a reused buffer
+- `save_state(state: &Self::DspState) -> Vec<u8>` - the simple form.
+  The host calls it on its own thread while the audio thread is held at
+  a block boundary, so an expensive serialize can stall audio. Fine for
+  small, cheap state.
+- `snapshot_into(state: &Self::DspState, buf: &mut Vec<u8>) -> bool` -
+  the lock-free form (shown above). The audio thread serializes into a reused buffer
   after each block and publishes it to a slot the host reads without
   ever taking the plugin lock, so saving never stalls audio. Because
   it runs every block, keep it cheap and allocation-free (use
@@ -91,9 +96,9 @@ this pattern, including the editor side.
 ## The load path
 
 Hosts call their state-load API on the main thread, but `load_state`
-takes `&mut self`, which would alias the audio thread's `&mut self`
-inside `process()`. The wrappers resolve this the same way on every
-format:
+takes `&mut Self::DspState`, which would alias the audio thread's
+`&mut` DSP state inside `process()`. The wrappers resolve this the same
+way on every format:
 
 1. The blob is parsed on the host thread.
 2. Parameter values apply immediately (param storage is atomic), so
@@ -136,6 +141,7 @@ them instead:
 ```rust
 impl PluginLogic for Eq {
     type Params = EqParams;
+    type DspState = EqDsp;
     fn migrate_state(foreign: &ForeignState) -> Option<MigratedState> {
         let ForeignState::Raw { bytes, .. } = foreign else {
             return None;

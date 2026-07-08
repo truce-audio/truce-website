@@ -25,6 +25,7 @@ use MyParamsParamId as P;
 
 impl PluginLogic for MyPlugin {
     type Params = MyParams;
+    type DspState = ();
 
     fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         let layout = GridLayout::build(vec![widgets(vec![knob(P::Gain, "Gain")])]);

@@ -122,6 +122,7 @@ Same as every other backend:
 ```rust
 impl PluginLogic for MyPlugin {
     type Params = MyParams;
+    type DspState = ();
 
     fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
         MyEditor {

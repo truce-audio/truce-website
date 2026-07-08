@@ -15,7 +15,7 @@ Source: [`examples/truce-example-stereo-utility/`](https://github.com/truce-audi
   id range derived from the field name, so left and right resolve
   to distinct controls with no hand-written ids
 - Addressing reused-group params in the editor by flattened id
-  (`self.params.left.gain.id()`) instead of the derived `ParamId`
+  (`params.left.gain.id()`) instead of the derived `ParamId`
   enum
 - Built-in `GridLayout` editor with two `section(..)` groups
   mixing `knob` and `toggle` widgets

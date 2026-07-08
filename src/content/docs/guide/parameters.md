@@ -139,15 +139,16 @@ the return type (f32 or f64) follows your prelude choice; see
 [Precision (preludes)](plugin-anatomy.md#precision-preludes).
 
 ```rust
-fn reset(&mut self, sample_rate: f64, _: usize) {
-    self.params.set_sample_rate(sample_rate);
-    self.params.snap_smoothers();
+fn reset(_state: &mut Self::DspState, params: &Self::Params, config: &AudioConfig) {
+    params.set_sample_rate(config.sample_rate);
+    params.snap_smoothers();
 }
 
-fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
+fn process(_state: &mut Self::DspState, params: &Self::Params,
+           buffer: &mut AudioBuffer, _: &EventList,
            _: &mut ProcessContext) -> ProcessStatus {
     for i in 0..buffer.num_samples() {
-        let g = self.params.gain.read();
+        let g = params.gain.read();
         // ...
     }
     ProcessStatus::Normal
@@ -257,18 +258,20 @@ keep working.
 
 ## Shared ownership (`Arc<Params>`)
 
-The shell owns the `Arc<MyParams>` and passes a clone to
-`YourPlugin::new()`. GUI closures can also clone the `Arc`. Host
-automation writes atomically; every reader sees the latest value
-without locking.
+The shell owns the `Arc<MyParams>` and passes it by reference to
+`YourPlugin::init()` and to every DSP method that needs it. GUI
+closures can also clone the `Arc`. Host automation writes atomically;
+every reader sees the latest value without locking.
 
 ```rust
-pub struct MyPlugin {
-    params: Arc<MyParams>,
-}
+pub struct MyPlugin;
 
-impl MyPlugin {
-    pub fn new(params: Arc<MyParams>) -> Self { Self { params } }
+impl PluginLogic for MyPlugin {
+    type Params = MyParams;
+    type DspState = ();
+
+    fn init(_params: &MyParams) -> () {}
+    // reset / process receive `params: &MyParams` each call.
 }
 ```
 

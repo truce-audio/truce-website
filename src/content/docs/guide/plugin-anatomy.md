@@ -13,9 +13,11 @@ it is.
 Four things you write:
 
 1. A **params struct** with `#[derive(Params)]`.
-2. A **plugin struct** with an inherent `new(params: Arc<P>)`.
+2. A **plugin descriptor** — a stateless (usually zero-sized) struct.
+   Any per-instance DSP state goes in a separate plain struct named by
+   the descriptor's `type DspState`.
 3. A single **`impl PluginLogic for ...`** block — DSP and GUI in
-   one trait (`reset`, `process`, `editor`, `save_state`,
+   one trait (`init`, `reset`, `process`, `editor`, `save_state`,
    `load_state`, `state_changed`, `latency`, `tail`, `bus_layouts`,
    …). `reset`, `process`, and `editor` are required; every other
    method has a default.
@@ -82,11 +84,17 @@ default. Override what you need.
 
 ```rust
 pub trait PluginLogic: Send + 'static {
+    type Params;
+    type DspState;   // per-instance DSP state; `()` if the plugin has none
+
     // --- DSP (audio thread) ---
-    fn reset(&mut self, sample_rate: f64, max_block_size: usize);
+    fn init(params: &Self::Params) -> Self::DspState;
+
+    fn reset(state: &mut Self::DspState, params: &Self::Params, config: &AudioConfig);
 
     fn process(
-        &mut self,
+        state: &mut Self::DspState,
+        params: &Self::Params,
         buffer: &mut AudioBuffer,
         events: &EventList,
         context: &mut ProcessContext,
@@ -94,15 +102,15 @@ pub trait PluginLogic: Send + 'static {
 
     fn bus_layouts() -> Vec<BusLayout> { vec![BusLayout::stereo()] }
 
-    fn save_state(&self) -> Vec<u8> { Vec::new() }
-    fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
-    fn state_changed(&mut self) {}
+    fn save_state(state: &Self::DspState) -> Vec<u8> { Vec::new() }
+    fn load_state(state: &mut Self::DspState, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
+    fn state_changed(state: &mut Self::DspState, params: &Self::Params) {}
 
-    fn latency(&self) -> u32 { 0 }
-    fn tail(&self) -> u32 { 0 }
+    fn latency(state: &Self::DspState) -> u32 { 0 }
+    fn tail(state: &Self::DspState) -> u32 { 0 }
 
     // --- GUI (main thread) ---
-    fn editor(params: Arc<MyParams>) -> Box<dyn Editor>;
+    fn editor(params: Arc<Self::Params>) -> Box<dyn Editor>;
 }
 ```
 
@@ -114,7 +122,7 @@ pub trait PluginLogic: Send + 'static {
 | `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing](processing.md). |
 | `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo in/out; instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
 | `save_state` / `snapshot_into` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | `snapshot_into` only (audio thread, per block) | **Extra** state only — params are serialized automatically. Save via `save_state` (simple, runs while audio is held) or override `snapshot_into` for the lock-free path that never stalls audio. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. See [state](state.md). |
-| `state_changed` | After `load_state` returns | yes (audio thread, between blocks) | Plugin-side cache invalidation — re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
+| `state_changed` | After `load_state` returns | yes (audio thread, between blocks) | Plugin-side cache invalidation — receives `&mut Self::DspState` + `&Self::Params` to re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
 | `latency` | Host bus reconfiguration | no | Samples of processing delay, for PDC. |
 | `tail` | Host transport stop | no | Samples of audio produced after input stops (reverb, delay). |
 
@@ -122,7 +130,7 @@ pub trait PluginLogic: Send + 'static {
 
 | Method | When called | Real-time? | Notes |
 |--------|-------------|------------|-------|
-| `editor` | Editor open | no | Associated function `fn editor(params: Arc<Self::Params>)` - it takes the param store, not `&self`. For the built-in widget set, build a `GridLayout` and finish with `.into_editor(&params)`; for a framework backend, construct an `EguiEditor` / `IcedEditor` / `SlintEditor` / hand-rolled `Editor` and finish with `.into_editor()`. See [gui](gui.md). |
+| `editor` | Editor open | no | Associated function `fn editor(params: Arc<Self::Params>)` - it takes the param store, not the DSP state. For the built-in widget set, build a `GridLayout` and finish with `.into_editor(&params)`; for a framework backend, construct an `EguiEditor` / `IcedEditor` / `SlintEditor` / hand-rolled `Editor` and finish with `.into_editor()`. See [gui](gui.md). |
 
 `editor()` is required: the renderer is whichever editor you return,
 and which crate your `Cargo.toml` pulls in. Post-load-state cache
@@ -130,34 +138,44 @@ invalidation lives on `state_changed` (audio thread) and, for the
 editor, on the `Editor`'s own `state_changed` (GUI thread). See
 [State persistence](#state-persistence) below.
 
-### Construction is not on the trait
+### The descriptor and its DSP state
 
-`new()` is a plain inherent method on your plugin struct:
+Your plugin type is a stateless descriptor (usually zero-sized). The
+per-instance DSP state — filters, delay lines, phase counters —
+lives in a separate **plain struct** you name through
+`type DspState`, and `init` builds it from the params:
 
 ```rust
-pub struct MyPlugin {
-    params: Arc<MyParams>,
+pub struct MyPlugin;
+
+// A plain struct — no derive, no trait bound. The shell fingerprints
+// its layout automatically at hot-reload time.
+pub struct MyPluginDsp {
     extra_dsp_state: SomeFilter,
 }
 
-impl MyPlugin {
-    pub fn new(params: Arc<MyParams>) -> Self {
-        Self {
-            params,
-            extra_dsp_state: SomeFilter::default(),
-        }
+impl PluginLogic for MyPlugin {
+    type Params = MyParams;
+    type DspState = MyPluginDsp;
+
+    fn init(_params: &MyParams) -> MyPluginDsp {
+        MyPluginDsp { extra_dsp_state: SomeFilter::default() }
     }
+    // ... reset, process, editor ...
 }
 ```
 
-The `truce::plugin!` macro calls `YourPlugin::new(arc_clone_of_params)`
-once per plugin instance. It's plain Rust construction — not a
-trait method — because the shell needs to hand you the shared
-`Arc<Params>` at construction time, and trait methods can't do
-that.
+The `truce::plugin!` macro calls `MyPlugin::init(&params)` once per
+plugin instance. `init` receives the shared params by reference; it
+returns only the DSP state, so the descriptor never stores params.
+Every method that needs params receives `&Self::Params` as a
+parameter.
 
-The same `Arc<Params>` lives on the shell too, and can be cloned
-into GUI closures. One source of truth, no synchronization.
+The same `Arc<Params>` lives on the shell, and can be cloned into GUI
+closures. One source of truth, no synchronization.
+
+If a plugin has no DSP state at all — only `#[param]` fields — set
+`type DspState = ();` and `init` returns `()`.
 
 ## Lifecycle
 
@@ -165,17 +183,19 @@ into GUI closures. One source of truth, no synchronization.
    has already read `truce.toml` via `plugin_info!()`, emitted the
    format entry points, and wrapped `MyPlugin` in a format-specific
    shell.
-2. **Shell creates `Arc<MyParams>`** and clones it into both the
-   host-visible parameter tree and `MyPlugin::new(arc_clone)`.
-3. **`PluginLogic::reset(sr, max_block)`** runs once the sample rate
-   and block size are known.
-4. **Playback loop.** The shell drives `process(buffer, events, ctx)`
-   on the audio thread, `editor()` on the main thread,
-   and the host writes automation through atomics. If the sample
-   rate changes, `reset` is called again. Saving a session triggers
-   automatic parameter serialization plus `save_state`; loading one
-   calls `load_state`, then `reset`, then resumes `process`.
-5. **`MyPlugin` is dropped** when the host unloads the plugin.
+2. **Shell creates `Arc<MyParams>`**, exposes it as the host-visible
+   parameter tree, and calls `MyPlugin::init(&params)` to build the
+   `DspState`.
+3. **`PluginLogic::reset(state, params, config)`** runs once the
+   sample rate and block size are known.
+4. **Playback loop.** The shell drives
+   `process(state, params, buffer, events, ctx)` on the audio thread,
+   `editor()` on the main thread, and the host writes automation
+   through atomics. If the sample rate changes, `reset` is called
+   again. Saving a session triggers automatic parameter serialization
+   plus `save_state`; loading one calls `load_state`, then `reset`,
+   then resumes `process`.
+5. **The `DspState` is dropped** when the host unloads the plugin.
 
 ## Per-format display names
 
@@ -217,6 +237,7 @@ alone for a stereo effect:
 ```rust
 impl PluginLogic for MyGain {
     type Params = MyParams;
+    type DspState = ();
 
     // bus_layouts omitted → [BusLayout::stereo()]
     fn reset(/* … */) { /* … */ }
@@ -229,6 +250,7 @@ impl PluginLogic for MyGain {
 ```rust
 impl PluginLogic for MySynth {
     type Params = MySynthParams;
+    type DspState = MySynthDsp;
     fn bus_layouts() -> Vec<BusLayout> {
         vec![BusLayout::new().with_output("Main", ChannelConfig::Stereo)]
     }
@@ -241,6 +263,7 @@ impl PluginLogic for MySynth {
 ```rust
 impl PluginLogic for Widener {
     type Params = WidenerParams;
+    type DspState = WidenerDsp;
     fn bus_layouts() -> Vec<BusLayout> {
         vec![
             BusLayout::new()
@@ -258,6 +281,7 @@ impl PluginLogic for Widener {
 ```rust
 impl PluginLogic for SidechainComp {
     type Params = SidechainCompParams;
+    type DspState = SidechainCompDsp;
     fn bus_layouts() -> Vec<BusLayout> {
         vec![
             BusLayout::new()
@@ -297,29 +321,32 @@ pub struct MyExtraState {
     pub selected_ids: Vec<u32>,
 }
 
-pub struct MyPlugin {
-    params: Arc<MyParams>,
+pub struct MyPlugin;
+
+pub struct MyPluginDsp {
     extra: MyExtraState,
+    decoded_ir: DecodedIr,
 }
 
 impl PluginLogic for MyPlugin {
     type Params = MyParams;
+    type DspState = MyPluginDsp;
 
-    fn save_state(&self) -> Vec<u8> { self.extra.serialize() }
+    fn save_state(state: &MyPluginDsp) -> Vec<u8> { state.extra.serialize() }
 
-    fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> {
+    fn load_state(state: &mut MyPluginDsp, data: &[u8]) -> Result<(), StateLoadError> {
         match MyExtraState::deserialize(data) {
-            Some(s) => { self.extra = s; Ok(()) }
+            Some(s) => { state.extra = s; Ok(()) }
             None => Err(StateLoadError::Malformed("MyExtraState")),
         }
     }
 
     // Re-derive caches that depend on extra state (decoded IR,
     // sample thumbnails, computed pad layouts). Runs on the audio
-    // thread under the same `&mut self` borrow as `load_state`, so
-    // the next `process()` block sees the refreshed caches.
-    fn state_changed(&mut self) {
-        self.extra_decoded_ir = decode_ir(&self.extra.ir_file_path);
+    // thread under the same `&mut` borrow as `load_state`, so the
+    // next `process()` block sees the refreshed caches.
+    fn state_changed(state: &mut MyPluginDsp, _params: &MyParams) {
+        state.decoded_ir = decode_ir(&state.extra.ir_file_path);
     }
 
     // ... reset, process, editor ...
@@ -338,14 +365,14 @@ If you need a specific format — JSON for human-readable presets,
 bytes yourself:
 
 ```rust
-fn save_state(&self) -> Vec<u8> {
-    bincode::serialize(&self.extra).unwrap()
+fn save_state(state: &MyPluginDsp) -> Vec<u8> {
+    bincode::serialize(&state.extra).unwrap()
 }
 
-fn load_state(&mut self, data: &[u8]) -> Result<(), StateLoadError> {
+fn load_state(state: &mut MyPluginDsp, data: &[u8]) -> Result<(), StateLoadError> {
     let s = bincode::deserialize::<MyExtraState>(data)
         .map_err(|e| StateLoadError::Other(e.to_string()))?;
-    self.extra = s;
+    state.extra = s;
     Ok(())
 }
 ```

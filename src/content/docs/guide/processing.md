@@ -9,8 +9,9 @@ The signature is always:
 
 ```rust
 fn process(
-    &mut self,
-    buffer: &mut AudioBuffer,
+    state:   &mut Self::DspState,
+    params:  &Self::Params,
+    buffer:  &mut AudioBuffer,
     events:  &EventList,
     context: &mut ProcessContext,
 ) -> ProcessStatus;
@@ -72,10 +73,11 @@ you've called `slice()`.
 The most common shape — one multiplication per sample per channel:
 
 ```rust
-fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
+fn process(_state: &mut Self::DspState, params: &Self::Params,
+           buffer: &mut AudioBuffer, _: &EventList,
            _: &mut ProcessContext) -> ProcessStatus {
     for i in 0..buffer.num_samples() {
-        let gain = db_to_linear(self.params.gain.read());
+        let gain = db_to_linear(params.gain.read());
         for ch in 0..buffer.channels() {
             let (inp, out) = buffer.io(ch);
             out[i] = inp[i] * gain;
@@ -99,7 +101,7 @@ filters) rather than in-place modification:
 for ch in 0..buffer.num_output_channels() {
     let (input, output) = buffer.io_pair(ch, ch);
     for i in 0..buffer.num_samples() {
-        output[i] = self.filters[ch].process(input[i]);
+        output[i] = state.filters[ch].process(input[i]);
     }
 }
 ProcessStatus::Normal
@@ -175,7 +177,7 @@ correct even when the block size isn't a multiple of your stride:
 let mut gain_db = [0.0_f32; MAX_BLOCK];
 while offset < total {
     let n = (total - offset).min(MAX_BLOCK);
-    self.params.gain.read_into(&mut gain_db[..n]);
+    params.gain.read_into(&mut gain_db[..n]);
     // ... consume gain_db[..n] for n samples ...
     offset += n;
 }
@@ -221,15 +223,16 @@ puts both together:
 
 ```rust
 fn process(
-    &mut self,
+    _state: &mut Self::DspState,
+    params: &Self::Params,
     buffer: &mut AudioBuffer,
     _events: &EventList,
     _context: &mut ProcessContext,
 ) -> ProcessStatus {
-    if !self.params.gain.is_smoothing() && !self.params.pan.is_smoothing() {
+    if !params.gain.is_smoothing() && !params.pan.is_smoothing() {
         // Fast path: one scalar gain for the whole block.
-        let lin = db_to_linear(self.params.gain.value());
-        let pan = self.params.pan.value();
+        let lin = db_to_linear(params.gain.value());
+        let pan = params.pan.value();
         let gl = lin * (1.0 - pan.max(0.0));
         let gr = lin * (1.0 + pan.min(0.0));
 
@@ -244,8 +247,8 @@ fn process(
         let n = buffer.num_samples().min(MAX_BLOCK);
         let mut gain_db = [0.0_f32; MAX_BLOCK];
         let mut pan = [0.0_f32; MAX_BLOCK];
-        self.params.gain.read_into(&mut gain_db[..n]);
-        self.params.pan.read_into(&mut pan[..n]);
+        params.gain.read_into(&mut gain_db[..n]);
+        params.pan.read_into(&mut pan[..n]);
 
         // Vectorized dB -> linear in one pass.
         let mut lin = [0.0_f32; MAX_BLOCK];
@@ -340,10 +343,10 @@ Pattern match the body:
 ```rust
 for event in events.iter() {
     match &event.body {
-        EventBody::NoteOn  { note, velocity, .. } => self.note_on(*note, *velocity),
-        EventBody::NoteOff { note, .. }           => self.note_off(*note),
+        EventBody::NoteOn  { note, velocity, .. } => state.note_on(*note, *velocity),
+        EventBody::NoteOff { note, .. }           => state.note_off(*note),
         EventBody::ControlChange { cc: 1, value, .. } => {
-            self.mod_depth = *value;
+            state.mod_depth = *value;
         }
         _ => {}
     }
@@ -378,18 +381,19 @@ plugin is responsible for applying them at the right sample. The
 canonical shape interleaves the event loop with the sample loop:
 
 ```rust
-fn process(&mut self, buffer: &mut AudioBuffer, events: &EventList,
+fn process(state: &mut Self::DspState, _params: &Self::Params,
+           buffer: &mut AudioBuffer, events: &EventList,
            _: &mut ProcessContext) -> ProcessStatus {
     let mut next = 0;
 
     for i in 0..buffer.num_samples() {
         while let Some(event) = events.get(next) {
             if event.sample_offset as usize > i { break; }
-            self.handle_event(&event.body);
+            state.handle_event(&event.body);
             next += 1;
         }
         for ch in 0..buffer.channels() {
-            buffer.output(ch)[i] = self.render_sample(ch);
+            buffer.output(ch)[i] = state.render_sample(ch);
         }
     }
     ProcessStatus::Normal
@@ -443,8 +447,8 @@ keep producing audio after the input stops. Tell the host how many
 samples are left so it doesn't cut you off:
 
 ```rust
-if self.is_producing_silence() {
-    ProcessStatus::Tail(self.remaining_tail_samples())
+if state.is_producing_silence() {
+    ProcessStatus::Tail(state.remaining_tail_samples())
 } else {
     ProcessStatus::Normal
 }
@@ -469,22 +473,35 @@ The full [`examples/truce-example-synth`](https://github.com/truce-audio/truce/t
 roughly this shape:
 
 ```rust
+pub struct Synth;
+
+pub struct SynthDsp {
+    sample_rate: f64,
+    voices: Vec<Voice>,
+}
+
 impl PluginLogic for Synth {
     type Params = MyParams;
+    type DspState = SynthDsp;
+
+    fn init(_params: &MyParams) -> SynthDsp {
+        SynthDsp { sample_rate: 0.0, voices: Vec::new() }
+    }
 
     fn bus_layouts() -> Vec<BusLayout> {
         // Instrument: output only, no audio input.
         vec![BusLayout::new().with_output("Main", ChannelConfig::Stereo)]
     }
 
-    fn reset(&mut self, sample_rate: f64, _: usize) {
-        self.sample_rate = sample_rate;
-        self.voices.clear();
-        self.params.set_sample_rate(sample_rate);
-        self.params.snap_smoothers();
+    fn reset(state: &mut SynthDsp, params: &MyParams, config: &AudioConfig) {
+        state.sample_rate = config.sample_rate;
+        state.voices.clear();
+        params.set_sample_rate(config.sample_rate);
+        params.snap_smoothers();
     }
 
-    fn process(&mut self, buffer: &mut AudioBuffer, events: &EventList,
+    fn process(state: &mut SynthDsp, params: &MyParams,
+               buffer: &mut AudioBuffer, events: &EventList,
                _: &mut ProcessContext) -> ProcessStatus {
         let mut next = 0;
 
@@ -493,8 +510,8 @@ impl PluginLogic for Synth {
             while let Some(e) = events.get(next) {
                 if e.sample_offset as usize > i { break; }
                 match &e.body {
-                    EventBody::NoteOn  { note, velocity, .. } => self.note_on(*note, *velocity),
-                    EventBody::NoteOff { note, .. }           => self.note_off(*note),
+                    EventBody::NoteOn  { note, velocity, .. } => state.note_on(*note, *velocity),
+                    EventBody::NoteOff { note, .. }           => state.note_off(*note),
                     _ => {}
                 }
                 next += 1;
@@ -503,15 +520,16 @@ impl PluginLogic for Synth {
             // 2. Read per-sample smoothed params. This synth uses
             //    `use truce::prelude64::*`, so `.read()` returns
             //    `f64` and the audio buffer slices are `&[f64]`.
-            let wave    = self.params.waveform.index();
-            let cutoff  = self.params.cutoff.read();
-            let reso    = self.params.resonance.read();
-            let volume  = db_to_linear(self.params.volume.read());
+            let wave    = params.waveform.index();
+            let cutoff  = params.cutoff.read();
+            let reso    = params.resonance.read();
+            let volume  = db_to_linear(params.volume.read());
 
             // 3. Sum the voices and write.
+            let sample_rate = state.sample_rate;
             let mut sample = 0.0;
-            for voice in &mut self.voices {
-                sample += voice.render(wave, cutoff, reso, self.sample_rate);
+            for voice in &mut state.voices {
+                sample += voice.render(wave, cutoff, reso, sample_rate);
             }
             sample *= volume;
             let out = sample.clamp(-1.0, 1.0);
@@ -520,8 +538,8 @@ impl PluginLogic for Synth {
         }
 
         // 4. Retire finished voices; signal idle when empty.
-        self.voices.retain(|v| !v.is_done());
-        if self.voices.is_empty() { ProcessStatus::Tail(0) } else { ProcessStatus::Normal }
+        state.voices.retain(|v| !v.is_done());
+        if state.voices.is_empty() { ProcessStatus::Tail(0) } else { ProcessStatus::Normal }
     }
 
     fn editor(params: Arc<MyParams>) -> Box<dyn Editor> { /* ... */ }
@@ -530,7 +548,26 @@ impl PluginLogic for Synth {
 
 Voice allocation, ADSR, and filter state live in the `Voice` struct
 — plain Rust, no framework involvement. Parameters flow in through
-`Arc<Params>`; nothing else is shared across threads.
+`&Params` each call; nothing else is shared across threads.
+
+### Offline rendering
+
+`reset` receives an `AudioConfig` whose `process_mode` tells you how the
+host is driving audio: `Realtime`, `Buffered`, or `Offline`. During an
+offline bounce there is no wall-clock deadline, so you can allocate
+bigger oversampling / lookahead buffers and trade CPU for quality. Size
+those buffers in `reset` (off the audio thread); the same mode is also on
+each block's `ProcessContext` as `process_mode`, so a plugin that only
+wants to relax realtime discipline (not reallocate) can read it per
+block. The signal is delivered on CLAP, VST3, VST2, and LV2; other
+formats always report `Realtime`.
+
+```rust
+fn reset(state: &mut Self::DspState, _params: &Self::Params, config: &AudioConfig) {
+    let oversample = if config.process_mode.is_offline() { 8 } else { 2 };
+    state.resampler.resize(config.max_block_size * oversample);
+}
+```
 
 The macro is the same for every plugin shape:
 
@@ -559,20 +596,22 @@ read+write the shared buffer directly:
 ```rust
 impl PluginLogic for MyEffect {
     type Params = MyEffectParams;
+    type DspState = MyEffectDsp;
     fn supports_in_place() -> bool { true }
     // ...
-    fn process(&mut self, buffer: &mut AudioBuffer, _: &EventList,
+    fn process(state: &mut MyEffectDsp, _params: &MyEffectParams,
+               buffer: &mut AudioBuffer, _: &EventList,
                _: &mut ProcessContext) -> ProcessStatus {
         for ch in 0..buffer.num_output_channels() {
             if buffer.is_in_place(ch) {
                 // Host shares one buffer for in+out; read each
                 // sample, then overwrite it.
                 let inout = buffer.in_out_mut(ch);
-                for s in inout.iter_mut() { *s = self.process_sample(*s); }
+                for s in inout.iter_mut() { *s = state.process_sample(*s); }
             } else {
                 let inp = buffer.input(ch);
                 let out = buffer.output(ch);
-                for i in 0..inp.len() { out[i] = self.process_sample(inp[i]); }
+                for i in 0..inp.len() { out[i] = state.process_sample(inp[i]); }
             }
         }
         ProcessStatus::Normal

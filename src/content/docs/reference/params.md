@@ -105,16 +105,16 @@ smooth = "exp(5)"          # exponential one-pole, 5 ms. Right for gain and filt
 In `reset()`, prime the smoothers:
 
 ```rust
-fn reset(&mut self, sample_rate: f64, _: usize) {
-    self.params.set_sample_rate(sample_rate);
-    self.params.snap_smoothers();
+fn reset(state: &mut Self::DspState, params: &MyParams, config: &AudioConfig) {
+    params.set_sample_rate(config.sample_rate);
+    params.snap_smoothers();
 }
 ```
 
 In `process()`, pull a smoothed value per sample with `.read()`:
 
 ```rust
-let g = self.params.gain.read();
+let g = params.gain.read();
 ```
 
 `.read()` returns `f32` or `f64` depending on the prelude in scope —
@@ -142,8 +142,8 @@ The canonical case for `.value()` is a parameter that drives a
 target drifts past a 5% threshold:
 
 ```rust
-let time_s = self.params.time.value();
-if (time_s - self.last_built_time_s).abs() > REBUILD_THRESHOLD {
+let time_s = params.time.value();
+if (time_s - state.last_built_time_s).abs() > REBUILD_THRESHOLD {
     request_rebuild(time_s);
 }
 ```
@@ -267,7 +267,7 @@ The derive panics at construction if any two flattened ids collide, so a bad bas
 The generated `ParamId` enum (below) covers a struct's *own* params, not its nested children - the derive can't see inside another type. Reach a nested param by its runtime id off the field itself:
 
 ```rust
-knob(self.params.filter.cutoff.id(), "Cutoff")
+knob(params.filter.cutoff.id(), "Cutoff")
 ```
 
 `.id()` returns the rebased (flattened) id, so it stays correct under reuse and pinning alike.
@@ -315,17 +315,17 @@ Typos become compile errors; rename-refactor stays safe.
 
 ## Shared ownership
 
-The shell owns the `Arc<MyParams>` and passes a clone to `YourPlugin::new()`. GUI closures can also clone the `Arc`. Host automation writes atomically; every reader sees the latest value without locking.
+The shell owns the `Arc<MyParams>` and hands `&MyParams` to `process` / `reset` / `init` and a clone of the `Arc` to `editor`. GUI closures can also clone the `Arc`. Host automation writes atomically; every reader sees the latest value without locking.
 
 ```rust
-pub struct MyPlugin {
-    params: Arc<MyParams>,
+fn process(state: &mut Self::DspState, params: &MyParams, buffer: &mut AudioBuffer,
+           events: &EventList, ctx: &mut ProcessContext) -> ProcessStatus {
+    let g = params.gain.read();
+    // ...
 }
 
-impl MyPlugin {
-    pub fn new(params: Arc<MyParams>) -> Self {
-        Self { params }
-    }
+fn editor(params: Arc<MyParams>) -> Box<dyn Editor> {
+    // clone the Arc into GUI closures as needed
 }
 ```
 

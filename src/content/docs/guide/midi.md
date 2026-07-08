@@ -201,14 +201,15 @@ matters when (e.g.) a CC arrives at the same sample as a note-on.
 The plugin sees `&EventList` in `process()`:
 
 ```rust
-fn process(&mut self, buffer: &mut AudioBuffer, events: &EventList,
+fn process(state: &mut Self::DspState, _params: &Self::Params,
+           buffer: &mut AudioBuffer, events: &EventList,
            context: &mut ProcessContext) -> ProcessStatus {
     for event in events.iter() {
         match &event.body {
-            EventBody::NoteOn  { note, velocity, .. } => self.note_on(*note, *velocity),
-            EventBody::NoteOff { note, .. }           => self.note_off(*note),
-            EventBody::ControlChange { cc, value, .. } => self.cc(*cc, *value),
-            EventBody::PitchBend { value, .. }         => self.pb(*value),
+            EventBody::NoteOn  { note, velocity, .. } => state.note_on(*note, *velocity),
+            EventBody::NoteOff { note, .. }           => state.note_off(*note),
+            EventBody::ControlChange { cc, value, .. } => state.cc(*cc, *value),
+            EventBody::PitchBend { value, .. }         => state.pb(*value),
             _ => {}
         }
     }
@@ -229,8 +230,8 @@ footprint). Resolve them via the list:
 ```rust
 EventBody::SysEx { .. } => {
     let bytes = events.sysex_bytes(&event.body);
-    self.handle_sysex(bytes); // bytes are the inner payload,
-                              // no leading 0xF0 / trailing 0xF7
+    state.handle_sysex(bytes); // bytes are the inner payload,
+                               // no leading 0xF0 / trailing 0xF7
 }
 ```
 
@@ -243,8 +244,8 @@ for i in 0..buffer.num_samples() {
     while let Some(e) = events.get(next) {
         if e.sample_offset as usize > i { break; }
         match &e.body {
-            EventBody::NoteOn  { note, velocity, .. } => self.note_on(*note, *velocity),
-            EventBody::NoteOff { note, .. }           => self.note_off(*note),
+            EventBody::NoteOn  { note, velocity, .. } => state.note_on(*note, *velocity),
+            EventBody::NoteOff { note, .. }           => state.note_off(*note),
             _ => {}
         }
         next += 1;
@@ -262,10 +263,10 @@ floats:
 use truce_core::midi::{norm_7bit, norm_pitch_bend};
 
 EventBody::ControlChange { cc: 1, value, .. } => {
-    self.mod_depth = norm_7bit(*value);              // 0..=127 → [0.0, 1.0]
+    state.mod_depth = norm_7bit(*value);             // 0..=127 → [0.0, 1.0]
 }
 EventBody::PitchBend { value, .. } => {
-    self.bend_semitones = norm_pitch_bend(*value) * 2.0;  // [-1.0, 1.0)
+    state.bend_semitones = norm_pitch_bend(*value) * 2.0;  // [-1.0, 1.0)
 }
 ```
 
@@ -327,8 +328,8 @@ The arpeggiator example in [`examples/truce-example-arpeggio`](https://github.co
 walks held-note tracking + step scheduling:
 
 ```rust
-EventBody::NoteOn  { note, .. } => self.held.push(*note),
-EventBody::NoteOff { note, .. } => self.held.retain(|n| n != note),
+EventBody::NoteOn  { note, .. } => state.held.push(*note),
+EventBody::NoteOff { note, .. } => state.held.retain(|n| n != note),
 // ...later, on each step boundary:
 context.output_events.push(Event::new(
     step_offset,

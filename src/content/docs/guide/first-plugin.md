@@ -62,7 +62,7 @@ pub struct MyGainParams {
 ```
 
 One line of attributes per parameter. `#[derive(Params)]` generates
-the `new()` constructor, a `MyGainParamsParamId` enum with typed
+a `MyGainParamsParamId` enum with typed
 variants, and the `Params` trait impl. Parameter IDs auto-assign by
 field order (`Gain = 0`, then 1, 2, ...). See
 [chapter 4 → parameters](parameters.md) for the full attribute
@@ -73,24 +73,21 @@ reference.
 ```rust
 use MyGainParamsParamId as P;
 
-pub struct MyGain { params: Arc<MyGainParams> }
-
-impl MyGain {
-    pub fn new(params: Arc<MyGainParams>) -> Self { Self { params } }
-}
+pub struct MyGain;
 
 impl PluginLogic for MyGain {
     type Params = MyGainParams;
+    type DspState = ();
 
-    fn reset(&mut self, sample_rate: f64, _max_block_size: usize) {
-        self.params.set_sample_rate(sample_rate);
-        self.params.snap_smoothers();
+    fn reset(_state: &mut (), params: &MyGainParams, config: &AudioConfig) {
+        params.set_sample_rate(config.sample_rate);
+        params.snap_smoothers();
     }
 
-    fn process(&mut self, buffer: &mut AudioBuffer, _events: &EventList,
-               _ctx: &mut ProcessContext) -> ProcessStatus {
+    fn process(_state: &mut (), params: &MyGainParams, buffer: &mut AudioBuffer,
+               _events: &EventList, _ctx: &mut ProcessContext) -> ProcessStatus {
         for i in 0..buffer.num_samples() {
-            let gain = db_to_linear(self.params.gain.read());
+            let gain = db_to_linear(params.gain.read());
             for ch in 0..buffer.channels() {
                 let (inp, out) = buffer.io(ch);
                 out[i] = inp[i] * gain;
@@ -108,6 +105,9 @@ impl PluginLogic for MyGain {
 }
 ```
 
+`MyGain` is a stateless descriptor; per-instance DSP state lives in
+the associated `type DspState` (here `()`, since a gain has none) and
+the framework threads it into `reset` / `process` for you.
 `PluginLogic` is a single trait covering both the audio thread
 (`reset()` runs when the host knows the sample rate and block
 size; `process()` runs every block) and the main thread
@@ -265,8 +265,8 @@ Use it in `process()`:
 
 ```rust
 for i in 0..buffer.num_samples() {
-    let gain = db_to_linear(self.params.gain.read());
-    let pan  = self.params.pan.read();
+    let gain = db_to_linear(params.gain.read());
+    let pan  = params.pan.read();
     let l = gain * (1.0 - pan.max(0.0));
     let r = gain * (1.0 + pan.min(0.0));
     buffer.output(0)[i] *= l;

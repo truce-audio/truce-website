@@ -75,8 +75,11 @@ move continuously. The bridge is a `Shared` cell per knob the
 graph reads via `var()`:
 
 ```rust
-pub struct FundspReverbSimple {
-    params: Arc<FundspReverbSimpleParams>,
+// Stateless descriptor.
+pub struct FundspReverbSimple;
+
+// Per-instance DSP state.
+pub struct FundspReverbSimpleDsp {
     low_cut_shared: Shared,
     high_cut_shared: Shared,
     mix_shared:     Shared,
@@ -86,14 +89,15 @@ pub struct FundspReverbSimple {
 ```
 
 In `process()` you push the latest smoothed param value into
-each `Shared` every frame, just before `graph.tick`:
+each `Shared` every frame, just before `graph.tick` (params arrive as
+a `&Self::Params` argument, DSP state as `&mut Self::DspState`):
 
 ```rust
 buffer.for_each_frame::<2, _>(|frame_in, frame_out| {
-    self.low_cut_shared.set_value(self.params.low_cut.read());
-    self.high_cut_shared.set_value(self.params.high_cut.read());
-    self.mix_shared.set_value(self.params.mix.read());
-    self.graph.tick(frame_in, frame_out);
+    state.low_cut_shared.set_value(params.low_cut.read());
+    state.high_cut_shared.set_value(params.high_cut.read());
+    state.mix_shared.set_value(params.mix.read());
+    state.graph.tick(frame_in, frame_out);
 });
 ```
 
@@ -136,8 +140,8 @@ Both crates also impose a 0.05 s threshold so tiny drifts
 ```rust
 const TIME_REBUILD_THRESHOLD_S: f32 = 0.05;
 
-let time_s = self.params.time.value();
-if (time_s - self.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
+let time_s = params.time.value();
+if (time_s - state.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
     // ... rebuild
 }
 ```
@@ -148,11 +152,12 @@ The simple variant just calls `rebuild_graph` directly inside
 `process()` when the threshold trips:
 
 ```rust
-fn process(&mut self, buffer: &mut AudioBuffer, /* … */) -> ProcessStatus {
-    let time_s = self.params.time.value();
-    if (time_s - self.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
-        self.rebuild_graph(self.last_built_sr, time_s);
-        self.last_built_time_s = time_s;
+fn process(state: &mut Self::DspState, params: &Self::Params,
+           buffer: &mut AudioBuffer, /* … */) -> ProcessStatus {
+    let time_s = params.time.value();
+    if (time_s - state.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
+        state.rebuild_graph(state.last_built_sr, time_s);
+        state.last_built_time_s = time_s;
     }
     // … same per-frame loop as above
 }
@@ -229,8 +234,8 @@ microseconds. The audio thread calls `unpark` after every
 → park.
 
 ```rust
-self.rebuild.requests.force_push(RebuildRequest { sample_rate, time_s });
-self.worker_thread.unpark();
+state.rebuild.requests.force_push(RebuildRequest { sample_rate, time_s });
+state.worker_thread.unpark();
 ```
 
 The `force_push` happens *before* the unpark so the wake-up
@@ -258,14 +263,14 @@ struct ReadyGraph {
 When `process()` pops one, it checks SR:
 
 ```rust
-if let Some(ready) = self.rebuild.ready.pop() {
-    if ready.sample_rate.to_bits() == self.last_built_sr.to_bits() {
-        let old = std::mem::replace(&mut self.graph, ready.graph);
-        let _ = self.rebuild.discard.push(old);
-        self.last_built_time_s = ready.time_s;
+if let Some(ready) = state.rebuild.ready.pop() {
+    if ready.sample_rate.to_bits() == state.last_built_sr.to_bits() {
+        let old = std::mem::replace(&mut state.graph, ready.graph);
+        let _ = state.rebuild.discard.push(old);
+        state.last_built_time_s = ready.time_s;
     } else {
         // Stale SR — route to discard so the worker frees it.
-        let _ = self.rebuild.discard.push(ready.graph);
+        let _ = state.rebuild.discard.push(ready.graph);
     }
 }
 ```
@@ -296,13 +301,13 @@ When `process()` requests a rebuild, it updates
 back the new graph:
 
 ```rust
-if (time_s - self.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
-    self.last_built_time_s = time_s;     // optimistic
-    self.rebuild.requests.force_push(RebuildRequest {
-        sample_rate: self.last_built_sr,
+if (time_s - state.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
+    state.last_built_time_s = time_s;     // optimistic
+    state.rebuild.requests.force_push(RebuildRequest {
+        sample_rate: state.last_built_sr,
         time_s,
     });
-    self.worker_thread.unpark();
+    state.worker_thread.unpark();
 }
 ```
 
@@ -319,7 +324,7 @@ builds the latest one.
 ### Drop joins the worker
 
 ```rust
-impl Drop for FundspReverbWorker {
+impl Drop for FundspReverbWorkerDsp {
     fn drop(&mut self) {
         self.rebuild.shutdown.store(true, Ordering::Release);
         self.worker_thread.unpark();
