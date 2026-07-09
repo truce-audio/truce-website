@@ -152,6 +152,12 @@ meter(&[P::MeterL, P::MeterR], "Level").rows(3)
 The DSP side is atomic and realtime-safe. The GUI reads the latest
 value every frame.
 
+For a single scalar, `#[meter]` is all you need. For continuous
+streaming data - a spectrum analyzer, an oscilloscope - the audio
+thread taps samples into an `AudioTap`, a background worker runs the
+analysis, and it publishes the result into a `#[skip]` field the
+editor reads. See [chapter 7 → workers](workers.md).
+
 ### Interaction for free
 
 - Drag on a knob / slider → change the param.

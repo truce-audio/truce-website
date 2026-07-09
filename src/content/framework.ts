@@ -17,40 +17,28 @@ export type Feature = {
 
 export const features: Feature[] = [
   {
-    title: "7 plugin formats",
-    body: "CLAP and VST3 by default; VST2, LV2, AU v2, AU v3, and AAX are opt-in per crate. One Rust codebase, every host.",
+    title: "Every format, every platform",
+    body: "CLAP and VST3 by default; VST2, LV2, AU v2, AU v3, and AAX opt-in per crate. macOS, Windows, Linux, and iOS from one Rust codebase - the CLI handles signing, notarization, installers, and validation.",
   },
   {
-    title: "Cross-platform",
-    body: "macOS, Windows, Linux, plus iOS via AU v3. The CLI handles signing, notarization, installers, and validation.",
+    title: "Real-time safe",
+    body: "No locks or allocations in process(). Write 32- or 64-bit DSP, with the host's native f64 wire taken directly where it exists. Opening the GUI and saving state stay lock-free, so neither stalls the audio thread.",
+  },
+  {
+    title: "Off-thread work",
+    body: "Offload FFTs, graph rebuilds, and file decodes off the audio thread. A managed pool runs discrete tasks; an AudioTap plus a dedicated worker stream samples out for spectrum analysis. Results flow back lock-free.",
   },
   {
     title: "MIDI 2.0 & multi-port",
     body: "Opt-in MIDI 2.0 / UMP and multiple MIDI in/out ports, with per-note expression (MPE) mapped across CLAP, VST3, and AU v3. MIDI 1.0 plugins are unchanged.",
   },
   {
-    title: "f32 or f64 DSP",
-    body: "Write 64-bit DSP with prelude64. The host's native 64-bit audio wire is taken directly on VST3, VST2, and CLAP; widen/narrow elsewhere.",
-  },
-  {
-    title: "Pick your GUI",
-    body: "Built-in widgets, egui, iced, Slint, Vizia, or raw window handle. The same plugin, your choice of toolkit.",
-  },
-  {
-    title: "Real-time safe",
-    body: "No locks or allocations in process(). The editor is a function of the params store, and state save can go fully lock-free, so opening the GUI or saving never stalls the audio thread.",
-  },
-  {
-    title: "Declarative params",
-    body: "#[derive(Params)] with ranges, units, and smoothing. Atomic storage, lock-free access from any thread.",
+    title: "Params and your GUI",
+    body: "#[derive(Params)] with ranges, units, and smoothing; atomic, lock-free access from any thread. Render them with built-in widgets, egui, iced, Slint, Vizia, or a raw window handle.",
   },
   {
     title: "Hot reload",
     body: "Edit DSP or layout, rebuild, hear changes without restarting your DAW.",
-  },
-  {
-    title: "Validation built in",
-    body: "cargo truce validate runs auval, pluginval, and clap-validator in one command on installed plugins.",
   },
 ];
 

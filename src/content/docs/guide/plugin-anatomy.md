@@ -37,8 +37,7 @@ main thread.
 
 ## The four kinds of plugin data
 
-Keeping per-plugin data in distinct buckets is the point of the
-receiverless design: every method signature spells out exactly which
+Every method signature spells out exactly which
 kind it may read or mutate. There are four, and they live in two
 homes.
 

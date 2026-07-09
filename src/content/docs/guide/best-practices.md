@@ -125,9 +125,12 @@ when the state is small and cheap.
 ## Offload heavy work to a worker
 
 IR loading, FFT planning, file decode, convolution setup - anything that
-allocates or blocks - belongs on a worker thread, with results handed to
-the audio thread through a lock-free channel. The audio thread requests
-and consumes; it never waits. See [workers](workers.md).
+allocates or blocks - belongs off the audio thread. Schedule discrete
+work (a graph rebuild, a decode) on the managed pool with
+`BackgroundTasks`; give a continuous stream (spectral analysis) its own
+`StreamWorker` thread. Either way the audio thread hands work off and
+picks up results through lock-free `#[skip]` channels; it never waits.
+See [workers](workers.md).
 
 ## Kill denormals in feedback paths
 

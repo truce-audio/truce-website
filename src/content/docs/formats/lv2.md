@@ -137,6 +137,15 @@ jalv 'https://your-uri/here'
 - **No MIDI 2.0**. LV2 Atom carries MIDI 1.0 byte streams. Plugins
   exposing MIDI 2.0 `EventBody` variants only see the MIDI 1.0
   mapping when loaded as LV2.
+- **Editor-scheduled background tasks run on a separate instance**.
+  LV2 loads the UI as its own module, so truce backs the editor with
+  a distinct plugin instance from the DSP. A [background
+  task](../guide/workers.md) scheduled from the editor therefore runs
+  against that UI instance's params - fine for preparing data the same
+  GUI reads, but it can't hand results to the audio thread's `#[skip]`
+  state the way the single-instance formats (CLAP, VST3, AU) can. Tasks
+  scheduled from `process()` are unaffected; they run on the DSP
+  instance as normal.
 - **Bundle slugs are case-insensitive**. `Truce Gain`, `TRUCE-gain`,
   and `truce gain` all produce the same slug `truce-gain`. If two
   plugins in the same project slug to the same name they will

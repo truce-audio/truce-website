@@ -302,12 +302,15 @@ Close and reopen the plugin in your DAW. You now have two knobs.
   instruments → [chapter 5 → processing](processing.md).
 - **fundsp graphs in `process()`** — combinator DSL plus a
   worker-thread rebuild pattern → [chapter 6 → fundsp](fundsp.md).
+- **Off-thread work** - managed background tasks and dedicated
+  worker threads for graph rebuilds, file decodes, FFTs, and
+  streaming analysis → [chapter 7 → workers](workers.md).
 - **MIDI** — reading and emitting MIDI events, note effects →
-  [chapter 7 → midi](midi.md).
+  [chapter 8 → midi](midi.md).
 - **A richer UI** — more widgets, `section()`, switching to
-  egui/iced/Slint/Vizia → [chapter 8 → gui](gui.md).
+  egui/iced/Slint/Vizia → [chapter 9 → gui](gui.md).
 - **Shipping to users** — signed `.pkg` / `.exe` installers →
-  [chapter 12 → shipping](shipping.md).
+  [chapter 13 → shipping](shipping.md).
 - **Real examples** — [`examples/truce-example-gain`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-gain),
   [`examples/truce-example-eq`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-eq), [`examples/truce-example-synth`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-synth),
   [`examples/truce-example-transpose`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-transpose),

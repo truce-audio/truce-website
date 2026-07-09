@@ -8,9 +8,9 @@ point of this example is the integration shape — how to hold a
 fundsp graph inside a truce plugin and keep it alloc-free on the
 audio thread.
 
-This is the **production-pattern** variant: graph rebuilds happen
-on a dedicated worker thread and the audio thread picks them up
-via a lock-free swap. For the simpler inline-rebuild version
+This is the **production-pattern** variant: graph rebuilds run on
+truce's managed background-task pool and the audio thread picks up
+the result via a lock-free swap. For the simpler inline-rebuild version
 (rt-unsafe but easier to read top-to-bottom), see
 [fundsp-reverb-simple](./fundsp-reverb-simple). Both crates share
 the same topology, params, and signal flow.
@@ -39,21 +39,23 @@ in (L,R) ───────────────────────�
 
 - **Graph built off the audio thread.** `reset()` builds the
   initial graph synchronously (host calls it off the audio path);
-  subsequent rebuilds run on a dedicated worker thread.
+  subsequent rebuilds run on truce's managed background-task pool.
   `process()` never allocates, never calls `Box::new`, never calls
   `graph.allocate()`, and never drops a `Box<dyn AudioUnit>`.
-- **Lock-free worker handoff.** Three
-  `crossbeam_queue::ArrayQueue`s shuttle work between the audio
-  thread and the rebuild worker: `requests` (audio → worker,
-  latest target wins via `force_push`), `ready` (worker → audio,
-  the freshly-built graph), `discard` (audio → worker, so the old
-  graph is dropped off-thread). The worker `park`s when idle and
-  the audio thread `unpark`s it on a new request.
-- **Worker rebuilds carry their SR.** Each ready graph is tagged
-  with the sample rate it was built for. If `reset()` swaps in a
-  new SR while a worker rebuild is in flight, the audio thread
-  sees the SR mismatch and reroutes the stale graph to the
-  discard queue rather than swapping it in.
+- **Managed rebuild + lock-free handoff.** The rebuild is a
+  [`BackgroundTasks`](../guide/workers) task: `process()` posts the
+  latest target with `spawn_coalescing` (wait-free, newest wins) and
+  the pool runs the handler off-thread. Two
+  `crossbeam_queue::ArrayQueue`s carry the graphs themselves: `ready`
+  (worker → audio, the freshly-built graph) and `discard` (audio →
+  worker, so the old graph is dropped off-thread). The pool owns the
+  thread and its wakeup, so there's no `park` / `unpark` or `Drop`
+  join to write.
+- **Rebuilds carry their SR.** Each ready graph is tagged with the
+  sample rate it was built for. If `reset()` swaps in a new SR while a
+  rebuild is in flight, the audio thread sees the SR mismatch and
+  reroutes the stale graph to the discard queue rather than swapping
+  it in.
 - **Params reach the graph through `fundsp::Shared` atomics.**
   `var(&shared)` reads them per sample; the closure inside
   `for_each_frame` writes the smoothed truce-side value into the
@@ -65,7 +67,7 @@ in (L,R) ───────────────────────�
   per-channel layout into stack-allocated frames so fundsp's
   `tick(in, out)` callback can be called directly. No scratch
   field.
-- **Reverb time triggers a worker rebuild** when the param drifts
+- **Reverb time schedules a rebuild task** when the param drifts
   ≥ 5% — `reverb_stereo`'s `time` argument is baked at
   construction. The audio thread reads the raw `param.value()`
   (not the smoothed `.read()`) so a knob ramp doesn't trip the

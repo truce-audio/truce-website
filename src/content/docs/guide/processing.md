@@ -635,13 +635,17 @@ The contract:
 - **[Chapter 6 → fundsp](fundsp.md)** — drop a fundsp graph
   into `process()` and rebuild it off the audio thread when
   a "structural" param changes.
-- **[Chapter 7 → midi](midi.md)** — emitting MIDI, wire-format
+- **[Chapter 7 → workers](workers.md)** - anything too heavy
+  for a block (an FFT, a graph rebuild, a file decode) goes
+  off the audio thread: managed background tasks, or an
+  `AudioTap` + dedicated worker for streaming analysis.
+- **[Chapter 8 → midi](midi.md)** — emitting MIDI, wire-format
   helpers, MIDI 2.0 surface.
-- **[Chapter 8 → gui](gui.md)** — widgets, layout, meters in
+- **[Chapter 9 → gui](gui.md)** — widgets, layout, meters in
   the UI.
-- **[Chapter 9 → audio-testing](audio-testing.md)** — lock
+- **[Chapter 10 → audio-testing](audio-testing.md)** — lock
   this code in with in-process regression tests before it ships.
-- **[Chapter 14 → hot-reload](hot-reload.md)** — keep your DAW
+- **[Chapter 15 → hot-reload](hot-reload.md)** — keep your DAW
   open while you iterate on this code.
 - **[`examples/truce-example-tremolo`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-tremolo)** in the repo — host transport
   + egui UI in a small, real plugin.
