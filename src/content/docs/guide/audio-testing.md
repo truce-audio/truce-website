@@ -67,7 +67,7 @@ A run is a builder followed by `.run()`:
    input, transport, MIDI / param-automation script, state-file
    load, param overrides, setup closure, capture spec.
 3. `.run()` does the lifecycle in this order:
-    1. `P::create()` → `init()` → `reset(sr, block)` →
+    1. `P::create()` → `init()` → `reset(&AudioConfig)` →
        `params().set_sample_rate(sr)` → `params().snap_smoothers()`.
     2. If `state_file` was supplied, `plugin.load_state(&bytes)`.
     3. `set_param` shortcuts apply via
@@ -180,8 +180,8 @@ there:
 ```rust
 driver!(MyEffect)
     .state_file("test_states/evening.pluginstate")
-    .set_param(MyParamId::Gain, 1.0)        // override gain only
-    .setup(|p, _ctx| p.custom_field = 42)   // tweak custom state
+    .set_param(MyParamId::Gain, 1.0)                         // override gain only
+    .setup(|p, _ctx| p.state_ref_mut().custom_field = 42)    // tweak DSP state
     .run();
 ```
 
@@ -192,7 +192,7 @@ count, sample rate, and block size:
 driver!(MyEffect)
     .channels(4)
     .setup(|p, ctx| {
-        p.scratch = vec![0.0; ctx.block_size * ctx.channels];
+        p.state_ref_mut().scratch = vec![0.0; ctx.block_size * ctx.channels];
         assert_eq!(ctx.channels, 4);
     })
     .run();

@@ -176,8 +176,9 @@ field on the params struct:
 pub struct AnalyzerParams {
     #[param(/* ... */)] pub gain: FloatParam,
 
-    // `#[skip]` = not a parameter. The plugin's `init` fills it so the
-    // receiverless `editor(params)` can reach the shared spectrum.
+    // `#[skip]` = not a parameter. The plugin's `init` fills it so
+    // `editor(params)`, which only sees the param store, can reach the
+    // shared spectrum.
     #[skip]
     editor_bridge: Arc<OnceLock<EditorBridge>>,   // { spectrum, instance_id }
 }

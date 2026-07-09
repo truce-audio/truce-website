@@ -21,6 +21,10 @@ cargo truce new <name> --workspace <p1> <p2> ...    # workspace with N plugins
 | Flag | Notes |
 |------|-------|
 | `--workspace <names...>` | Generate a Cargo workspace with one sub-crate per name. Shared `truce.toml`. |
+| `--instrument` | Scaffold an instrument (no audio input). Default is an effect. |
+| `--midi` | Scaffold a MIDI effect. |
+| `--stateful` | Scaffold `PluginLogic` with a `#[derive(Default)]` DSP-state struct and the `state` argument pre-wired. **The default.** |
+| `--pure` | Scaffold the stateless `PurePluginLogic` - no DSP state, no `state` argument. |
 | `--vendor <string>` | Vendor name. Default: placeholder ("My Company"). |
 | `--vendor-id <reverse-dns>` | Vendor reverse-DNS prefix. Default: `com.mycompany`. |
 | `--type:<crate>=<category>` | Per-plugin category in workspace mode (`effect`, `instrument`, `midi`). |

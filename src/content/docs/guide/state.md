@@ -20,6 +20,53 @@ structs. State is opaque to the host - no automation, no CC mapping,
 no entry in the host's parameter list. The framework round-trips the
 bytes you hand it and nothing more.
 
+There are two ways to carry that non-param state: a `#[persist]`
+field on the params struct (below), or the `save_state` /
+`load_state` pair (further down). Both are saved in the same
+envelope; they differ in where the value lives and who reaches it.
+
+## `#[persist]`: saved fields on the params struct
+
+For small **editor-facing config** - a view mode, an instance label,
+a picked file path, an edit counter - mark the field `#[persist]` on
+the `#[derive(Params)]` struct. The host saves it alongside the
+parameter values with no `save_state` body at all, and because it
+lives on the params struct the editor reads and writes it directly
+through the `Arc<Params>` it already holds.
+
+```rust
+#[derive(Params)]
+pub struct MyParams {
+    #[param(name = "Gain", range = "linear(-60, 6)", unit = "dB")]
+    pub gain: FloatParam,
+
+    // Compound value behind a lock: saved, not automatable.
+    #[persist = "memo"]
+    pub memo: RwLock<InstanceMemo>,
+
+    // Copy scalar in a lock-free cell - reads cleaner than RwLock<u32>.
+    #[persist = "edit_count"]
+    pub edit_count: AtomicCell<u32>,
+}
+```
+
+Pick the wrapper by the field: a `Copy` scalar (a persisted `f32`,
+enum, or index) goes in a lock-free `AtomicCell<T>`; a `String`,
+`Vec`, or `#[derive(State)]` struct goes behind `RwLock` / `Mutex`.
+Fields are keyed (`#[persist = "key"]`, defaulting to the field
+name), so a load skips unknown keys and leaves missing ones at their
+defaults - old sessions open in newer plugin versions and vice
+versa. It works inside `#[nested]` param structs and on every
+format.
+
+`#[persist]` vs `save_state`: both persist, in the same envelope.
+Use `#[persist]` for small config the editor edits in place; use
+`save_state` / `load_state` (below) for an opaque or large blob that
+belongs with the DSP state. And note the contrast with a `#[skip]`
+field: same shared-`Arc` mechanism, but a `#[skip]` field is
+deliberately *not* saved - it's a live channel like an event ring
+(see the [parameters reference](../reference/params.md#skipped-fields-skip)).
+
 ## `save_state` / `load_state`
 
 Two optional methods on `PluginLogic`:

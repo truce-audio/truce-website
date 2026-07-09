@@ -35,6 +35,56 @@ surface (`editor`); the framework guarantees the threading split —
 `process()` only runs on the audio thread, `editor()` only on the
 main thread.
 
+## The four kinds of plugin data
+
+Keeping per-plugin data in distinct buckets is the point of the
+receiverless design: every method signature spells out exactly which
+kind it may read or mutate. There are four, and they live in two
+homes.
+
+- **On the `Params` struct** - shared as `Arc<Self::Params>`, so the
+  audio thread (`&Self::Params`) and the editor (`Arc<Self::Params>`)
+  both reach it with no extra plumbing. Three kinds of field live
+  here, told apart by two attributes.
+- **In `type DspState`** - owned by the shell and handed only to the
+  audio-thread methods (`&mut Self::DspState`). The editor never sees
+  it.
+
+| Kind | Declared as | Home | Host automation | Saved to session / preset | Reached by |
+|------|-------------|------|-----------------|---------------------------|------------|
+| **Parameter** | `#[param]` field | `Params` | yes | yes (automatic) | audio `&Params`; editor `Arc<Params>` |
+| **Persisted state** | `#[persist]` field, or `save_state` / `load_state` | `Params`, or `DspState` | no | yes | audio `&Params`; editor `Arc<Params>`, or `StateBinding` |
+| **DSP state** | `type DspState` | shell | no | no | audio `&mut DspState`; editor none |
+| **Skip state** | `#[skip]` field | `Params` | no | no | audio `&Params`; editor `Arc<Params>` |
+
+The two right-hand behavior columns are the whole decision:
+
+- **Should the host draw an automation lane for it?** It's a
+  **parameter** (`#[param]`) - gain, frequency, mix, a mode selector.
+  Saved automatically; see [parameters](parameters.md).
+- **Must it survive session save and preset recall, but isn't a host
+  control?** It's **persisted state**. Reach for a `#[persist]` field
+  when it's small editor-facing config (a view mode, an instance
+  label, a picked file path); reach for `save_state` / `load_state`
+  when it's an opaque or large blob tied to your DSP state (a decoded
+  sample bank). Both routes are covered in [state](state.md).
+- **Is it audio-thread working memory the editor never touches?**
+  It's **DSP state** (`type DspState`) - filter buffers, oscillator
+  phase, a voice pool. Never saved, and it lives in the shell so a
+  hot-reload keeps it alive across a code-only swap.
+- **Is it a live channel shared between the audio thread and the
+  editor that must not be saved?** It's a **`#[skip]` field** - a
+  lock-free ring of audio-thread events for a visualizer, a shared
+  atomic flag. Not a parameter, not persisted; both sides reach it
+  through the `Arc<Params>` they already share. See
+  [Skipped fields](../reference/params.md#skipped-fields-skip).
+
+A `#[skip]` field is **not** DSP state. DSP state is
+audio-thread-exclusive - the shell never hands it to `editor()` - so
+a value the GUI must read (a meter, an event ring) cannot live there.
+It belongs on the `Params` struct as a `#[skip]` field, the one
+object both threads share.
+
 ## Precision (preludes)
 
 DSP precision is a per-file choice. `f32` is the host wire format
@@ -174,8 +224,40 @@ parameter.
 The same `Arc<Params>` lives on the shell, and can be cloned into GUI
 closures. One source of truth, no synchronization.
 
-If a plugin has no DSP state at all — only `#[param]` fields — set
-`type DspState = ();` and `init` returns `()`.
+If a plugin has no DSP state at all - only `#[param]` fields - skip the
+state plumbing entirely with `PurePluginLogic` (below), or stay on
+`PluginLogic` and write `type DspState = ()`.
+
+### `PurePluginLogic` - the stateless leaf
+
+A pure parameter-driven effect - one whose output is a function of
+params and input only - implements `PurePluginLogic` instead of
+`PluginLogic`:
+
+```rust
+pub struct Gain;
+
+impl PurePluginLogic for Gain {
+    type Params = GainParams;
+
+    fn process(params: &GainParams, buffer: &mut AudioBuffer,
+               _events: &EventList, _ctx: &mut ProcessContext) -> ProcessStatus {
+        /* ... */
+    }
+
+    fn editor(params: Arc<GainParams>) -> Box<dyn Editor> { /* ... */ }
+}
+```
+
+No `type DspState`, no `init`, no `state` argument on `process` - and
+no `reset` needed (the shell snaps the parameter smoothers for you).
+Only `process` and `editor` are required. A blanket impl makes every
+`PurePluginLogic` a `PluginLogic` with `DspState = ()`, so
+`truce::plugin!` and every format wrapper consume it unchanged. When
+the plugin grows DSP state, switch the header to `PluginLogic` and add
+the `type DspState` + `state` argument. Both leaf traits are
+re-exported by the prelude, so the impl header reads the same
+regardless of precision.
 
 ## Lifecycle
 

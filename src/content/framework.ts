@@ -55,7 +55,7 @@ export const features: Feature[] = [
 ];
 
 export type Format = "CLAP" | "VST3" | "VST2" | "LV2" | "AU v2" | "AU v3" | "AAX";
-export type Platform = "macOS" | "Windows" | "Linux";
+export type Platform = "macOS" | "Windows" | "Linux" | "iOS";
 
 export const formats: Format[] = [
   "CLAP",
@@ -67,16 +67,18 @@ export const formats: Format[] = [
   "AAX",
 ];
 
-export const platforms: Platform[] = ["macOS", "Windows", "Linux"];
+export const platforms: Platform[] = ["macOS", "Windows", "Linux", "iOS"];
 
+// iOS only hosts AU v3 by platform contract; every other format is
+// unviable there.
 export const formatMatrix: Record<Format, Record<Platform, boolean>> = {
-  CLAP: { macOS: true, Windows: true, Linux: true },
-  VST3: { macOS: true, Windows: true, Linux: true },
-  VST2: { macOS: true, Windows: true, Linux: true },
-  LV2: { macOS: true, Windows: true, Linux: true },
-  "AU v2": { macOS: true, Windows: false, Linux: false },
-  "AU v3": { macOS: true, Windows: false, Linux: false },
-  AAX: { macOS: true, Windows: true, Linux: false },
+  CLAP: { macOS: true, Windows: true, Linux: true, iOS: false },
+  VST3: { macOS: true, Windows: true, Linux: true, iOS: false },
+  VST2: { macOS: true, Windows: true, Linux: true, iOS: false },
+  LV2: { macOS: true, Windows: true, Linux: true, iOS: false },
+  "AU v2": { macOS: true, Windows: false, Linux: false, iOS: false },
+  "AU v3": { macOS: true, Windows: false, Linux: false, iOS: true },
+  AAX: { macOS: true, Windows: true, Linux: false, iOS: false },
 };
 
 export const quickStart = `# Install the CLI (one-time)
@@ -108,19 +110,17 @@ pub struct GainParams {
 
 use GainParamsParamId as P;
 
+// A stateless descriptor. Parameters live in GainParams; this gain
+// carries no per-instance DSP state, so it implements PurePluginLogic.
+// (A plugin with DSP state - filter memory, oscillator phase - puts it
+// in a #[derive(Default)] struct GainDspState { .. } and implements
+// PluginLogic with type DspState = GainDspState instead.)
 pub struct Gain;
 
-impl PluginLogic for Gain {
+impl PurePluginLogic for Gain {
     type Params = GainParams;
-    type DspState = ();
 
-    fn init(_params: &GainParams) {}
-
-    fn reset(_state: &mut (), params: &GainParams, config: &AudioConfig) {
-        params.set_sample_rate(config.sample_rate);
-    }
-
-    fn process(_state: &mut (), params: &GainParams, buffer: &mut AudioBuffer,
+    fn process(params: &GainParams, buffer: &mut AudioBuffer,
                _events: &EventList, _ctx: &mut ProcessContext) -> ProcessStatus {
         for i in 0..buffer.num_samples() {
             let gain = db_to_linear(params.gain.read());

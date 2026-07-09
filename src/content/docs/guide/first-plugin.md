@@ -75,16 +75,10 @@ use MyGainParamsParamId as P;
 
 pub struct MyGain;
 
-impl PluginLogic for MyGain {
+impl PurePluginLogic for MyGain {
     type Params = MyGainParams;
-    type DspState = ();
 
-    fn reset(_state: &mut (), params: &MyGainParams, config: &AudioConfig) {
-        params.set_sample_rate(config.sample_rate);
-        params.snap_smoothers();
-    }
-
-    fn process(_state: &mut (), params: &MyGainParams, buffer: &mut AudioBuffer,
+    fn process(params: &MyGainParams, buffer: &mut AudioBuffer,
                _events: &EventList, _ctx: &mut ProcessContext) -> ProcessStatus {
         for i in 0..buffer.num_samples() {
             let gain = db_to_linear(params.gain.read());
@@ -105,14 +99,18 @@ impl PluginLogic for MyGain {
 }
 ```
 
-`MyGain` is a stateless descriptor; per-instance DSP state lives in
-the associated `type DspState` (here `()`, since a gain has none) and
-the framework threads it into `reset` / `process` for you.
-`PluginLogic` is a single trait covering both the audio thread
-(`reset()` runs when the host knows the sample rate and block
-size; `process()` runs every block) and the main thread
-(`editor()` returns the GUI to display). `reset`, `process`, and
-`editor` are required; everything else has a default. See
+A gain keeps no per-instance state between blocks, so `MyGain`
+implements `PurePluginLogic` - the stateless leaf trait. That means
+no `type DspState`, no `init`, and no `state` argument threaded
+through `process`: the method is a pure function of params and input.
+`process()` runs every block on the audio thread; `editor()` returns
+the GUI on the main thread. Those two are the only required methods -
+the shell snaps the parameter smoothers for you, so a pure plugin
+needs no `reset` either.
+
+A plugin that *does* keep DSP state (filter memory, a delay line, an
+oscillator phase) implements `PluginLogic` instead and names that
+state as `type DspState`. See
 [chapter 3 → plugin-anatomy](plugin-anatomy.md).
 
 ### 3. The export macro — makes it a plugin
