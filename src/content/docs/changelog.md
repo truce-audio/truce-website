@@ -2,6 +2,36 @@
 
 Notable changes per release.
 
+## 4.1.0
+
+- Managed background tasks: offload work off the audio thread without hand-rolling a worker thread. Implement `BackgroundTasks` (one `run_task(task, params)` function), add `tasks: MyPlugin` to `truce::plugin!`, and schedule from `process` with `ctx.tasks::<T>()` - `try_spawn` for one-shot work, `spawn_coalescing` when only the newest request matters (a filter rebuild, a graph swap). A shared, bounded pool runs the handlers, and a panicking handler can't take the pool down.
+- Your handler reads plugin data through `&Params`, so the audio thread and the worker share it through ordinary `#[skip]` fields - no bespoke channel to wire up. Editors can schedule the same way via `ctx.tasks::<T>()` on the editor context.
+- `AudioTap` for the streaming shape - a spectrum analyzer, loudness meter, or oscilloscope. `process` pushes interleaved frames into a lock-free ring; a consumer drains and analyzes them off-thread. Whole-frame drop-on-full, so a stall can never desync channels.
+- `StreamWorker` (`tap.spawn_worker(...)`): a dedicated consumer thread bound to one `AudioTap`, for continuous work that shouldn't share the pool. It parks until the next block wakes it, drains in order, and keeps its state on the thread with no lock. Rule of thumb: the pool for bursty or discrete work, a `StreamWorker` for a continuous stream.
+- `init` now receives an `InitContext`, so you can kick off a first background build while constructing your DSP state.
+
+### Breaking
+
+Only if your plugin overrides `init`.
+
+- `init` gains an argument: `fn init(params: &Params, cx: &InitContext) -> DspState`. The new `cx` is the point of the change: it carries the task spawner, so you can start background work (a first graph build, a sample load) at construction and have it ready before the first block, instead of stalling the first `process`. Plugins that don't override `init` are unaffected.
+
+### Migrating from 4.0
+
+Add the `cx: &InitContext` parameter to your `init`. If you don't schedule startup work, that's the whole change (an unused `cx` is fine); `process`, `reset`, `editor`, and the rest are untouched.
+
+```diff
+-    fn init(params: &MyParams) -> MyDspState {
++    fn init(params: &MyParams, cx: &InitContext) -> MyDspState {
+         let state = MyDspState::from(params);
++        // Optional: kick off startup work now that `cx` is available.
++        if let Some(tasks) = cx.tasks::<MyTask>() {
++            let _ = tasks.try_spawn(MyTask { /* ... */ });
++        }
+         state
+     }
+```
+
 ## 4.0.0
 
 - `PluginLogic` now separates your code from your data. The trait is a stateless descriptor and its methods (`process`, `reset`, ...) are plain functions - no `&self` - each handed exactly the data it needs. Your plugin's data falls into three kinds, and the signatures keep them straight:
