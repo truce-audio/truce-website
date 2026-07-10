@@ -118,14 +118,8 @@ smooth = "log(20)"         # multiplicative one-pole, 20 ms. Constant perceived 
 linear-gain fade moves at a constant *perceived* rate rather than a
 constant additive one. Both endpoints must be positive.
 
-In `reset()`, prime the smoothers:
-
-```rust
-fn reset(state: &mut Self::DspState, params: &MyParams, config: &AudioConfig) {
-    params.set_sample_rate(config.sample_rate);
-    params.snap_smoothers();
-}
-```
+The shell sets the sample rate and snaps the smoothers for you before
+`reset()` runs, so you don't prime them yourself.
 
 In `process()`, pull a smoothed value per sample with `.read()`:
 

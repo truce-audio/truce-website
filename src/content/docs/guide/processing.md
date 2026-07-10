@@ -493,11 +493,9 @@ impl PluginLogic for Synth {
         vec![BusLayout::new().with_output("Main", ChannelConfig::Stereo)]
     }
 
-    fn reset(state: &mut SynthDsp, params: &MyParams, config: &AudioConfig) {
+    fn reset(state: &mut SynthDsp, _params: &MyParams, config: &AudioConfig) {
         state.sample_rate = config.sample_rate;
         state.voices.clear();
-        params.set_sample_rate(config.sample_rate);
-        params.snap_smoothers();
     }
 
     fn process(state: &mut SynthDsp, params: &MyParams,

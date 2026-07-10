@@ -73,9 +73,10 @@ and [MIDI](midi.md).
 
 `init` runs once; `reset()` runs on every activation and whenever
 the sample rate or block size changes. Put sample-rate-dependent setup
-there: `set_sample_rate`, `snap_smoothers`, clearing delay lines, sizing
-scratch to the new maximum block. `init` just wires up the DSP state's
-fields. See [lifecycle](plugin-anatomy.md#lifecycle).
+there: clearing delay lines, sizing scratch to the new maximum block.
+(The shell sets the sample rate and snaps the smoothers for you before
+`reset()` runs.) `init` just wires up the DSP state's fields. See
+[lifecycle](plugin-anatomy.md#lifecycle).
 
 ## Report latency and tail
 

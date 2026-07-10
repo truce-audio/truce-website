@@ -167,7 +167,7 @@ pub trait PluginLogic: Send + 'static {
 
 | Method | When called | Real-time? | Notes |
 |--------|-------------|------------|-------|
-| `reset` | Sample rate or block size changes; before the first `process` | no | Clear delay lines, reset filter state, call `params.set_sample_rate` + `snap_smoothers`. |
+| `reset` | Sample rate or block size changes; before the first `process` | no | Clear delay lines, reset filter state. The shell sets the sample rate and snaps the smoothers for you first. |
 | `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing](processing.md). |
 | `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo and mono (`BusLayout::stereo_and_mono()`); instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
 | `snapshot_into` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | `snapshot_into` only (audio thread, per block) | **Extra** state only — params are serialized automatically. Save custom state by implementing `snapshot_into` (serializes into a reused buffer the host reads without touching the plugin, so saving never stalls audio). `save_state` still exists but delegates to it; you don't override it. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. See [state](state.md). |

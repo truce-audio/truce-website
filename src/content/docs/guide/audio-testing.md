@@ -67,8 +67,8 @@ A run is a builder followed by `.run()`:
    input, transport, MIDI / param-automation script, state-file
    load, param overrides, setup closure, capture spec.
 3. `.run()` does the lifecycle in this order:
-    1. `P::create()` → `init()` → `reset(&AudioConfig)` →
-       `params().set_sample_rate(sr)` → `params().snap_smoothers()`.
+    1. `P::create()` → `init()` → `reset(&AudioConfig)` (the shell sets
+       the sample rate and snaps the smoothers).
     2. If `state_file` was supplied, `plugin.load_state(&bytes)`.
     3. `set_param` shortcuts apply via
        `params().set_normalized(id, v)`, then `snap_smoothers()`.

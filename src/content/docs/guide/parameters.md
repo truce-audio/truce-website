@@ -135,17 +135,13 @@ smooth = "log(20)"         // multiplicative one-pole, 20 ms. Constant perceived
                            // for frequency and linear-gain params (both endpoints > 0).
 ```
 
-Call `params.set_sample_rate(sr)` + `params.snap_smoothers()` in
-`reset()`. Pull a smoothed value per sample with `.read()` —
-the return type (f32 or f64) follows your prelude choice; see
-[Precision (preludes)](plugin-anatomy.md#precision-preludes).
+Pull a smoothed value per sample with `.read()` — the return type
+(f32 or f64) follows your prelude choice; see
+[Precision (preludes)](plugin-anatomy.md#precision-preludes). The shell
+sets the sample rate and snaps the smoothers for you before `reset()`
+runs, so there's nothing to prime.
 
 ```rust
-fn reset(_state: &mut Self::DspState, params: &Self::Params, config: &AudioConfig) {
-    params.set_sample_rate(config.sample_rate);
-    params.snap_smoothers();
-}
-
 fn process(_state: &mut Self::DspState, params: &Self::Params,
            buffer: &mut AudioBuffer, _: &EventList,
            _: &mut ProcessContext) -> ProcessStatus {
