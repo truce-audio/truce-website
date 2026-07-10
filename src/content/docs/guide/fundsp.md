@@ -93,7 +93,7 @@ each `Shared` every frame, just before `graph.tick` (params arrive as
 a `&Self::Params` argument, DSP state as `&mut Self::DspState`):
 
 ```rust
-buffer.for_each_frame::<2, _>(|frame_in, frame_out| {
+buffer.for_each_stereo_frame(|frame_in, frame_out| {
     state.low_cut_shared.set_value(params.low_cut.read());
     state.high_cut_shared.set_value(params.high_cut.read());
     state.mix_shared.set_value(params.mix.read());
@@ -101,8 +101,11 @@ buffer.for_each_frame::<2, _>(|frame_in, frame_out| {
 });
 ```
 
-`for_each_frame::<2, _>` transposes channel-major into stereo
-frames so fundsp's `tick(in, out)` slots in. The `Shared`
+`for_each_stereo_frame` transposes channel-major into 2-in/2-out
+frames so fundsp's `tick(in, out)` slots in. It's the `(2, 2)`
+shorthand for `for_each_frame_io::<IN, OUT>`, so the same call runs
+over any declared bus - a mono source fans into both graph inputs, a
+stereo bus maps 1:1 - with no per-width branch. The `Shared`
 writes are atomic stores, which the audio thread is fine with.
 
 ## When do you have to rebuild?
@@ -183,7 +186,7 @@ owns the thread, the wakeup, and the teardown - and hands the finished
 graph back through a lock-free swap:
 
 ```text
-   audio thread (process)                  pool worker (run_task)
+   audio thread (process)                  pool worker (run)
    ──────────────────────                  ──────────────────────
    detect Time threshold trip
        │ ctx.tasks::<RebuildRequest>()
@@ -191,7 +194,7 @@ graph back through a lock-free swap:
        ▼                                    ready.force_push(graph)
    ready.pop() in next process      ◄───
    std::mem::replace(&mut graph, …)
-   discard.push(old_graph)          ───►   drop runs here (next run_task)
+   discard.push(old_graph)          ───►   drop runs here (next run)
 ```
 
 The request *is* the task; two lock-free queues carry the graphs
@@ -209,7 +212,7 @@ struct WorkerShared {                        // an Arc<..> #[skip] field on the 
 ```
 
 `WorkerShared` lives as a `#[skip]` field on the params struct, so both
-`process()` (via `&params`) and `run_task` (via `&params`) reach it - the
+`process()` (via `&params`) and `run` (via `&params`) reach it - the
 same shared-`Arc` mechanism the editor uses. Capacities:
 
 - **`ready` capacity 1.** At most one freshly-built graph waits. If the
@@ -236,34 +239,35 @@ if let Some(tasks) = ctx.tasks::<RebuildRequest>() {
 }
 ```
 
-The pool runs `run_task` off the audio thread: it frees any graph the
+The pool runs `run` off the audio thread: it frees any graph the
 audio thread handed back (the heavy drop lands here), builds the new one,
-and force-pushes it to `ready`:
+and force-pushes it to `ready`. `BackgroundTask` is implemented on the
+task type itself - the request arrives as `self`:
 
 ```rust
-impl BackgroundTasks for FundspReverbWorker {
+impl BackgroundTask for RebuildRequest {
     type Params = FundspReverbWorkerParams;
-    type Task = RebuildRequest;
 
-    fn run_task(task: RebuildRequest, params: &FundspReverbWorkerParams) {
+    fn run(self, params: &FundspReverbWorkerParams) {
         let w = &params.worker;
         while let Some(old) = w.discard.pop() { drop(old); }   // heavy drop, off-thread
-        let graph = build_graph(task.sample_rate, task.time_s,
+        let graph = build_graph(self.sample_rate, self.time_s,
                                 &w.low_cut, &w.high_cut, &w.mix);
         let _ = w.ready.force_push(ReadyGraph {
-            graph, sample_rate: task.sample_rate, time_s: task.time_s,
+            graph, sample_rate: self.sample_rate, time_s: self.time_s,
         });
     }
 }
 ```
 
-Wire it in with the `tasks:` key on the macro:
+Wire it in with the `tasks:` key on the macro - a bracketed list of
+task types:
 
 ```rust
 truce::plugin! {
     logic:  FundspReverbWorker,
     params: FundspReverbWorkerParams,
-    tasks:  FundspReverbWorker,
+    tasks:  [RebuildRequest],
 }
 ```
 
@@ -362,7 +366,7 @@ struct FundspReverbWorkerDspState {
 ```
 
 The pool is process-global and shared across every truce plugin in the
-host, so keep `run_task` short and non-blocking - a graph build is fine;
+host, so keep `run` short and non-blocking - a graph build is fine;
 blocking on I/O is not (that would want a dedicated
 [`StreamWorker`](workers.md) instead).
 
@@ -370,7 +374,7 @@ blocking on I/O is not (that would want a dedicated
 
 Always the worker variant for real-time DSP that needs a
 rebuild. With the managed pool there's no thread machinery to
-write — an `impl BackgroundTasks`, one `spawn_coalescing` call,
+write — an `impl BackgroundTask`, one `spawn_coalescing` call,
 and the `ready` / `discard` handoff, all of which clone cleanly
 from the worker crate for any plugin with a "rebuild" knob.
 

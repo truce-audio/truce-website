@@ -127,7 +127,7 @@ when the state is small and cheap.
 IR loading, FFT planning, file decode, convolution setup - anything that
 allocates or blocks - belongs off the audio thread. Schedule discrete
 work (a graph rebuild, a decode) on the managed pool with
-`BackgroundTasks`; give a continuous stream (spectral analysis) its own
+`BackgroundTask`; give a continuous stream (spectral analysis) its own
 `StreamWorker` thread. Either way the audio thread hands work off and
 picks up results through lock-free `#[skip]` channels; it never waits.
 See [workers](workers.md).

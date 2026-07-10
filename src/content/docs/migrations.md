@@ -5,6 +5,58 @@ self-contained: follow the steps for the version you're jumping to. For
 the full release notes behind these changes, see the
 [changelog](changelog.md).
 
+## Upgrading to 5.0 (from 4.x)
+
+5.0 reworks the background-task API and changes the default bus layout.
+The only source break is the task API, and only if your plugin uses it.
+
+### Background tasks
+
+The `BackgroundTasks` trait - implemented once on the plugin, with a
+`type Task` and a `run_task(task, params)` function - is replaced by
+`BackgroundTask`, implemented on **each task type**. The handler is
+`run(self, params)`: the request that used to arrive as the `task`
+argument is now `self`. Each task type also carries an optional
+`const SERIALIZED: bool` (default `false`); set it to `true` for a
+handler that must never run on two workers at once (one that
+read-modify-writes a non-atomic scratch buffer or cache). `truce::plugin!`
+now takes a bracketed list of task types, one lane each.
+
+Move the impl onto the task type and bracket the `tasks:` value:
+
+```diff
+-impl BackgroundTasks for Reverb {
++impl BackgroundTask for Rebuild {
+     type Params = ReverbParams;
+-    type Task = Rebuild;
+-    fn run_task(task: Rebuild, params: &ReverbParams) {
+-        let graph = build_graph(task.sample_rate, task.time_s);
++    // const SERIALIZED: bool = true;   // add for a non-reentrant handler
++    fn run(self, params: &ReverbParams) {
++        let graph = build_graph(self.sample_rate, self.time_s);
+         let _ = params.ready.force_push(graph);
+     }
+ }
+
+-truce::plugin! { logic: Reverb, params: ReverbParams, tasks: Reverb }
++truce::plugin! { logic: Reverb, params: ReverbParams, tasks: [Rebuild] }
+```
+
+`task.field` reads become `self.field`. Scheduling is unchanged:
+`ctx.tasks::<Rebuild>()` still returns the spawner, and `try_spawn` /
+`spawn_coalescing` are the same. To run more than one kind of task, list
+them all - `tasks: [Rebuild, Analyze]` - and select the lane by type at
+the call site.
+
+### Bus layouts (no code change, changed behavior)
+
+`bus_layouts()` now defaults to `BusLayout::stereo_and_mono()` instead of
+stereo-only, so an effect that took the default appears on **mono tracks**
+too. Nothing to edit, but a mono track hands `process` a one-channel
+buffer: loop over `buffer.channels()` rather than assuming two. If you want
+the old stereo-only behavior back, override with
+`vec![BusLayout::stereo()]`.
+
 ## Upgrading to 4.0 (from 3.x)
 
 4.0 turns `PluginLogic` into a stateless *descriptor*: its methods are

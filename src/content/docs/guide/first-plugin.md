@@ -124,9 +124,10 @@ truce::plugin! {
 
 Generates all format entry points (CLAP, VST3, VST2, LV2, AU v2/v3,
 AAX via Cargo features), state serialization, parameter hosting,
-and the hot-reload shell. One macro. Default bus layout is stereo;
-override `PluginLogic::bus_layouts()` for instruments, sidechains,
-or mono/mono.
+and the hot-reload shell. One macro. Default bus layout is stereo and
+mono (so the effect shows up on both mono and stereo tracks); override
+`PluginLogic::bus_layouts()` for instruments, sidechains, or a
+stereo-only effect.
 
 ## Tour the generated config
 

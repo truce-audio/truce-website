@@ -42,17 +42,17 @@ no allocation, no free, no syscall, no unbounded loop. In practice:
 A worker can allocate and free freely - that's the whole point of moving
 the work there. **Blocking** is the one thing to place carefully: a
 dedicated `StreamWorker` owns its thread and may block on I/O or a lock as
-long as it likes, but a `BackgroundTasks` handler runs on a pool shared
+long as it likes, but a `BackgroundTask` handler runs on a pool shared
 with every other truce plugin in the host (see below), so it must stay
 short and non-blocking.
 
 ## Reaching shared state through `Params`
 
-Your logic type is a stateless descriptor and `run_task` is a plain
-function - neither has a `self` to hang shared channels off. The handoff
-lives on the **params** instead, as a `#[skip]` field (not a parameter,
-just state the param store carries). Both sides reach it through
-`&params`: `process` on the audio thread, `run_task` on the pool, and
+Your task type is a small request, and `run` receives it as `self` - but
+`self` is only that one request, not the plugin's shared channels. The
+handoff lives on the **params** instead, as a `#[skip]` field (not a
+parameter, just state the param store carries). Both sides reach it
+through `&params`: `process` on the audio thread, `run` on the pool, and
 `editor(params)` on the GUI thread.
 
 ```rust
@@ -73,20 +73,23 @@ and `editor(params)` reads it back.
 
 ## Managed background tasks
 
-For discrete off-thread work, implement `BackgroundTasks` and name it in
-`truce::plugin!`. You define a `Copy` **task** type (the request) and a
-`run_task` that handles it; truce runs `run_task` on a shared, bounded
-pool.
+For discrete off-thread work, define a `Copy` **task** type (the request),
+implement `BackgroundTask` **on that type**, and list it in
+`truce::plugin!`. The handler is `run(self, params)` - the request arrives
+as `self`; truce runs it on a shared, bounded pool.
 
 ```rust
-impl BackgroundTasks for MyPlugin {
-    type Params = MyParams;
-    type Task = RebuildRequest;        // a small Copy request
+#[derive(Copy, Clone)]
+pub struct RebuildRequest { sample_rate: f64, time_s: f32 }
 
-    // Runs on the pool, off the audio thread. Reaches shared state
-    // through `&params` - the same `#[skip]` field `process` writes.
-    fn run_task(task: RebuildRequest, params: &MyParams) {
-        let graph = build_graph(task.sample_rate, task.time_s); // allocates
+impl BackgroundTask for RebuildRequest {
+    type Params = MyParams;
+
+    // Runs on the pool, off the audio thread. The request is `self`;
+    // shared state comes through `&params` - the same `#[skip]` field
+    // `process` writes.
+    fn run(self, params: &MyParams) {
+        let graph = build_graph(self.sample_rate, self.time_s); // allocates
         let _ = params.worker.ready.force_push(graph);          // hand back
     }
 }
@@ -94,11 +97,12 @@ impl BackgroundTasks for MyPlugin {
 truce::plugin! {
     logic:  MyPlugin,
     params: MyParams,
-    tasks:  MyPlugin,          // wires run_task onto the pool
+    tasks:  [RebuildRequest],   // one lane per task type
 }
 ```
 
-Schedule from `process` (or the editor) through the context:
+Schedule from `process` (or the editor) through the context, selecting the
+lane by task type:
 
 ```rust
 if let Some(tasks) = context.tasks::<RebuildRequest>() {
@@ -114,11 +118,12 @@ Two ways to schedule, both wait-free:
 | `spawn_coalescing(task)` | Single slot; keeps only the newest target and runs it once per drain | Only the newest target matters (a knob sweep) |
 
 The pool is process-wide and bounded (it never grows past
-`available_parallelism`), started lazily on the first task, and shared by
-every plugin instance. A panic in `run_task` is caught, so one bad handler
-can't strand the pool. There is **no thread to own and no `Drop` to
-write** - a plugin that never implements `BackgroundTasks` gets no pool at
-all.
+`available_parallelism`), warmed when the plugin is instantiated - so a
+handler first scheduled from `process()` never spawns threads on the audio
+thread - and shared by every plugin instance. A panic in `run` is caught,
+and a worker that fails to spawn drops its task rather than taking the pool
+down, so one bad handler can't strand it. There is **no thread to own and
+no `Drop` to write** - a plugin that lists no tasks gets no pool at all.
 
 Because the pool is shared and small (as few as one thread on a dual-core
 machine), keep handlers **short and non-blocking**. A handler that blocks
@@ -127,6 +132,43 @@ truce plugin in the host*, not just yours. Allocation and CPU-bound bursts
 are fine. For work that genuinely blocks or runs long, give the plugin its
 own thread with a [`StreamWorker`](#draining-on-a-dedicated-streamworker)
 instead of the pool.
+
+### Concurrency: `SERIALIZED`
+
+Each task type chooses whether its handler may run on two workers at once.
+Set the associated `const SERIALIZED` on the impl:
+
+- **`false`** (the default) - a burst that re-arms the task may run your
+  handler on two workers concurrently. Fastest, and correct when the
+  handler only reaches the audio thread through lock-free channels or
+  atomics (the reverb handoff above).
+- **`true`** ("one-slot") - the pool runs the handler one invocation at a
+  time for a given instance, so a handler that read-modify-writes a
+  non-atomic scratch buffer or cache is safe with no `try_lock` of your
+  own. Tasks are never dropped or reordered; only concurrency is bounded.
+
+```rust
+impl BackgroundTask for RebuildRequest {
+    type Params = MyParams;
+    const SERIALIZED: bool = true;   // never two rebuilds at once for one instance
+    fn run(self, params: &MyParams) { /* ... */ }
+}
+```
+
+### Mixing lanes
+
+List several task types and each gets its own queue and its own
+`SERIALIZED` mode. `ctx.tasks::<T>()` picks the lane by type, so a
+serialized rebuild and a concurrent analyzer never queue behind each
+other:
+
+```rust
+truce::plugin! {
+    logic:  MyPlugin,
+    params: MyParams,
+    tasks:  [Rebuild, Analyze],   // two independent lanes
+}
+```
 
 ## Shape 1: offload construction
 
@@ -164,16 +206,16 @@ if (time_s - state.last_built_time_s).abs() > TIME_REBUILD_THRESHOLD_S {
 }
 ```
 
-**Build off-thread.** `run_task` does the allocation, frees any graph the
+**Build off-thread.** `run` does the allocation, frees any graph the
 audio thread swapped out (the heavy drop lands here), and hands the new
 one back:
 
 ```rust
-fn run_task(task: RebuildRequest, params: &MyParams) {
+fn run(self, params: &MyParams) {
     let w = &params.worker;
     while let Some(old) = w.discard.pop() { drop(old); }   // heavy drop, off-thread
-    let graph = build_graph(task.sample_rate, task.time_s); // allocates
-    let _ = w.ready.force_push(ReadyGraph { graph, sample_rate: task.sample_rate });
+    let graph = build_graph(self.sample_rate, self.time_s); // allocates
+    let _ = w.ready.force_push(ReadyGraph { graph, sample_rate: self.sample_rate });
 }
 ```
 
@@ -237,11 +279,13 @@ No thread of your own, bounded thread count, shared with every other
 plugin's tasks.
 
 ```rust
-impl BackgroundTasks for Analyzer {
-    type Params = AnalyzerParams;
-    type Task   = Analyze;                    // a unit "drain now" signal
+#[derive(Copy, Clone)]
+pub struct Analyze;                           // a unit "drain now" signal
 
-    fn run_task(_task: Analyze, params: &AnalyzerParams) {
+impl BackgroundTask for Analyze {
+    type Params = AnalyzerParams;
+
+    fn run(self, params: &AnalyzerParams) {
         params.worker.tap.drain_with(|chunk| { /* run the transform, publish */ });
     }
 }
@@ -309,7 +353,7 @@ back and hands the spectrum to the GUI. For a single scalar value,
 
 ## Pool or dedicated thread?
 
-| | Managed pool (`BackgroundTasks`) | Dedicated `StreamWorker` |
+| | Managed pool (`BackgroundTask`) | Dedicated `StreamWorker` |
 |-|-|-|
 | Threads | Shared, bounded across all instances | One per worker |
 | Best for | Bursty or discrete work (rebuild, decode, one FFT) | Continuous streams that shouldn't share (analysis) |
@@ -360,13 +404,13 @@ new instance builds fresh, so there's nothing extra to do.
 
 | Need | Reach for |
 |------|-----------|
-| Run discrete work off-thread | `BackgroundTasks` + `tasks:` on `truce::plugin!` |
+| Run discrete work off-thread | `BackgroundTask` + `tasks:` on `truce::plugin!` |
 | Stream samples audio → worker | `AudioTap` (built in) |
-| Drain a stream off-thread | `BackgroundTasks` on the pool, or `AudioTap::spawn_worker` for a dedicated thread |
+| Drain a stream off-thread | `BackgroundTask` on the pool, or `AudioTap::spawn_worker` for a dedicated thread |
 | Hand a built object between threads | [`crossbeam-queue`](https://crates.io/crates/crossbeam-queue) `ArrayQueue` |
 | Publish results to the GUI | shared atomics (see [meters](gui.md) or the analyzer's `SpectrumData`) |
 
-`AudioTap`, `StreamWorker`, `BackgroundTasks`, and the task/init contexts
+`AudioTap`, `StreamWorker`, `BackgroundTask`, and the task/init contexts
 all come from the prelude - no extra dependency. Add `crossbeam-queue`
 directly to your plugin's `Cargo.toml` only for the object-handoff queues
 in Shape 1; it isn't re-exported, so you control the version.

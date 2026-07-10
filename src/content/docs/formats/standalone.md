@@ -84,6 +84,10 @@ other truce-produced artifact.
                            Toggle live from the Plugin menu (Cmd+O / Ctrl+O).
   --sample-rate <hz>       e.g. 44100, 48000, 96000
   --buffer <frames>        Audio buffer size
+  --bus-layout <index>     Run in this bus_layouts() entry, at its exact
+                           (in, out) channel count. Maps onto a device
+                           width the hardware supports
+  --list-bus-layouts       List the plugin's bus layouts and exit
   --midi-input <name>      MIDI input device (substring match).
                            Repeatable — the Nth flag feeds the
                            plugin's Nth MIDI input port
@@ -95,6 +99,12 @@ other truce-produced artifact.
   --list-presets           List the plugin's presets and exit
   -h, --help               Show this message
 ```
+
+When the plugin declares more than one bus layout, a **Settings > Bus
+Layout** menu switches between them live. The host runs the exact
+`(in, out)` of the selected layout while keeping the audio device at a
+width the hardware supports, so a mono or asymmetric (mono-in / stereo-out)
+layout plays through a stereo-only device instead of failing to open.
 
 ### `playback` feature: WAV in / WAV out
 

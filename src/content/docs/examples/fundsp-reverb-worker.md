@@ -43,7 +43,7 @@ in (L,R) ───────────────────────�
   `process()` never allocates, never calls `Box::new`, never calls
   `graph.allocate()`, and never drops a `Box<dyn AudioUnit>`.
 - **Managed rebuild + lock-free handoff.** The rebuild is a
-  [`BackgroundTasks`](../guide/workers) task: `process()` posts the
+  [`BackgroundTask`](../guide/workers) task: `process()` posts the
   latest target with `spawn_coalescing` (wait-free, newest wins) and
   the pool runs the handler off-thread. Two
   `crossbeam_queue::ArrayQueue`s carry the graphs themselves: `ready`
@@ -58,14 +58,17 @@ in (L,R) ───────────────────────�
   it in.
 - **Params reach the graph through `fundsp::Shared` atomics.**
   `var(&shared)` reads them per sample; the closure inside
-  `for_each_frame` writes the smoothed truce-side value into the
+  `for_each_stereo_frame` writes the smoothed truce-side value into the
   cell on the same tick (sample-accurate automation).
 - **`Box<dyn AudioUnit>`** for the field type. The concrete
   `An<…>` is hundreds of chars of nested generics; the vtable
   cost is one indirection per block.
-- **`AudioBuffer::for_each_frame::<2, _>`** transposes truce's
-  per-channel layout into stack-allocated frames so fundsp's
-  `tick(in, out)` callback can be called directly. No scratch
+- **`AudioBuffer::for_each_stereo_frame`** transposes truce's
+  per-channel layout into stack-allocated 2-in/2-out frames so
+  fundsp's `tick(in, out)` callback can be called directly. It's the
+  `(2, 2)` shorthand for `for_each_frame_io::<IN, OUT>`, so the same
+  call runs over any declared bus (a mono source fans into both graph
+  inputs, a stereo bus maps 1:1) with no per-width branch. No scratch
   field.
 - **Reverb time schedules a rebuild task** when the param drifts
   ≥ 5% — `reverb_stereo`'s `time` argument is baked at

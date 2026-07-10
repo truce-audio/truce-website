@@ -149,7 +149,7 @@ pub trait PluginLogic: Send + 'static {
         context: &mut ProcessContext,
     ) -> ProcessStatus;
 
-    fn bus_layouts() -> Vec<BusLayout> { vec![BusLayout::stereo()] }
+    fn bus_layouts() -> Vec<BusLayout> { BusLayout::stereo_and_mono() }
 
     fn save_state(state: &Self::DspState) -> Vec<u8> { Vec::new() }
     fn load_state(state: &mut Self::DspState, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
@@ -169,7 +169,7 @@ pub trait PluginLogic: Send + 'static {
 |--------|-------------|------------|-------|
 | `reset` | Sample rate or block size changes; before the first `process` | no | Clear delay lines, reset filter state, call `params.set_sample_rate` + `snap_smoothers`. |
 | `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing](processing.md). |
-| `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo in/out; instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
+| `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo and mono (`BusLayout::stereo_and_mono()`); instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
 | `save_state` / `snapshot_into` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | `snapshot_into` only (audio thread, per block) | **Extra** state only — params are serialized automatically. Save via `save_state` (simple, runs while audio is held) or override `snapshot_into` for the lock-free path that never stalls audio. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. See [state](state.md). |
 | `state_changed` | After `load_state` returns | yes (audio thread, between blocks) | Plugin-side cache invalidation — receives `&mut Self::DspState` + `&Self::Params` to re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
 | `latency` | Host bus reconfiguration | no | Samples of processing delay, for PDC. |
@@ -310,21 +310,29 @@ Supported audio bus configurations live on
 `PluginLogic::bus_layouts()`. The host picks one; the others are
 rejected at bus-config time before `process` is ever called.
 
-### Default (stereo in, stereo out)
+### Default (stereo and mono)
 
-The trait method's default is stereo effect routing — leave it
-alone for a stereo effect:
+The trait method's default is `BusLayout::stereo_and_mono()` - stereo
+*and* mono, in that order. The default exists so an audio effect shows up
+on both **mono and stereo tracks** in Logic Pro (and other hosts that
+filter the insert menu by channel format) without declaring anything.
+Leave it alone for a typical effect:
 
 ```rust
 impl PluginLogic for MyGain {
     type Params = MyParams;
     type DspState = ();
 
-    // bus_layouts omitted → [BusLayout::stereo()]
+    // bus_layouts omitted → BusLayout::stereo_and_mono()
     fn reset(/* … */) { /* … */ }
     fn process(/* … */) -> ProcessStatus { /* … */ }
 }
 ```
+
+Because the default now includes mono, a mono track hands `process` a
+**one-channel** buffer. Loop over `buffer.channels()` rather than assuming
+two - the shipped examples already do. For a stereo-only effect, override
+with `vec![BusLayout::stereo()]`.
 
 ### Instrument (no audio input)
 
@@ -341,6 +349,13 @@ impl PluginLogic for MySynth {
 
 ### Multiple layouts (host picks)
 
+Return several layouts and the host picks the one its track needs. This
+renegotiates on every format that can - CLAP (`audio-ports-config`), VST3
+(`setBusArrangements`, tracked per instance), AU (the channel-capability
+property, plus one AU v3 bus per layout), and AAX (one component per
+layout). VST2 and LV2 stay on the first layout in the list, so put your
+preferred default there.
+
 ```rust
 impl PluginLogic for Widener {
     type Params = WidenerParams;
@@ -356,6 +371,11 @@ impl PluginLogic for Widener {
     /* reset, process … */
 }
 ```
+
+Handy constructors for the common sets: `BusLayout::mono()`,
+`BusLayout::stereo()`, `BusLayout::stereo_and_mono()` (the effect
+default), and `BusLayout::stereo_and_mono_output()` (output-only, for an
+instrument that should appear on mono and stereo instrument tracks).
 
 ### Sidechain
 
@@ -380,6 +400,21 @@ Inside `process`, channels are flat-indexed across buses: with the
 above layout, `buffer.input(0)` / `(1)` is main L/R and `(2)` /
 `(3)` is sidechain L/R. Use `buffer.num_input_channels()` to detect
 which layout the host selected.
+
+When a plugin declares several widths but its DSP is a fixed shape (a
+`reverb_stereo` graph, a stereo filter block), let
+`AudioBuffer::for_each_frame_io::<IN, OUT>` map that shape onto whichever
+bus the host chose - a mono input fans into both graph inputs, a stereo
+bus maps 1:1, with no per-width branch. `for_each_stereo_frame` is the
+shorthand for the common `(2, 2)` case:
+
+```rust
+buffer.for_each_stereo_frame(|frame_in, frame_out| {
+    let (l, r) = reverb.process_stereo(frame_in[0], frame_in[1]);
+    frame_out[0] = l;
+    frame_out[1] = r;
+});
+```
 
 ## State persistence
 

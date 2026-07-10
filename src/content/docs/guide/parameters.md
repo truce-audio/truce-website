@@ -131,6 +131,8 @@ noise on continuous parameters.
 smooth = "none"            // instant jump. Right for toggles, enums, voice counts.
 smooth = "linear(20)"      // linear ramp over 20 ms. Right for pan and mix.
 smooth = "exp(5)"          // exponential one-pole, 5 ms. Right for gain and filter cutoff.
+smooth = "log(20)"         // multiplicative one-pole, 20 ms. Constant perceived rate,
+                           // for frequency and linear-gain params (both endpoints > 0).
 ```
 
 Call `params.set_sample_rate(sr)` + `params.snap_smoothers()` in

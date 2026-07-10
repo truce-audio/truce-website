@@ -83,12 +83,22 @@ The write is realtime-safe (atomic); the GUI reads the latest value every frame.
 ## Range types
 
 ```
-range = "linear(-60, 6)"        # linear between min and max
-range = "log(20, 20000)"        # logarithmic — frequency, time constants
-range = "discrete(1, 16)"       # integer steps
-range = "enum(4)"               # N discrete cases (rarely written by hand;
-                                # EnumParam<T> infers this from the variant count)
+range = "linear(-60, 6)"              # linear between min and max
+range = "log(20, 20000)"              # logarithmic - frequency, time constants
+range = "skewed(0, 1, 0.5)"           # power-law taper; factor < 1 packs detail near min
+range = "sym_skewed(-1, 1, 0.5, 0)"   # center-anchored taper - pan, EQ-gain knobs
+range = "reversed(linear(0, 1))"      # any range with its knob axis flipped
+range = "discrete(1, 16)"             # integer steps
+range = "enum(4)"                     # N discrete cases (rarely written by hand;
+                                      # EnumParam<T> infers this from the variant count)
 ```
+
+`skewed(min, max, factor)` bends the knob response by a power law: a
+`factor` below 1 gives finer control near `min`, above 1 near `max`.
+`sym_skewed(min, max, factor, center)` does the same but anchored at
+`center` and mirrored either side of it, so a pan or EQ-gain knob stays
+symmetric around its detent. `reversed(<range>)` wraps any of the other
+shapes and flips the knob axis (max at the bottom).
 
 `BoolParam` ranges are implicit `0..1`. `EnumParam<T>` ranges are inferred from `T`'s variant count.
 
@@ -100,7 +110,13 @@ Host automation usually arrives block-rate. Smoothing interpolates between succe
 smooth = "none"            # instant jump. Right for toggles, enums, voice counts.
 smooth = "linear(20)"      # linear ramp over 20 ms. Right for pan and mix.
 smooth = "exp(5)"          # exponential one-pole, 5 ms. Right for gain and filter cutoff.
+smooth = "log(20)"         # multiplicative one-pole, 20 ms. Constant perceived rate -
+                           # frequency and linear-gain params.
 ```
+
+`log` smooths in the multiplicative (ratio) domain, so a cutoff sweep or a
+linear-gain fade moves at a constant *perceived* rate rather than a
+constant additive one. Both endpoints must be positive.
 
 In `reset()`, prime the smoothers:
 

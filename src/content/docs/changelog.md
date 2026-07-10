@@ -2,6 +2,60 @@
 
 Notable changes per release.
 
+## 5.0.1
+
+Multiple bus layouts working end-to-end on every format, background-task handlers choosing their own concurrency, and new parameter range and smoothing shapes.
+
+### Bus layouts
+
+- `bus_layouts()` now defaults to `BusLayout::stereo_and_mono()` (stereo and mono) instead of stereo-only. The default makes an audio effect show up on both **mono and stereo tracks** in Logic Pro (and other hosts that filter the insert menu by channel format) without the plugin declaring anything. Override it as before - `vec![BusLayout::stereo()]` for a stereo-only effect, or any set you want. Behavior change: a mono track now hands `process` a one-channel buffer, so loop over `buffer.channels()` rather than assuming two (the shipped examples already do; instruments and MIDI effects override the default).
+- Offer the host more than one layout: return several from `bus_layouts()` and it picks the one its track needs. This renegotiates on every format that can - CLAP (`audio-ports-config`), VST3 (`setBusArrangements`, now tracked per instance so two instances on differently-sized tracks don't report each other's arrangement), AU (the channel-capability property, plus one AU v3 bus per layout), and AAX (one component per layout). VST2 and LV2 stay on the first layout.
+- AU and AAX now honor every declared layout: a mono/stereo/5.1 effect or a surround meter is offered each config and passes `auval`, with no plugin-code change. (AU had been advertising the extra configs but rejecting them at instantiation; AU v3 crashed on surround; AAX offered mono/stereo configs a surround-only plugin never declared.)
+- Declare a channel count AAX has no stem format for and you get a log line instead of the config silently vanishing from Pro Tools.
+- The standalone host runs the exact `(in, out)` of the selected layout (`--bus-layout <index>`, `--list-bus-layouts` to enumerate, or the Settings > Bus Layout menu). It keeps the audio device at a width the hardware supports and maps the plugin onto it, so a mono layout plays through a stereo-only output instead of failing to open, and an asymmetric layout (mono-in / stereo-out) runs at its real dimensions.
+- Helpers for authoring across widths: `BusLayout::mono()` / `stereo_and_mono()` / `stereo_and_mono_output()` constructors, and `AudioBuffer::for_each_frame_io::<IN, OUT>` (with a `for_each_stereo_frame` shorthand for the `(2, 2)` case) to run a fixed-shape DSP over any declared bus - a mono input fans into both graph inputs, a stereo bus maps 1:1, no per-width branch.
+
+### Parameters
+
+- Three more range shapes: `skewed(min, max, factor)` (power-law taper), `sym_skewed(min, max, factor, center)` (center-anchored, for pan and EQ-gain knobs), and `reversed(<range>)` (any range with its knob axis flipped).
+- Logarithmic (multiplicative) smoothing via `smooth = "log(<ms>)"` - a constant perceived rate of change, for frequency and linear-gain params.
+
+### Background tasks
+
+- Each task type now chooses whether its handler may run concurrently with itself. Implement `BackgroundTask` on the task type and set `const SERIALIZED`. `false` (the default) lets the shared pool run your handler on two workers at once when a burst re-arms it - fastest, and correct when the handler only reaches the audio thread through lock-free channels or atomics. `true` ("one-slot") runs the handler one at a time for a given instance, so a handler that read-modify-writes a non-atomic scratch buffer or cache is safe with no locking of your own. Tasks are never dropped or reordered; only concurrency is bounded.
+- A plugin can mix lanes: list several task types - `tasks: [Rebuild, Analyze]` - and each gets its own queue and mode. `ctx.tasks::<Rebuild>()` selects the lane by type, so a serialized rebuild and a concurrent analyzer never queue behind each other.
+- The pool now warms when the plugin is instantiated, so a handler first scheduled from `process()` (a filter that only rebuilds on a knob move) no longer spawns worker threads on the audio thread. A worker-spawn failure now drops the task rather than panicking across the plugin's C boundary.
+
+### Breaking
+
+Only if your plugin uses background tasks.
+
+- The `BackgroundTasks` trait (implemented once on the plugin, with `type Task` and `run_task`) is replaced by `BackgroundTask`, implemented on each task type with `fn run(self, params)` and an optional `const SERIALIZED`. `truce::plugin!` now takes a list of task types: `tasks: [Rebuild]`.
+
+### Migrating from 4.1
+
+Move the impl from your plugin type onto the task type, and wrap the `tasks:` value in brackets. Plugins with no background tasks, and bus layouts, need no changes.
+
+```diff
+-impl BackgroundTasks for Reverb {
++impl BackgroundTask for Rebuild {
+     type Params = ReverbParams;
+-    type Task = Rebuild;
+-    fn run_task(task: Rebuild, params: &ReverbParams) {
+-        let graph = build_graph(task.sample_rate, task.time_s);
++    // const SERIALIZED: bool = true;   // add for a non-reentrant handler
++    fn run(self, params: &ReverbParams) {
++        let graph = build_graph(self.sample_rate, self.time_s);
+         let _ = params.ready.force_push(graph);
+     }
+ }
+
+-truce::plugin! { logic: Reverb, params: ReverbParams, tasks: Reverb }
++truce::plugin! { logic: Reverb, params: ReverbParams, tasks: [Rebuild] }
+```
+
+The old `task` argument becomes `self`, so `task.field` reads become `self.field`. Scheduling is unchanged: `ctx.tasks::<Rebuild>()` still returns the spawner.
+
 ## 4.1.0
 
 - Managed background tasks: offload work off the audio thread without hand-rolling a worker thread. Implement `BackgroundTasks` (one `run_task(task, params)` function), add `tasks: MyPlugin` to `truce::plugin!`, and schedule from `process` with `ctx.tasks::<T>()` - `try_spawn` for one-shot work, `spawn_coalescing` when only the newest request matters (a filter rebuild, a graph swap). A shared, bounded pool runs the handlers, and a panicking handler can't take the pool down.
