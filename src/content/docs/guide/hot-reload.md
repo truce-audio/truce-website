@@ -162,7 +162,7 @@ Both must use the same compiler. `rust-toolchain.toml` in the
 workspace pins it.
 
 **State lost on reload.**
-`save_state()` / `load_state()` format changed between builds.
+`snapshot_into()` / `load_state()` format changed between builds.
 The plugin falls back to defaults.
 
 ## What's next

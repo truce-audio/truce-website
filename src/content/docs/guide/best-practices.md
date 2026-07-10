@@ -114,13 +114,12 @@ GUI any other way. See [GUI](gui.md) and [state](state.md).
 ## Save state off the audio thread
 
 Parameters are saved and restored for you. For extra state (file paths,
-view modes, custom curves), override
-[`snapshot_into`](state.md#two-ways-to-save-save_state-vs-snapshot_into):
-the audio thread serializes into a reused buffer each block and the host
-reads it back without ever locking the plugin, so a host save never
-stalls audio. Use `serialize_into` (not `serialize`) so the per-block
-serialize is allocation-free. Reach for the simpler `save_state` only
-when the state is small and cheap.
+view modes, custom curves), implement
+[`snapshot_into`](state.md#saving-without-stalling-audio): the audio
+thread serializes into a reused buffer each block and the host reads it
+back without ever touching the plugin, so a host save never stalls audio.
+Use `serialize_into` (not `serialize`) so the per-block serialize is
+allocation-free.
 
 ## Offload heavy work to a worker
 

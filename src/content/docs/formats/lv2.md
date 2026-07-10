@@ -80,7 +80,7 @@ is the LV2 host's identity for the plugin.
 - **`atom:AtomPort` with `midi:MidiEvent`** — MIDI input/output as
   LV2 Atom messages.
 - **`state:interface`** — preset save/restore via truce's
-  `save_state` / `load_state`.
+  `snapshot_into` / `load_state`.
 - **UI types**:
   - Linux: `ui:X11UI` (GUI hosted directly on the parent X11 window
     ID).

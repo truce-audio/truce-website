@@ -17,7 +17,7 @@ Four things you write:
    Any per-instance DSP state goes in a separate plain struct named by
    the descriptor's `type DspState`.
 3. A single **`impl PluginLogic for ...`** block — DSP and GUI in
-   one trait (`init`, `reset`, `process`, `editor`, `save_state`,
+   one trait (`init`, `reset`, `process`, `editor`, `snapshot_into`,
    `load_state`, `state_changed`, `latency`, `tail`, `bus_layouts`,
    …). `reset`, `process`, and `editor` are required; every other
    method has a default.
@@ -52,7 +52,7 @@ homes.
 | Kind | Declared as | Home | Host automation | Saved to session / preset | Reached by |
 |------|-------------|------|-----------------|---------------------------|------------|
 | **Parameter** | `#[param]` field | `Params` | yes | yes (automatic) | audio `&Params`; editor `Arc<Params>` |
-| **Persisted state** | `#[persist]` field, or `save_state` / `load_state` | `Params`, or `DspState` | no | yes | audio `&Params`; editor `Arc<Params>`, or `StateBinding` |
+| **Persisted state** | `#[persist]` field, or `snapshot_into` / `load_state` | `Params`, or `DspState` | no | yes | audio `&Params`; editor `Arc<Params>`, or `StateBinding` |
 | **DSP state** | `type DspState` | shell | no | no | audio `&mut DspState`; editor none |
 | **Skip state** | `#[skip]` field | `Params` | no | no | audio `&Params`; editor `Arc<Params>` |
 
@@ -64,7 +64,7 @@ The two right-hand behavior columns are the whole decision:
 - **Must it survive session save and preset recall, but isn't a host
   control?** It's **persisted state**. Reach for a `#[persist]` field
   when it's small editor-facing config (a view mode, an instance
-  label, a picked file path); reach for `save_state` / `load_state`
+  label, a picked file path); reach for `snapshot_into` / `load_state`
   when it's an opaque or large blob tied to your DSP state (a decoded
   sample bank). Both routes are covered in [state](state.md).
 - **Is it audio-thread working memory the editor never touches?**
@@ -151,7 +151,7 @@ pub trait PluginLogic: Send + 'static {
 
     fn bus_layouts() -> Vec<BusLayout> { BusLayout::stereo_and_mono() }
 
-    fn save_state(state: &Self::DspState) -> Vec<u8> { Vec::new() }
+    fn snapshot_into(state: &Self::DspState, buf: &mut Vec<u8>) -> bool { false }
     fn load_state(state: &mut Self::DspState, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
     fn state_changed(state: &mut Self::DspState, params: &Self::Params) {}
 
@@ -170,7 +170,7 @@ pub trait PluginLogic: Send + 'static {
 | `reset` | Sample rate or block size changes; before the first `process` | no | Clear delay lines, reset filter state, call `params.set_sample_rate` + `snap_smoothers`. |
 | `process` | Every audio block | **yes** — no alloc / lock / I/O | The audio thread. See [processing](processing.md). |
 | `bus_layouts` | Plugin discovery / port enumeration | no | Supported audio bus configurations. Default is stereo and mono (`BusLayout::stereo_and_mono()`); instruments / sidechain / MIDI plugins override. See [Bus layouts](#bus-layouts) below. |
-| `save_state` / `snapshot_into` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | `snapshot_into` only (audio thread, per block) | **Extra** state only — params are serialized automatically. Save via `save_state` (simple, runs while audio is held) or override `snapshot_into` for the lock-free path that never stalls audio. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. See [state](state.md). |
+| `snapshot_into` / `load_state` | Host saves/loads a session, recalls a preset, or copies the plugin | `snapshot_into` only (audio thread, per block) | **Extra** state only — params are serialized automatically. Save custom state by implementing `snapshot_into` (serializes into a reused buffer the host reads without touching the plugin, so saving never stalls audio). `save_state` still exists but delegates to it; you don't override it. `load_state` returns `Result<(), StateLoadError>` so wrappers can surface a malformed blob to the host. See [state](state.md). |
 | `state_changed` | After `load_state` returns | yes (audio thread, between blocks) | Plugin-side cache invalidation — receives `&mut Self::DspState` + `&Self::Params` to re-decode an IR, re-build a sample-pad map, anything derived from extra state that the next `process()` block reads. The companion `Editor::state_changed` (on `truce_core::Editor`) handles the GUI-thread repaint. |
 | `latency` | Host bus reconfiguration | no | Samples of processing delay, for PDC. |
 | `tail` | Host transport stop | no | Samples of audio produced after input stops (reverb, delay). |
@@ -274,7 +274,7 @@ regardless of precision.
    `editor()` on the main thread, and the host writes automation
    through atomics. If the sample rate changes, `reset` is called
    again. Saving a session triggers automatic parameter serialization
-   plus `save_state`; loading one calls `load_state`, then `reset`,
+   plus `snapshot_into`; loading one calls `load_state`, then `reset`,
    then resumes `process`.
 5. **The `DspState` is dropped** when the host unloads the plugin.
 
@@ -419,8 +419,8 @@ buffer.for_each_stereo_frame(|frame_in, frame_out| {
 ## State persistence
 
 **Parameter values are saved and restored automatically** by the
-format wrappers. The only time you override `save_state` /
-`load_state` is when you have state that isn't a parameter —
+format wrappers. The only time you implement `snapshot_into` /
+`load_state` is when you have state that isn't a parameter -
 loaded sample paths, custom curves, view mode, selection,
 anything else the user can change.
 
@@ -448,7 +448,12 @@ impl PluginLogic for MyPlugin {
     type Params = MyParams;
     type DspState = MyPluginDsp;
 
-    fn save_state(state: &MyPluginDsp) -> Vec<u8> { state.extra.serialize() }
+    // Serialize into the buffer the framework reuses each block; the host
+    // reads it back without touching the plugin. Return `false` for "none".
+    fn snapshot_into(state: &MyPluginDsp, buf: &mut Vec<u8>) -> bool {
+        state.extra.serialize_into(buf);
+        true
+    }
 
     fn load_state(state: &mut MyPluginDsp, data: &[u8]) -> Result<(), StateLoadError> {
         match MyExtraState::deserialize(data) {
@@ -481,8 +486,9 @@ If you need a specific format — JSON for human-readable presets,
 bytes yourself:
 
 ```rust
-fn save_state(state: &MyPluginDsp) -> Vec<u8> {
-    bincode::serialize(&state.extra).unwrap()
+fn snapshot_into(state: &MyPluginDsp, buf: &mut Vec<u8>) -> bool {
+    bincode::serialize_into(&mut *buf, &state.extra).unwrap();
+    true
 }
 
 fn load_state(state: &mut MyPluginDsp, data: &[u8]) -> Result<(), StateLoadError> {
@@ -495,16 +501,16 @@ fn load_state(state: &mut MyPluginDsp, data: &[u8]) -> Result<(), StateLoadError
 
 ### How it works
 
-The framework wraps whatever you return from `save_state()` in a
-binary envelope with a plugin-ID hash, a version field, and the
-list of `(param_id, f64)` parameter values. On load, the envelope
-is validated (rejects state saved by a different plugin) and
-params are restored **before** `load_state()` is called. You only
-ever see your extra blob.
+The framework wraps the bytes `snapshot_into` writes in a binary
+envelope with a plugin-ID hash, a version field, and the list of
+`(param_id, f64)` parameter values. On load, the envelope is
+validated (rejects state saved by a different plugin) and params are
+restored **before** `load_state()` is called. You only ever see your
+extra blob.
 
-If your plugin has no extra state — only `#[param]` fields and
-meters — don't override `save_state` / `load_state` at all. The
-defaults (`Vec::new()` / no-op) are fine.
+If your plugin has no extra state - only `#[param]` fields and
+meters - don't implement `snapshot_into` / `load_state` at all. The
+defaults (no snapshot / no-op) are fine.
 
 ### Editor state
 

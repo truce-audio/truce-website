@@ -37,7 +37,7 @@ A walkthrough of building, iterating on, and shipping a truce plugin. Read top-t
 | 9 | [gui](guide/gui.md) | Built-in GUI widgets + the alternative backends (egui, iced, Slint, Vizia, raw window handle). |
 | 10 | [audio-testing](guide/audio-testing.md) | `truce_test::PluginDriver` for in-process audio + MIDI regression tests — no DAW required. |
 | 11 | [presets](guide/presets.md) | Factory presets in every format from `.preset` TOML; in-DAW authoring via `cargo truce preset pull`; cross-format conversion; preset packs. |
-| 12 | [state](guide/state.md) | Params vs state, `save_state` / `load_state` for extra state beyond params, what hosts persist, migrating pre-truce state with `migrate_state`. |
+| 12 | [state](guide/state.md) | Params vs state, `snapshot_into` / `load_state` for extra state beyond params, what hosts persist, migrating pre-truce state with `migrate_state`. |
 | 13 | [shipping](guide/shipping.md) | `cargo truce install / build / validate / package`, signing, installers. |
 | 14 | [ios](guide/ios.md) | iOS-specific workflow: simulator iteration, device + `.ipa` signing, per-plugin `truce.toml` knobs, preview-audio mute, screenshot regression. |
 | 15 | [hot-reload](guide/hot-reload.md) | ~2 second edit → hear loop with `--shell`. Experimental — dev-loop only. |

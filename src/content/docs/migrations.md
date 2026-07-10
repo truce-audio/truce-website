@@ -5,6 +5,49 @@ self-contained: follow the steps for the version you're jumping to. For
 the full release notes behind these changes, see the
 [changelog](changelog.md).
 
+## Upgrading to 6.0 (from 5.x)
+
+6.0 moves saving custom state completely off the audio thread, so even a
+large serialize can't glitch audio when the host saves during playback.
+The only source change is for plugins that save **custom** state - state
+beyond parameters - by overriding `save_state`. Plugins that keep
+everything in parameters (including `#[persist]` fields) need no change.
+
+Custom state is now published through `snapshot_into` instead of
+`save_state`. `snapshot_into` writes into a buffer the framework hands you
+and reuses each block, which is what lets the host read it back without
+ever touching the running plugin. `save_state` still exists (the
+framework calls it off-thread and it delegates to `snapshot_into`), but
+overriding it no longer reaches the host.
+
+Move your `save_state` body into `snapshot_into`: write into the buffer
+instead of returning a `Vec`, and return `true` (or `false` for "no
+custom state"). `load_state` is unchanged.
+
+```diff
+-fn save_state(state: &MyDsp) -> Vec<u8> {
+-    encode(&state.extra)
+-}
++fn snapshot_into(state: &MyDsp, buf: &mut Vec<u8>) -> bool {
++    encode_into(&state.extra, buf);   // append your bytes to `buf`
++    true
++}
+```
+
+If your custom state is a `#[derive(State)]` struct, its generated
+`serialize_into` already fits:
+
+```diff
++fn snapshot_into(state: &MyDsp, buf: &mut Vec<u8>) -> bool {
++    state.extra.serialize_into(buf);
++    true
++}
+```
+
+Keep `snapshot_into` cheap and allocation-free: it runs on the audio
+thread after every block. `serialize_into` reuses the buffer's capacity,
+so a steady state never allocates.
+
 ## Upgrading to 5.0 (from 4.x)
 
 5.0 reworks the background-task API and changes the default bus layout.

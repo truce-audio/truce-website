@@ -21,7 +21,7 @@ no entry in the host's parameter list. The framework round-trips the
 bytes you hand it and nothing more.
 
 There are two ways to carry that non-param state: a `#[persist]`
-field on the params struct (below), or the `save_state` /
+field on the params struct (below), or the `snapshot_into` /
 `load_state` pair (further down). Both are saved in the same
 envelope; they differ in where the value lives and who reaches it.
 
@@ -30,7 +30,7 @@ envelope; they differ in where the value lives and who reaches it.
 For small **editor-facing config** - a view mode, an instance label,
 a picked file path, an edit counter - mark the field `#[persist]` on
 the `#[derive(Params)]` struct. The host saves it alongside the
-parameter values with no `save_state` body at all, and because it
+parameter values with no `snapshot_into` body at all, and because it
 lives on the params struct the editor reads and writes it directly
 through the `Arc<Params>` it already holds.
 
@@ -59,20 +59,20 @@ defaults - old sessions open in newer plugin versions and vice
 versa. It works inside `#[nested]` param structs and on every
 format.
 
-`#[persist]` vs `save_state`: both persist, in the same envelope.
+`#[persist]` vs `snapshot_into`: both persist, in the same envelope.
 Use `#[persist]` for small config the editor edits in place; use
-`save_state` / `load_state` (below) for an opaque or large blob that
+`snapshot_into` / `load_state` (below) for an opaque or large blob that
 belongs with the DSP state. And note the contrast with a `#[skip]`
 field: same shared-`Arc` mechanism, but a `#[skip]` field is
 deliberately *not* saved - it's a live channel like an event ring
 (see the [parameters reference](../reference/params.md#skipped-fields-skip)).
 
-## `save_state` / `load_state`
+## `snapshot_into` / `load_state`
 
 Two optional methods on `PluginLogic`:
 
 ```rust
-fn save_state(state: &Self::DspState) -> Vec<u8> { Vec::new() }
+fn snapshot_into(state: &Self::DspState, buf: &mut Vec<u8>) -> bool { false }
 fn load_state(state: &mut Self::DspState, data: &[u8]) -> Result<(), StateLoadError> { Ok(()) }
 ```
 
@@ -117,25 +117,22 @@ Return `Err` for bytes you can't interpret - the wrapper logs it,
 and on formats whose state API has a failure return, reports it to
 the host.
 
-### Two ways to save: `save_state` vs `snapshot_into`
+### Saving without stalling audio
 
-There are two hooks for serializing extra state, and you override
-exactly one:
+`snapshot_into` is the hook for serializing extra state, and it runs
+off the critical path: the audio thread serializes into a reused buffer
+after each block and publishes it to a slot the host reads directly, so
+saving state - even a large blob - never stalls audio. Because it runs
+every block, keep it cheap and allocation-free (use `serialize_into`,
+which reuses the buffer's capacity). Returning `true` is a static
+opt-in: once you return `true`, always return `true` (write an empty
+`buf` if there's nothing to save), never flip back to `false`.
 
-- `save_state(state: &Self::DspState) -> Vec<u8>` - the simple form.
-  The host calls it on its own thread while the audio thread is held at
-  a block boundary, so an expensive serialize can stall audio. Fine for
-  small, cheap state.
-- `snapshot_into(state: &Self::DspState, buf: &mut Vec<u8>) -> bool` -
-  the lock-free form (shown above). The audio thread serializes into a reused buffer
-  after each block and publishes it to a slot the host reads without
-  ever taking the plugin lock, so saving never stalls audio. Because
-  it runs every block, keep it cheap and allocation-free (use
-  `serialize_into`, which reuses the buffer's capacity). Returning
-  `true` is a static opt-in: once you return `true`, always return
-  `true` (write an empty `buf` if there's nothing), never flip back to
-  `false`. The default `save_state` delegates here, so overriding
-  `snapshot_into` alone covers both paths.
+`save_state(state) -> Vec<u8>` still exists as a convenience the
+framework calls off-thread (the test driver, the standalone host), and
+it delegates to `snapshot_into` by default - so implementing
+`snapshot_into` covers every path. You don't override `save_state`;
+overriding it no longer reaches the host.
 
 The [state example](../examples/state.md) is the runnable version of
 this pattern, including the editor side.

@@ -175,7 +175,7 @@ All have default no-ops. Only `ui()` is required.
 
 ## Custom persistent state
 
-If your plugin has state beyond parameters (`save_state` / `load_state`),
+If your plugin has state beyond parameters (`snapshot_into` / `load_state`),
 use `StateBinding<T>` to keep the editor in sync:
 
 ```rust
