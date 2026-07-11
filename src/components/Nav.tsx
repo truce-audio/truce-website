@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { framework } from "@/content/framework";
 import type { SidebarSection } from "@/lib/docs";
 import { TitleWithCode } from "@/components/TitleWithCode";
+import { SearchModal, SearchTrigger } from "@/components/Search";
 
 // Four-corner snap state for the floating hamburger on mobile. Persisted
 // across page navs in localStorage; the swoop on the logo mirrors which
@@ -284,6 +285,7 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
         <div
           className={`hidden items-center gap-2 ${isDocsRoute ? "lg:flex" : "sm:flex"}`}
         >
+          <SearchTrigger variant="desktop" />
           <Link href="/docs/" className={NAV_ITEM_CLASS}>
             Docs
           </Link>
@@ -323,6 +325,7 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
             {/* Site nav items inside the dropdown. Mirrors the visibility of the
                 inline desktop nav — shown until that nav takes over. */}
             <div className={`py-1 ${isDocsRoute ? "lg:hidden" : "sm:hidden"}`}>
+              <SearchTrigger variant="mobile" />
               <Link href="/docs/" className={MOBILE_ITEM_CLASS}>
                 Docs
               </Link>
@@ -380,6 +383,7 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
           </div>
         </details>
       </nav>
+      <SearchModal />
     </header>
   );
 }
