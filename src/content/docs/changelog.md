@@ -2,6 +2,32 @@
 
 Notable changes per release.
 
+## 6.1.0
+
+Sidechain and aux inputs now reach your plugin as separate buses, so a `with_sidechain_input(...)` layout gives the host a real sidechain to route into.
+
+- VST3, AU (v2/v3), and AAX advertise the sidechain as its own bus/port; the plugin sees main channels first, then sidechain. AAX uses Pro Tools' mono side-chain, duplicated across the declared width.
+- VST2 exposes the sidechain as extra input pins, now labeled "Input N" / "Sidechain N" so hosts can route to them.
+- Standalone `--sidechain-file <path>` feeds the sidechain bus, independent of `--input-file` (main bus); works live and offline.
+- Test driver: `PluginDriver::sidechain(InputSource)` drives the sidechain independently of the main input, width auto-detected from the layout.
+- New `truce-example-sidechain`: stereo main + stereo sidechain with IN/SC meters and a Mix knob.
+- LV2 sidechain plugins run main-only for now (the TTL is generated from the plugin category and can't declare the sidechain ports yet); a one-time log notes the dropped sidechain.
+
+### Fixes
+
+- Host text entry into a parameter field parses back through the plugin, on every format.
+- Stepped, enum, and toggle parameters are advertised as discrete/indexed/boolean with value labels, not continuous (VST3, AU, AAX, VST2, LV2); AAX step counts are no longer off by one.
+- `EnumParam` clamps out-of-range indices to the last variant.
+- Linear smoothing converges at the correct constant-increment rate.
+- Transport position in seconds is reported on VST3, VST2, AU, AAX, and LV2 (was always zero); LV2 also reports beat/tempo position.
+- Lock-free state save re-serializes only when state changes (opt-in `snapshot_version`) or, for MB-scale state, publishes off the audio thread via `InitContext::snapshot_publisher()` instead of copying the buffer every block; `snapshot_prealloc_hint` pre-warms the inline buffer.
+- `#[derive(State)]` keyed envelope: add/remove/reorder-safe across sessions, rejects unknown format versions, and rename-type-safe (a changed field type falls back to its default rather than corrupting later fields).
+- Unconnected sidechains read as silence rather than misrouting or panicking; fixed sidechain buffer aliasing on AU v2, and output-buffer aliasing plus channel-count negotiation on VST3 wide layouts.
+- Preset loading hardened; preset-handling fixes on CLAP and AU.
+- AAX parameter taper corrected so non-linear ranges track in Pro Tools.
+- Editor-lifecycle and parameter-format callbacks are panic-guarded on every format (editor build/open/close, value format/parse, reset, instantiation), matching the state save/load guards: an author-code panic returns a safe default instead of aborting the host.
+- Per-format correctness fixes: VST3 result-code (ABI) values; CLAP latency/tail, category, modulatable-flag reporting; AU bus-layout and render-notify handling; VST2 chunk frees, time-signature, missing opcodes; LV2 latency reporting and bypass flag.
+
 ## 6.0.0
 
 Saving your plugin's state - a host session save, a preset capture, the editor reading state back - now runs completely off the audio thread. Even large custom state (a sampler's loaded audio, big wavetables) can no longer cause an audio glitch when the host saves during playback.

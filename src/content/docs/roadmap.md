@@ -25,6 +25,17 @@
   - **VST2.** No `.fxp` emission yet.
   - **AAX (Pro Tools).** Not emitted as AAX `.tfx` yet, so they
     don't appear in Pro Tools' preset menu.
+- **Sidechain / aux inputs.** A `with_sidechain_input(...)` layout gives
+  the plugin a separate sidechain bus on CLAP, VST3, AU (v2 + v3), AAX,
+  VST2, and the standalone host.
+  - **LV2.** Sidechain plugins run main-only. The LV2 `.ttl` port list is
+    generated at compile time from the plugin category, so it can't yet
+    read the sidechain ports from `bus_layouts()`; declaring them only at
+    runtime would shift every port index past the main bus. The wrapper
+    drops the sidechain to keep the runtime port map aligned with the
+    `.ttl` (a one-time log notes this), so the plugin loads and processes
+    its main bus normally - it just receives no sidechain signal. Full
+    support requires install-time `.ttl` rendering from the real layout.
 - **Signing & distribution.**
   - **Retail iLok / PACE round-trip.** PACE wraptool is wired and
     exercised against a dev iLok account; we haven't yet
