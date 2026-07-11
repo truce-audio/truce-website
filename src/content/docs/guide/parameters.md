@@ -119,7 +119,30 @@ value every frame.
 
 ## Attribute reference
 
-Every key that `#[param(...)]` accepts — `id`, `range`, `unit`, `smooth`, `flags`, custom `format` / `parse`, and the rest — is in the dedicated [params reference](../reference/params.md). Skim that page when you're looking up syntax; this chapter focuses on patterns.
+Every key that `#[param(...)]` accepts — `id`, `range`, `unit`, `smooth`, `flags`, custom `format` / `parse`, host-modulation flags (`modulatable` / `modulatable_per_note`), default MIDI-learn bindings (`midi_cc` / `midi_source` / `midi_channel`), and the rest — is in the dedicated [params reference](../reference/params.md). Skim that page when you're looking up syntax; this chapter focuses on patterns.
+
+## Range shapes
+
+`range` maps the host's normalized `0..1` knob position onto your plain
+value. The shape sets how that mapping feels under the cursor:
+
+```
+range = "linear(-60, 6)"              // even spacing. dB gain, mix, pan.
+range = "log(20, 20000)"              // constant ratio per turn. frequency, time.
+range = "skewed(0, 1, 0.5)"           // power-law taper; factor < 1 packs detail near min.
+range = "sym_skewed(-1, 1, 0.5, 0)"   // skew mirrored around a center detent. pan, EQ gain.
+range = "reversed(linear(0, 1))"      // wrap any shape, flip the axis (max at the bottom).
+range = "discrete(1, 16)"             // integer steps (IntParam).
+```
+
+Reach for `log` when a control spans decades and you want equal
+*perceived* motion across the range, so a cutoff sweep doesn't crawl at
+the low end and rush at the top. `skewed` bends a linear range by a power
+law when you want finer control near one end without the strict ratio
+mapping of `log`; `sym_skewed` does the same but stays symmetric around a
+center, so a pan or EQ-gain knob keeps its detent centered. Every shape's
+exact syntax and argument meaning is in the [range types
+reference](../reference/params.md#range-types).
 
 ## Smoothing
 

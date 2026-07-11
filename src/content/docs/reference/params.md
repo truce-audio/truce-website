@@ -18,6 +18,9 @@ Every attribute, range type, smoothing mode, and parameter type that the params 
 | `format` | `format = "format_cutoff"` | Method on the params struct that converts a `f64` value to a `String`. |
 | `parse` | `parse = "parse_cutoff"` | Inverse of `format`. Method that parses a host text-input `&str` back to `f64`. |
 | `chunk` | `chunk = false` | Opt this parameter out of sample-accurate sub-block chunking. Default `true`. Set to `false` for parameters too expensive to re-target mid-block (FFT sizes, lookahead lengths). See [parameters § Sample-accurate automation](../guide/parameters.md#sample-accurate-automation). |
+| `midi_cc` | `midi_cc = 74` | Default host MIDI-learn binding: a CC number `0..=127`. Bakes the initial CC→parameter map the host offers before the user learns their own. See [MIDI binding](#midi-binding). Mutually exclusive with `midi_source`. |
+| `midi_source` | `midi_source = "pitchbend"` | Default MIDI-learn binding to a non-CC source: `"pitchbend"`, `"pressure"` (channel pressure / aftertouch), or `"program"` (program change). See [MIDI binding](#midi-binding). Mutually exclusive with `midi_cc`. |
+| `midi_channel` | `midi_channel = 1` | Scope a `midi_cc` / `midi_source` binding to one MIDI channel `1..=16`. Omit to bind on every (omni) channel. |
 
 The derive generates `MyParams::new()`, a `Default` impl, the full `Params` trait impl, and a typed `MyParamsParamId` enum (`#[repr(u32)]`) with one variant per parameter.
 
@@ -176,6 +179,67 @@ param.
 | `hidden` | Excluded from the host parameter list. Use sparingly — most hosts surface every exposed param. |
 | `readonly` | Host can't write; GUI can't write either. For internal state you want serialized. |
 | `bypass` | Marks the bypass parameter. Hosts treat this specially (per-track bypass UI). One per plugin. |
+| `modulatable` | Advertises the parameter as host-modulatable (CLAP `CLAP_PARAM_IS_MODULATABLE`). The host may send modulation offsets on top of the automation value, delivered to `process` as `EventBody::ParamMod`. See [Modulation](#modulation). |
+| `modulatable_per_note` | Per-note (polyphonic) modulation: a MIDI 2.0 registered per-note controller (CLAP `CLAP_PARAM_IS_MODULATABLE_PER_NOTE_ID`). Implies `modulatable`; the `ParamMod` event's `note_id` scopes the offset to one voice. See [Modulation](#modulation). |
+
+## Modulation
+
+`modulatable` and `modulatable_per_note` are opt-in flags for hosts that
+send *modulation* separately from automation: a modulation offset rides
+on top of the parameter's current value rather than overwriting it. Set
+them only on parameters you actually consume modulation for; other params
+stay host-owned.
+
+```rust
+#[derive(Params)]
+pub struct SynthParams {
+    // Host may modulate cutoff; per-voice registered per-note controller too.
+    #[param(name = "Cutoff", range = "log(20, 20000)", unit = "Hz",
+            flags = "automatable | modulatable_per_note")]
+    pub cutoff: FloatParam,
+}
+```
+
+Modulation is currently a **CLAP** feature (`CLAP_PARAM_IS_MODULATABLE` /
+`CLAP_PARAM_IS_MODULATABLE_PER_NOTE_ID`). The host emits
+`CLAP_EVENT_PARAM_MOD`, which truce delivers to `process` as an
+`EventBody::ParamMod` in the `EventList`:
+
+- `modulatable`: one mono offset for the whole parameter.
+- `modulatable_per_note`: implies `modulatable`, and the event carries a
+  `note_id` so you can apply a distinct offset per voice (the MIDI 2.0
+  *registered per-note controller* path). Read `note_id` off the
+  `ParamMod` event to route it to the right voice.
+
+Other formats ignore these flags: they have no separate modulation
+channel, so the parameter behaves as ordinary automation there.
+
+## MIDI binding
+
+`midi_cc` / `midi_source` (with an optional `midi_channel` scope) seed a
+**default MIDI-learn binding**: the CC-or-source-to-parameter map the
+host offers out of the box, before the user assigns their own. Set at most
+one of `midi_cc` or `midi_source` per parameter.
+
+```rust
+#[derive(Params)]
+pub struct SynthParams {
+    // Mod wheel (CC 1) drives vibrato depth by default, on every channel.
+    #[param(name = "Vibrato", range = "linear(0, 1)", midi_cc = 1)]
+    pub vibrato: FloatParam,
+
+    // Channel pressure drives filter cutoff, MIDI channel 1 only.
+    #[param(name = "Cutoff", range = "log(20, 20000)", unit = "Hz",
+            midi_source = "pressure", midi_channel = 1)]
+    pub cutoff: FloatParam,
+}
+```
+
+- `midi_cc = N`: bind to CC `N` (`0..=127`).
+- `midi_source = "pitchbend" | "pressure" | "program"`: bind to a non-CC
+  source (pitch bend, channel pressure / aftertouch, or program change).
+- `midi_channel = 1..=16`: restrict the binding to one channel; omit for
+  omni (all channels).
 
 ## Custom formatting
 

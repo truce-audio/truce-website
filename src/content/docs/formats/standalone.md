@@ -129,6 +129,11 @@ standalone-playback = ["standalone", "truce-standalone/playback"]
                            Linear-interp resample if the file's SR
                            differs from the device's; channel-count
                            mismatches are soft-warned and adapted.
+  --sidechain-file <path>  Decode <path>.wav into the plugin's
+                           sidechain bus (plugins that declare one).
+                           Independent of --input-file, so main and
+                           sidechain feed from separate files; same
+                           one-shot playback and resample/adapt rules.
   --output-file <path>     Capture the plugin's output bus to
                            <path>.wav (32-bit float, pre-mute).
                            Implies --headless. Real-time by default

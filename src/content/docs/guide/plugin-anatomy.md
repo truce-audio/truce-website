@@ -379,6 +379,9 @@ instrument that should appear on mono and stereo instrument tracks).
 
 ### Sidechain
 
+Add a second input bus with `with_sidechain_input` and the host exposes
+it as a real sidechain to route another track into:
+
 ```rust
 impl PluginLogic for SidechainComp {
     type Params = SidechainCompParams;
@@ -386,9 +389,9 @@ impl PluginLogic for SidechainComp {
     fn bus_layouts() -> Vec<BusLayout> {
         vec![
             BusLayout::new()
-                .with_input("Main",      ChannelConfig::Stereo)
-                .with_input("Sidechain", ChannelConfig::Stereo)
-                .with_output("Main",     ChannelConfig::Stereo),
+                .with_input("Main", ChannelConfig::Stereo)
+                .with_sidechain_input("Sidechain", ChannelConfig::Stereo)
+                .with_output("Main", ChannelConfig::Stereo),
             BusLayout::stereo(),              // fallback when no sidechain
         ]
     }
@@ -396,10 +399,25 @@ impl PluginLogic for SidechainComp {
 }
 ```
 
-Inside `process`, channels are flat-indexed across buses: with the
-above layout, `buffer.input(0)` / `(1)` is main L/R and `(2)` /
-`(3)` is sidechain L/R. Use `buffer.num_input_channels()` to detect
-which layout the host selected.
+`with_sidechain_input` flags the bus as a sidechain rather than a main
+input. (Plain `with_input` does the same by position: the first input is
+the main bus, every input after it is a sidechain, but the explicit form
+reads clearer.) Each format advertises it the way its host expects: a
+VST3 aux bus, a CLAP `is_sidechain` port, extra VST2 input pins, and Pro
+Tools' mono side-chain on AAX (duplicated across the declared width). LV2
+runs main-only for now: the sidechain ports aren't declared in the
+generated TTL yet, and a one-time log notes the drop.
+
+Inside `process`, channels are flat-indexed across buses in declaration
+order: with the above layout, `buffer.input(0)` / `(1)` is main L/R and
+`(2)` / `(3)` is sidechain L/R. Use `buffer.num_input_channels()` to
+detect which layout the host selected (the `BusLayout::stereo()` fallback
+hands you two input channels, not four).
+
+The [sidechain example](../examples/sidechain.md) is the reference: stereo
+main + stereo sidechain with IN/SC meters and a mix knob. To exercise it
+without a host, the standalone runner feeds the sidechain bus from a file
+via `--sidechain-file <path>`, independent of the main `--input-file`.
 
 When a plugin declares several widths but its DSP is a fixed shape (a
 `reverb_stereo` graph, a stereo filter block), let

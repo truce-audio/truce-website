@@ -21,6 +21,7 @@ sitting.
 | [cc-filter](./cc-filter) | Effect | Built-in | <img src="/screenshots/examples/cc-filter.png" width="139" height="113" alt="cc-filter plugin"> |
 | [chord](./chord) | Instrument | Built-in | <img src="/screenshots/examples/chord.png" width="139" height="113" alt="chord plugin"> |
 | [stereo-utility](./stereo-utility) | Effect | Built-in | <img src="/screenshots/examples/stereo-utility.png" width="208" height="210" alt="stereo-utility plugin"> |
+| [sidechain](./sidechain) | Effect | Built-in | <img src="/screenshots/examples/sidechain.png" width="208" height="182" alt="sidechain plugin"> |
 | [dasp-bitcrusher](./dasp-bitcrusher) | Effect | Built-in | <img src="/screenshots/examples/dasp-bitcrusher.png" width="208" height="113" alt="dasp-bitcrusher plugin"> |
 | [sysex-echo](./sysex-echo) | MIDI | Built-in | <img src="/screenshots/examples/sysex-echo.png" width="70" height="113" alt="sysex-echo plugin"> |
 | [multiport](./multiport) | Instrument | Built-in | <img src="/screenshots/examples/multiport.png" width="277" height="210" alt="multiport plugin"> |
