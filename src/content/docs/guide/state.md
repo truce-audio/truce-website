@@ -1,4 +1,4 @@
-# 12. State
+# 13. State
 
 Everything the host persists for your plugin - session save, preset
 recall, duplicating an instance - is one blob: the parameter values,

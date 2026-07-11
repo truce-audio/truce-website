@@ -1,4 +1,4 @@
-# 15. Hot reload
+# 16. Hot reload
 
 Edit DSP or layout code, rebuild, hear the change in ~2 seconds.
 No DAW restart. No plugin window close. Same source file, same

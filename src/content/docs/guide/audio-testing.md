@@ -283,132 +283,26 @@ output and your CI render matrix produce byte-identical results.
 
 ## Catching audio-thread allocations
 
-Allocating on the audio thread - a `Vec` that grows past capacity, a
-stray `format!`, a `Box::new` - is the classic cause of dropouts under
-load, and it's invisible on a quiet dev machine. The optional
-`rt-paranoid` checker makes it a loud, pinpointed failure at test time.
-Because a `driver!` run drives your real `process` through the exact same
-path a host does, wrapping one in the checker turns any audio test into
-an allocation test.
-
-Opt in per crate. Add the feature and install the checker's allocator at
-your crate root (a no-op unless the feature is on):
-
-```toml
-# Cargo.toml
-[features]
-rt-paranoid = ["truce/rt-paranoid"]
-```
-
-```rust
-// lib.rs
-truce::enable_rt_paranoid!();
-```
-
-Then assert on a render. `assert_no_audio_alloc` fails if `process`
-allocated anywhere during the run:
+Allocating on the audio thread is the classic cause of dropouts, and a
+`driver!` run is the ideal place to catch it: because it drives your real
+`process` through the same path a host does, wrapping one in
+`assert_no_audio_alloc` turns any audio test into an allocation test.
 
 ```rust
 use truce_test::{assert_no_audio_alloc, driver, InputSource};
 
-#[test]
-fn process_is_allocation_free() {
-    assert_no_audio_alloc(|| {
-        driver!(MyEffect)
-            .duration(Duration::from_millis(50))
-            .input(InputSource::Constant(0.5))
-            .run()
-    });
-}
-```
-
-Run it with the feature on; without it the helper is a no-op, so your
-ordinary `cargo test` is unaffected:
-
-```sh
-cargo test --features rt-paranoid
-```
-
-The checker is **off and zero-cost by default** - the guard around
-`process` compiles away and no custom allocator is installed unless the
-feature is enabled.
-
-### Driving the conditional paths
-
-The checker only flags allocations on code a test actually runs. A
-constant-input render exercises the steady-state DSP; an allocation that
-only happens on a **parameter change** or a **state load** stays hidden
-until a test triggers it. Script those paths so they're covered:
-
-```rust
 assert_no_audio_alloc(|| {
     driver!(MyEffect)
         .duration(Duration::from_millis(50))
         .input(InputSource::Constant(0.5))
-        .script(|sc| {
-            sc.set_param(P::Size, 0.1);
-            sc.wait_ms(20);
-            sc.set_param(P::Size, 0.9); // does resizing allocate?
-        })
         .run()
 });
 ```
 
-If a block genuinely must allocate (a rare, accepted first-block
-init), wrap just that region in `truce::rt::allow_alloc(|| { ... })` so
-it isn't flagged.
-
-### Also checking frees and locks
-
-`assert_no_audio_alloc` flags allocations. Two more real-time hazards are
-opt-in:
-
-- **Frees.** `truce::rt::set_check_dealloc(true)` also counts frees inside
-  `process` (a value allocated in an earlier block and dropped on the audio
-  thread).
-- **Locks.** `truce::rt::Mutex` and `truce::rt::RwLock` are drop-in
-  replacements for the `std::sync` types that flag a `lock` / `read` /
-  `write` taken inside `process`. Use them for state your DSP shares with
-  another thread and the checker catches a lock on the audio thread. (Only
-  locks taken through these types are seen, not `std::sync::Mutex` or
-  `parking_lot`.)
-
-`assert_realtime_clean` bundles all three - it enables dealloc flagging for
-the run and fails on any allocation, free, or truce-typed lock in `process`:
-
-```rust
-assert_realtime_clean(|| {
-    driver!(MyEffect)
-        .duration(Duration::from_millis(50))
-        .input(InputSource::Constant(0.5))
-        .run()
-});
-```
-
-### Modes
-
-Outside the scoped assertions, the mode decides what a violation does.
-Set it in code with `truce::rt::set_mode`, called once in a test harness
-or `main` (the last call wins):
-
-```rust
-truce::rt::set_mode(truce::rt::Mode::Panic);
-```
-
-| Mode | Reaction |
-|---|---|
-| `Mode::Count` (default) | Log the count and a backtrace after the block; keep running |
-| `Mode::Panic` | Fail the block - gate a whole suite in one line |
-| `Mode::Trap` | Abort at the exact allocation, to catch the live stack in a debugger |
-
-The scoped `assert_no_audio_alloc` helper gates a test on its own,
-regardless of the mode - so most suites never call `set_mode` at all.
-
-By default only allocations are flagged. Freeing on the audio thread is
-also non-real-time; `truce::rt::set_check_dealloc(true)` (called once,
-like `set_mode`) also counts frees inside `process`, so
-`assert_no_audio_alloc` catches a value allocated in an earlier block and
-dropped on the audio thread.
+This uses the optional `rt-paranoid` checker, which is off and zero-cost
+by default. Enabling it, scripting the conditional paths, also checking
+frees and locks, the violation modes, and running the checker live in a
+host each have their own chapter: [real-time safety](rt-paranoid.md).
 
 ## API surface
 
@@ -479,7 +373,7 @@ ordering so the same vocabulary works for audio + GUI.
 
 ## What's next
 
-- **[Chapter 10 → presets](presets.md)** — factory presets ship
+- **[Chapter 11 → real-time safety](rt-paranoid.md)** - gate these same
+  `driver!` runs on zero audio-thread allocations.
+- **[Chapter 12 → presets](presets.md)** - factory presets ship
   through the same state path these tests exercise.
-- **[Chapter 12 → shipping](shipping.md)** — once the DSP is
-  green under audio tests, package + sign + notarize a release.

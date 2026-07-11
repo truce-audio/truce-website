@@ -8,8 +8,8 @@ patterns.
 [`truce-example-arpeggio`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-arpeggio)
 rebuilds its sequence into reused, pre-sized buffers so `process` never
 allocates on the audio thread - its test uses the
-[rt-paranoid](../guide/audio-testing#catching-audio-thread-allocations)
-checker to assert it stays allocation-free.
+[rt-paranoid](../guide/rt-paranoid.md) checker to assert it stays
+allocation-free.
 
 ## What it demonstrates
 

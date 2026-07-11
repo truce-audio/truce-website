@@ -265,6 +265,7 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "guide/midi.md",
     "guide/gui.md",
     "guide/audio-testing.md",
+    "guide/rt-paranoid.md",
     "guide/presets.md",
     "guide/state.md",
     "guide/shipping.md",
