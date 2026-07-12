@@ -100,9 +100,9 @@ buffer: loop over `buffer.channels()` rather than assuming two. If you want
 the old stereo-only behavior back, override with
 `vec![BusLayout::stereo()]`.
 
-## Upgrading to 4.0 (from 3.x)
+## Upgrading to 4.1 (from 3.x)
 
-4.0 turns `PluginLogic` into a stateless *descriptor*: its methods are
+4.1 turns `PluginLogic` into a stateless *descriptor*: its methods are
 associated functions - no `&self` - that take the data they touch as
 arguments. That separates the three kinds of per-plugin data, and a
 method's signature now says which it may read or mutate:
@@ -130,10 +130,6 @@ Every plugin makes the same three moves, whatever its state:
   state. There is no stored `params` `Arc` anymore. Most plugins ignore
   `cx` (write `_cx`); it's there to schedule startup background work.
 - Give each method `state` / `params` instead of `&self`.
-
-The examples below show `init` in its current form. `init` gained the
-`cx: &InitContext` argument in 4.1; on exactly 4.0 it's
-`fn init(params: &Self::Params) -> Self::DspState` with no `cx`.
 
 The only choice is where the DSP state lives.
 
@@ -174,7 +170,7 @@ pub struct Tremolo {                   // holds the DSP fields directly...
 impl PluginLogic for Tremolo {
     type Params = TremoloParams;
     type DspState = Self;              // ...and is its own DSP state
-    fn init(_params: &TremoloParams) -> Self {
+    fn init(_params: &TremoloParams, _cx: &InitContext) -> Self {
         Tremolo { phase: 0.0, sample_rate: 44100.0 }
     }
     fn reset(state: &mut Self, params: &TremoloParams, config: &AudioConfig) {
@@ -209,7 +205,7 @@ a 3.x plugin:
 
 -    fn new(params: Arc<MyParams>) -> Self {
 -        Self { params, filter: Filter::default(), phase: 0.0 }
-+    fn init(_params: &MyParams) -> MyDspState {
++    fn init(_params: &MyParams, _cx: &InitContext) -> MyDspState {
 +        MyDspState { filter: Filter::default(), phase: 0.0 }
      }
 
