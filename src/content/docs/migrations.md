@@ -126,9 +126,14 @@ Every plugin makes the same three moves, whatever its state:
   now a stateless descriptor - into `type DspState`. Parameters were
   already a separate `#[derive(Params)]` struct and don't move.
 - Replace `fn new(params: Arc<..>) -> Self` with `fn init(params:
-  &Self::Params) -> Self::DspState`, which builds that state. There is no
-  stored `params` `Arc` anymore.
+  &Self::Params, cx: &InitContext) -> Self::DspState`, which builds that
+  state. There is no stored `params` `Arc` anymore. Most plugins ignore
+  `cx` (write `_cx`); it's there to schedule startup background work.
 - Give each method `state` / `params` instead of `&self`.
+
+The examples below show `init` in its current form. `init` gained the
+`cx: &InitContext` argument in 4.1; on exactly 4.0 it's
+`fn init(params: &Self::Params) -> Self::DspState` with no `cx`.
 
 The only choice is where the DSP state lives.
 
