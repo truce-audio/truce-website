@@ -52,6 +52,16 @@ impl<'a> AudioBuffer<'a> {
     fn io_pair(&mut self, in_ch: usize, out_ch: usize)
         -> (&[f32], &mut [f32]);
 
+    // Per-frame view: transpose channel-major -> a fixed-size
+    // (input, output) frame, for per-sample library callbacks
+    // like fundsp's `tick`. See "Per-frame processing" below.
+    fn for_each_frame<const N: usize>(
+        &mut self, tick: impl FnMut(&[f32; N], &mut [f32; N]));
+    fn for_each_frame_io<const IN: usize, const OUT: usize>(
+        &mut self, tick: impl FnMut(&[f32; IN], &mut [f32; OUT]));
+    fn for_each_stereo_frame(
+        &mut self, tick: impl FnMut(&[f32; 2], &mut [f32; 2]));
+
     // Sub-block view (for sample-accurate event splitting)
     fn slice(&mut self, start: usize, len: usize) -> AudioBuffer<'_>;
 
@@ -106,6 +116,64 @@ for ch in 0..buffer.num_output_channels() {
 }
 ProcessStatus::Normal
 ```
+
+## Per-frame processing
+
+`AudioBuffer` is channel-major: each `input(ch)` / `output(ch)` is a
+contiguous slice for one channel. But a lot of DSP is naturally
+*frame*-major — one input frame in, one output frame out — and the
+libraries you'd reach for expect exactly that shape:
+`fundsp::AudioUnit::tick`, `dasp` nodes, a hand-written per-sample node.
+Feeding those from a channel-major buffer means either copying each
+frame into a scratch first (a heap allocation on the audio thread) or
+fighting the borrow checker over two live `&mut` borrows of the buffer.
+
+The `for_each_frame` family does that transpose for you, in place,
+against a stack-allocated `[f32; N]` frame pair — no heap, no borrow
+gymnastics at the call site. `&[f32; N]` deref-coerces to `&[f32]`, so
+the frames pass straight to slice-taking APIs like fundsp's `tick`.
+
+```rust
+// Stereo plugin delegating per-frame DSP to fundsp:
+buffer.for_each_frame::<2, _>(|frame_in, frame_out| {
+    state.graph.tick(frame_in, frame_out);
+});
+```
+
+`for_each_frame::<N>` requires `N == channels()` (debug-asserted). When
+your DSP has a fixed frame shape that need *not* match the bus width,
+reach for the `_io` form instead:
+
+```rust
+// A fixed 2-in / 2-out graph, run over ANY declared bus layout:
+buffer.for_each_frame_io::<2, 2, _>(|frame_in, frame_out| {
+    state.reverb.tick(frame_in, frame_out);
+});
+```
+
+`for_each_frame_io::<IN, OUT>` fills input slot `k` from bus input
+channel `k`, **repeating the last available channel** when the bus has
+fewer than `IN` inputs — so a mono source fans into both inputs of a
+stereo graph. Output slot `k` writes bus output channel `k` while
+`k < num_output_channels()`; frame outputs past the bus width are
+dropped, and a bus with no inputs (an instrument) feeds silence. That
+one call covers `(2, 2)` stereo and `(1, 2)` mono-in/stereo-out alike,
+with no per-width branch — the right tool when your plugin declares
+[multiple bus layouts](plugin-anatomy.md#bus-layouts).
+
+`for_each_stereo_frame` is the `(2, 2)` shorthand for the common case
+(a `reverb_stereo`, a stereo filter block) — same behavior, no
+turbofish:
+
+```rust
+buffer.for_each_stereo_frame(|frame_in, frame_out| {
+    state.graph.tick(frame_in, frame_out);
+});
+```
+
+Under `truce::prelude64` the frames are `[f64; N]`. This is the shape
+the [fundsp chapter](fundsp.md) builds on; use `chunks_mut` (below)
+instead when you want SIMD-width blocks rather than single frames.
 
 ## SIMD block operations
 
