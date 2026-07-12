@@ -2,6 +2,11 @@
 
 Notable changes per release.
 
+## 6.1.2
+
+- A panic in your plugin's code - editor build/open/close, resize/scale, iOS touch and keyboard handling, or DSP `reset`/prepare - is now caught at the host boundary on every format instead of crashing the DAW, and a caught editor panic no longer freezes or leaks the editor. `request_resize` is safe to call from inside an editor method; it applies on the next frame.
+- Audio-thread robustness fixes: the standalone host runs input-only plugins (analyzers, meters, sinks), a truncated or malformed LV2 transport/parameter message can't cause an out-of-bounds read, and a VST2 switch to a wider channel layout no longer risks a mid-block allocation.
+
 ## 6.1.1
 
 - Standalone no longer crashes on MIDI-only plugins (zero output buses, e.g. transpose / arpeggio), which previously panicked on the first audio callback. MIDI output from the standalone isn't wired up yet, so their emitted events still go nowhere.
