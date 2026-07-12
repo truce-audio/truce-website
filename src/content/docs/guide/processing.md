@@ -644,7 +644,7 @@ truce::plugin! {
 }
 ```
 
-## In-place I/O (advanced; opt-in)
+## In-place I/O (opt-in)
 
 Some hosts (Reaper, pluginval) pass the same buffer for both input
 and output of a given channel. By default truce handles this for you
@@ -695,6 +695,15 @@ The contract:
   `buffer.output(ch)` are always safe and disjoint, even when the
   host requested in-place. `is_in_place` still reflects the host's
   choice — but you can ignore it.
+
+Opting in is **not recommended** for most plugins. Aliasing is the
+host's choice, made per channel per block: many hosts hand you
+disjoint input and output buffers regardless of `supports_in_place()`.
+So opting in never lets you drop the disjoint branch — you carry both
+paths and gate every channel on `is_in_place(ch)`. You trade one
+memcpy on aliasing hosts for a branchier process loop on all of them,
+which rarely pays off. Leave it at the default unless a profile says
+otherwise.
 
 ## What's next
 
