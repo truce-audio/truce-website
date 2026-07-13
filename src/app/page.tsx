@@ -2,9 +2,7 @@ import Link from "next/link";
 import { CodeBlock } from "@/components/CodeBlock";
 import { FeatureGrid } from "@/components/FeatureGrid";
 import { FormatMatrix } from "@/components/FormatMatrix";
-import { PluginCard } from "@/components/PluginCard";
 import { framework, minimalExample, quickStart } from "@/content/framework";
-import { plugins } from "@/content/plugins";
 
 export default function HomePage() {
   return (
@@ -33,26 +31,6 @@ export default function HomePage() {
         description="Smoothed parameter, built-in knob, CLAP + VST3 + standalone. The truce::plugin! macro generates every format export, GUI, and state serialization."
       >
         <CodeBlock code={minimalExample} lang="rust" />
-      </Section>
-
-      <Section
-        title="Built with truce"
-        eyebrow="Plugins"
-        description="Open-source plugins built on the framework."
-      >
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {plugins.map((p) => (
-            <PluginCard key={p.slug} plugin={p} />
-          ))}
-        </div>
-        <div className="mt-6">
-          <Link
-            href="/plugins"
-            className="text-sm font-medium text-accent-muted hover:underline"
-          >
-            View all plugins →
-          </Link>
-        </div>
       </Section>
     </div>
   );

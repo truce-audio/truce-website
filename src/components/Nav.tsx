@@ -289,9 +289,6 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
           <Link href="/docs/" className={NAV_ITEM_CLASS}>
             Docs
           </Link>
-          <Link href="/plugins" className={NAV_ITEM_CLASS}>
-            Plugins
-          </Link>
           <a
             href={framework.github}
             target="_blank"
@@ -328,9 +325,6 @@ export function Nav({ docsSections }: { docsSections: SidebarSection[] }) {
               <SearchTrigger variant="mobile" />
               <Link href="/docs/" className={MOBILE_ITEM_CLASS}>
                 Docs
-              </Link>
-              <Link href="/plugins" className={MOBILE_ITEM_CLASS}>
-                Plugins
               </Link>
               <a
                 href={framework.github}
