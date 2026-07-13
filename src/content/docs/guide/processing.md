@@ -242,11 +242,12 @@ of slice length, and the smoother advances by exactly `out.len()`
 correct even when the block size isn't a multiple of your stride:
 
 ```rust
-let mut gain_db = [0.0_f32; MAX_BLOCK];
+// `state.gain_db` is a Vec<f32> scratch, sized to the host's max
+// block in `reset`; here we walk it in strides of `STRIDE`.
 while offset < total {
-    let n = (total - offset).min(MAX_BLOCK);
-    params.gain.read_into(&mut gain_db[..n]);
-    // ... consume gain_db[..n] for n samples ...
+    let n = (total - offset).min(STRIDE);
+    params.gain.read_into(&mut state.gain_db[..n]);
+    // ... consume state.gain_db[..n] for n samples ...
     offset += n;
 }
 ```
@@ -291,7 +292,7 @@ puts both together:
 
 ```rust
 fn process(
-    _state: &mut Self::DspState,
+    state: &mut Self::DspState,
     params: &Self::Params,
     buffer: &mut AudioBuffer,
     _events: &EventList,
@@ -311,23 +312,19 @@ fn process(
         }
     } else {
         // Slow path: precompute a per-sample envelope, apply via
-        // chunks_mut + mul_block.
-        let n = buffer.num_samples().min(MAX_BLOCK);
-        let mut gain_db = [0.0_f32; MAX_BLOCK];
-        let mut pan = [0.0_f32; MAX_BLOCK];
-        params.gain.read_into(&mut gain_db[..n]);
-        params.pan.read_into(&mut pan[..n]);
+        // chunks_mut + mul_block. The scratch lives on `state`, sized
+        // to the host's max block in `reset` (below).
+        let n = buffer.num_samples();
+        params.gain.read_into(&mut state.gain_db[..n]);
+        params.pan.read_into(&mut state.pan[..n]);
 
         // Vectorized dB -> linear in one pass.
-        let mut lin = [0.0_f32; MAX_BLOCK];
-        math::db_to_linear_block(&mut lin[..n], &gain_db[..n]);
+        math::db_to_linear_block(&mut state.lin[..n], &state.gain_db[..n]);
 
         // Pan split autovectorizes under -O; no explicit SIMD needed.
-        let mut g_l = [0.0_f32; MAX_BLOCK];
-        let mut g_r = [0.0_f32; MAX_BLOCK];
         for i in 0..n {
-            g_l[i] = lin[i] * (1.0 - pan[i].max(0.0));
-            g_r[i] = lin[i] * (1.0 + pan[i].min(0.0));
+            state.g_l[i] = state.lin[i] * (1.0 - state.pan[i].max(0.0));
+            state.g_r[i] = state.lin[i] * (1.0 + state.pan[i].min(0.0));
         }
 
         let mut chunks = buffer.chunks_mut::<32>();
@@ -336,7 +333,7 @@ fn process(
                 ChunkItem::Full { ch, sample, inp, out } => (ch, sample, &inp[..], &mut out[..]),
                 ChunkItem::Tail { ch, sample, inp, out } => (ch, sample, inp, out),
             };
-            let env = if ch == 0 { &g_l } else { &g_r };
+            let env = if ch == 0 { &state.g_l } else { &state.g_r };
             ops::mul_block(out, inp, &env[sample..sample + inp.len()]);
         }
     }
@@ -345,39 +342,50 @@ fn process(
 }
 ```
 
+The envelope scratch (`gain_db`, `pan`, `lin`, `g_l`, `g_r`) are
+`Vec<f32>` fields on the plugin's `DspState`, sized once in `reset` to
+the host's maximum block - never a fixed constant, which would truncate
+the tail or panic the moment a host runs a block bigger than it:
+
+```rust
+fn reset(state: &mut Self::DspState, _params: &Self::Params, config: &AudioConfig) {
+    for buf in [&mut state.gain_db, &mut state.pan, &mut state.lin,
+                &mut state.g_l, &mut state.g_r] {
+        buf.clear();
+        buf.resize(config.max_block_size, 0.0);
+    }
+}
+```
+
 Users hit the fast path 99% of the time. The slow path only fires
 while a smoother is mid-transition.
 
 ### Composing through scratch buffers
 
-When the chain has more than one stage, allocate small stack
-scratches and thread the data through each `ops::` / `math::` call
-in sequence. [`examples/truce-example-block-saturate`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-saturate)
+When the chain has more than one stage, hold the intermediate scratch
+on your `DspState` and thread the data through each `ops::` / `math::`
+call in sequence. [`examples/truce-example-block-saturate`](https://github.com/truce-audio/truce/tree/main/examples/truce-example-block-saturate)
 shows the pattern for `drive → tanh → output`:
 
 ```rust
-const MAX_BLOCK: usize = 1024;
-let mut sx = [0.0_f32; MAX_BLOCK];
-let mut sy = [0.0_f32; MAX_BLOCK];
-
+// `sx` and `sy` are Vec<f32> on the DspState, sized in `reset`
+// to config.max_block_size (see the reset above).
 for ch in 0..buffer.channels() {
     let (inp, out) = buffer.io(ch);
-    let n = inp.len().min(MAX_BLOCK);
-    let inp = &inp[..n];
-    let sx = &mut sx[..n];
-    let sy = &mut sy[..n];
-    let out = &mut out[..n];
+    let n = inp.len();
+    let sx = &mut state.sx[..n];
+    let sy = &mut state.sy[..n];
     ops::scale_block(sx, inp, drive_lin);    // sx = inp * drive
     math::tanh_block(sy, sx);                // sy = tanh(sx)
     ops::scale_block(out, sy, output_lin);   // out = sy * output
 }
 ```
 
-Each line maps one-to-one to a math operation, and the shadow-bind
-on `sx` / `sy` / `out` clips each slice to the actual sample count
-so the inner ops never read past the end. Stack scratches are fine
-on the audio thread — `[f32; 1024]` is 4 KB, well under any
-reasonable stack budget.
+Each line maps one-to-one to a math operation. Size the scratch to the
+host's maximum block in `reset` and process the whole block: a
+fixed-length array (`[f32; 1024]`) silently drops the tail, or panics,
+the first time a host hands you a larger block - `config.max_block_size`
+is the real ceiling, not a guess. See [best practices](best-practices.md).
 
 ### Compile-time SIMD baseline
 

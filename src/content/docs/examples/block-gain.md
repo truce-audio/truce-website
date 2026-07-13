@@ -15,9 +15,10 @@ Source: [`examples/truce-example-block-gain/`](https://github.com/truce-audio/tr
   envelope precompute. With many smoothed gain knobs in flight,
   this closes the gap between block-rate and the pre-vectorization
   scalar baseline.
-- Trade-off: one extra `[f32; MAX_BLOCK]` stack scratch and one
-  extra pass over the envelope. Net win measurable when N
-  smoothers ≥ ~4.
+- Envelope scratch on the `DspState`, sized to `config.max_block_size`
+  in `reset`. Trade-off vs. a scalar precompute: one extra scratch
+  buffer and one extra pass over the envelope. Net win measurable when
+  N smoothers ≥ ~4.
 
 ## Parameters
 
