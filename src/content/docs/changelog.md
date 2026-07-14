@@ -2,6 +2,15 @@
 
 Notable changes per release.
 
+## 6.1.7
+
+- VST3 plugins now cross-compile from macOS to Windows (`x86_64-pc-windows-gnu`); the C++ shim build no longer hands a macOS-only flag to the mingw compiler.
+
+## 6.1.6
+
+- Vizia widgets now repaint on host parameter automation, instead of showing stale values until the editor is reopened.
+- iOS AUv3 user presets save and load correctly (resolve inside the app-extension sandbox container).
+
 ## 6.1.5
 
 - VST3 editors on HiDPI Linux hosts that report content scale late (e.g. REAPER) no longer render 1x inside a 2x frame with mismatched click targets; every editor backend now reconciles the late scale (relies on baseview-truce upgrade to 0.1.1-truce.13).
