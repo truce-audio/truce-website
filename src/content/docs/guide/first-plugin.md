@@ -73,13 +73,19 @@ reference.
 ```rust
 use MyGainParamsParamId as P;
 
-pub struct MyGain;
+// The plugin struct is its own DSP state (`type DspState = Self`).
+#[derive(Default)]
+pub struct MyGain {
+    // Add per-instance DSP state (filters, phase, delay lines) here.
+}
 
-impl PurePluginLogic for MyGain {
+impl PluginLogic for MyGain {
     type Params = MyGainParams;
+    type DspState = Self;
 
-    fn process(params: &MyGainParams, buffer: &mut AudioBuffer,
-               _events: &EventList, _ctx: &mut ProcessContext) -> ProcessStatus {
+    fn process(_state: &mut Self::DspState, params: &MyGainParams,
+               buffer: &mut AudioBuffer, _events: &EventList,
+               _ctx: &mut ProcessContext) -> ProcessStatus {
         for i in 0..buffer.num_samples() {
             let gain = db_to_linear(params.gain.read());
             for ch in 0..buffer.channels() {
@@ -99,18 +105,19 @@ impl PurePluginLogic for MyGain {
 }
 ```
 
-A gain keeps no per-instance state between blocks, so `MyGain`
-implements `PurePluginLogic` - the stateless leaf trait. That means
-no `type DspState`, no `init`, and no `state` argument threaded
-through `process`: the method is a pure function of params and input.
-`process()` runs every block on the audio thread; `editor()` returns
-the GUI on the main thread. Those two are the only required methods -
-the shell snaps the parameter smoothers for you, so a pure plugin
-needs no `reset` either.
+`cargo truce new` scaffolds the stateful shape by default: `MyGain`
+implements `PluginLogic` and is its own DSP state through `type DspState
+= Self`. A gain keeps nothing between blocks, so the struct is empty and
+`_state` goes unused - it's there so you can add filter memory, a delay
+line, or oscillator phase as fields later without rewiring `process`.
+The shell owns that state and preserves it across a hot-reload, and it
+snaps the parameter smoothers for you, so a plugin this simple needs no
+`reset` or `init`.
 
-A plugin that *does* keep DSP state (filter memory, a delay line, an
-oscillator phase) implements `PluginLogic` instead and names that
-state as `type DspState`. See
+`process()` runs every block on the audio thread; `editor()` returns the
+GUI on the main thread. For a truly stateless effect, `cargo truce new
+--pure` drops the `DspState` / `state` plumbing entirely, emitting the
+stateless `PurePluginLogic` leaf trait instead. See
 [chapter 3 → plugin-anatomy](plugin-anatomy.md).
 
 ### 3. The export macro — makes it a plugin

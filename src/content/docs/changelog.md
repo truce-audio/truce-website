@@ -2,6 +2,15 @@
 
 Notable changes per release.
 
+## 6.1.5
+
+- VST3 editors on HiDPI Linux hosts that report content scale late (e.g. REAPER) no longer render 1x inside a 2x frame with mismatched click targets; every editor backend now reconciles the late scale (relies on baseview-truce upgrade to 0.1.1-truce.13).
+
+## 6.1.4
+
+- `cargo truce new` now scaffolds stateful plugins as `type DspState = Self` instead of an explicit DspState struct
+- Slint editors no longer panic on HiDPI displays.
+
 ## 6.1.2
 
 - A panic in your plugin's code - editor build/open/close, resize/scale, iOS touch and keyboard handling, or DSP `reset`/prepare - is now caught at the host boundary on every format instead of crashing the DAW, and a caught editor panic no longer freezes or leaks the editor. `request_resize` is safe to call from inside an editor method; it applies on the next frame.
