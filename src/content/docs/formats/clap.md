@@ -91,6 +91,46 @@ directly - no conversion at the boundary. The wire precision is
 per-port and per-activation, and the f32 path stays as the
 fallback. `f32` plugins are unaffected.
 
+## Remote controls
+
+CLAP hosts (Bitwig especially) surface a plugin's key parameters as
+**remote controls** - pages of up to eight params mapped onto the eight
+knobs of a hardware controller or the device's remote-controls strip.
+truce builds these pages automatically from the
+[`group`](../reference/params.md) you already put on your parameters -
+no extra API, no CLAP-specific code.
+
+```rust
+#[derive(Params)]
+pub struct EqParams {
+    #[param(name = "Low Gain", group = "Low", /* ... */)] pub low_gain: FloatParam,
+    #[param(name = "Low Freq", group = "Low", /* ... */)] pub low_freq: FloatParam,
+    #[param(name = "Low Q",    group = "Low", /* ... */)] pub low_q:    FloatParam,
+    #[param(name = "Mid Gain", group = "Mid", /* ... */)] pub mid_gain: FloatParam,
+    // ...
+}
+```
+
+Each distinct `group` becomes a page carrying its params in order, so
+the example above gives a **Low** page, a **Mid** page, and so on.
+
+- **Sections.** A `/` in the group splits it into a section and a page:
+  `group = "EQ/Lo Shelf"` becomes section **EQ**, page **Lo Shelf**, so a
+  host can offer one "EQ" button that cycles through each band. A group
+  with no slash (`"Compressor"`) is its own single-page section.
+- **Overflow.** A group with more than eight params spills into a second
+  page of the same name.
+- **Ungrouped params get no page.** Params with no `group` stay in the
+  host's generic list; pages are opt-in per param, so a plugin that sets
+  no groups sees no change.
+- **Hidden / read-only params never take a slot**, even if grouped -
+  they organize the parameter tree but aren't performance controls.
+
+Page identity is stable across sessions and rebuilds (derived from the
+group name, not the parameter order), so the host restores the page the
+user had selected when they reopen the project. The same `group` also
+organizes the parameter tree in the host's generic view on every format.
+
 ## Gotchas
 
 - **Parameter modulation** (`ParamMod` events) is CLAP-specific.
