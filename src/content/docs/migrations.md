@@ -5,6 +5,43 @@ self-contained: follow the steps for the version you're jumping to. For
 the full release notes behind these changes, see the
 [changelog](changelog.md).
 
+## Upgrading to 6.2 (from 6.1)
+
+6.2's only source break is for plugins that implement `migrate_state`.
+`MigratedState` gained a `persist` field - the serialized `#[persist]`
+block to restore alongside `params` and `extra` - so a full struct
+literal no longer compiles. Plugins that don't override `migrate_state`
+need no change.
+
+Fill the new field from the default instead of listing every field:
+
+```diff
+ fn migrate_state(foreign: &ForeignState) -> Option<MigratedState> {
+     // ... decode params from `foreign` ...
+     Some(MigratedState {
+         params,
+-        extra: None,
++        ..MigratedState::default()
+     })
+ }
+```
+
+If you migrate a **renamed** truce plugin's own envelope (a
+`ForeignState::MismatchedEnvelope`, where params, extra, and persist are
+already decoded), forward its `persist` bytes so `#[persist]` fields -
+GUI layout, file paths, instance names - survive the rename instead of
+resetting:
+
+```rust
+ForeignState::MismatchedEnvelope { params, extra, persist, .. } => {
+    Some(MigratedState {
+        params: params.to_vec(),
+        extra: extra.map(<[u8]>::to_vec),
+        persist: persist.to_vec(),
+    })
+}
+```
+
 ## Upgrading to 6.0 (from 5.x)
 
 6.0 moves saving custom state completely off the audio thread, so even a

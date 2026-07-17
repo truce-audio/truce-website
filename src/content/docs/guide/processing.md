@@ -439,16 +439,20 @@ generators), see **[midi](midi.md)**.
 
 ## Sample-accurate event splitting
 
-**Parameter automation is sample-accurate by default.** The framework
+**Parameter automation is sample-accurate by default.** This is the
+second of two cooperating layers: the per-sample smoother read
+([reading smoothed params per block](#reading-smoothed-params-per-block),
+above) produces the click-free ramp, and **rechunking** — described
+here — makes that ramp begin at the right sample. The framework
 chunks `process()` at each `EventBody::ParamChange` so the smoother's
 `set_target` runs at the event's `sample_offset` rather than at the
-start of the block. Plugins reading `param.read()` per sample see the
-new target starting from the event sample — no manual loop required.
-Tune the granularity via `[automation] min_subblock_samples` in
-`truce.toml` (default 32) or opt a parameter out with
-`#[param(chunk = false)]`. See
+start of the block. Plugins reading `param.read()` (or `read_into`)
+per sample then see the new target starting from the event sample —
+no manual loop required. Tune the granularity via `[automation]
+min_subblock_samples` in `truce.toml` (default 32) or opt a parameter
+out with `#[param(chunk = false)]`. See
 [parameters § Sample-accurate automation](parameters.md#sample-accurate-automation)
-for the configuration surface.
+for both layers and the configuration surface.
 
 For **non-parameter events** (MIDI note-on/off, transport ticks,
 sysex), the chunker doesn't split on them — they arrive in the

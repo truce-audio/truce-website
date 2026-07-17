@@ -128,11 +128,11 @@ which reuses the buffer's capacity). Returning `true` is a static
 opt-in: once you return `true`, always return `true` (write an empty
 `buf` if there's nothing to save), never flip back to `false`.
 
-`save_state(state) -> Vec<u8>` still exists as a convenience the
-framework calls off-thread (the test driver, the standalone host), and
-it delegates to `snapshot_into` by default - so implementing
-`snapshot_into` covers every path. You don't override `save_state`;
-overriding it no longer reaches the host.
+`save_state(state) -> Vec<u8>` is the legacy path; `snapshot_into` is the
+one to override, and its default delegates to `save_state`, so overriding
+only `save_state` still round-trips on every format. The catch is that
+delegation runs your `save_state` on the audio thread - so prefer
+`snapshot_into`, or the off-thread publisher below for large state.
 
 The [state example](../examples/state.md) is the runnable version of
 this pattern, including the editor side.

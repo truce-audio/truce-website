@@ -2,6 +2,46 @@
 
 Notable changes per release.
 
+## 6.2.0
+
+Breaking: `MigratedState` gains a `persist` field (the `#[persist]` block to restore), so a `migrate_state` impl that builds it with a full struct literal no longer compiles. Plugins that don't override `migrate_state` need no change.
+
+Migration - fill the new field from the default instead of listing every field:
+
+```diff
+ Some(MigratedState {
+     params,
+-    extra: None,
++    ..MigratedState::default()
+ })
+```
+
+To keep `#[persist]` fields across a plugin rename, forward the already-decoded bytes from `ForeignState::MismatchedEnvelope`:
+
+```rust
+ForeignState::MismatchedEnvelope { params, extra, persist, .. } => Some(MigratedState {
+    params: params.to_vec(),
+    extra: extra.map(<[u8]>::to_vec),
+    persist: persist.to_vec(),
+}),
+```
+
+- State: `cargo truce screenshot --state` and the test driver's `state_file` / `state_blob` decode the `.pluginstate` envelope instead of passing it to `load_state`, so params and persist restore instead of rendering defaults; renamed-plugin migration carries the `#[persist]` block through `MigratedState`.
+- AU: host SysEx input no longer races the render thread; blocks past `kAudioUnitProperty_MaximumFramesPerSlice` fail safe instead of allocating; components report the plugin's real version instead of a hardcoded 1.0.0.
+- iOS / GUI editors: fixed a `CGImage` use-after-free on resize/close, frozen Slint timers/animations, a fixed-size letterbox gap, an unguarded GPU-editor `on_event` panic path, and per-open `UIView` / `CADisplayLink` leaks (egui, iced, Slint).
+- Standalone host: clean Ctrl-C WAV finalize for live capture; lock-free mic ring; device- and bus-layout-switch failures fall back instead of going silent; `--input-file` decodes to the main-bus width; mic enable falls back to the capture device's config; key auto-repeat ignored (macOS / Windows).
+- LV2: output atom ports always advertise their real body size; the `ui:resize` callback is panic-firewalled.
+- VST3: editor state edits enqueue onto the audio-thread handoff (no aliasing `&mut` / TOCTOU against host `setState` / `setActive`); `setContentScaleFactor` and inactive-`setState` notify use `try_enter`.
+- AAX: host state loads refresh the custom-state snapshot immediately; editor host-callbacks are invalidated on window close.
+
+## 6.1.10
+
+- Audio-thread real-time safety: `#[persist]` state loads off the audio thread (no priority-inversion dropout), wider-than-stereo buses don't allocate on the first block, the transport slot's seqlock got its missing memory fences (Apple Silicon torn reads), and asymmetric buses and analyzer taps are handled correctly (`AudioBuffer::chunks_mut`, `AudioTap::drain_with`).
+- VST3 host correctness: right transport flags (time signature / bar position / loop state), sample-accurate `CHUNKED` automation timing, canonical `getBusArrangement` speaker layouts, and UTF-8 metadata that no longer renders as mojibake.
+- Sample-accurate automation: sub-blocks split by a `CHUNKED` param now advance the transport position, so tempo-synced plugins don't jitter phase when automation lands mid-block.
+- Stronger compile-time parameter checks: out-of-range defaults, non-4-char fourccs, and unknown `flags` are compile errors; `skewed` / `sym_skewed` / `reversed` / rangeless params build again; a NaN normalized value collapses to the range's low end instead of silently resetting a param.
+- MIDI, LV2, tooling, and GUI: MIDI 1.0 output masks data bytes to 7 bits; LV2 nested-group ids match the live plugin; `cargo truce screenshot` returns a clean error instead of aborting; the Slint `XYPad` clips its dot and brackets a drag as one automation gesture (`pressed` / `released` callbacks) so a drag latches over host automation.
+
 ## 6.1.9
 
 - CLAP plugins expose `remote-controls` pages built from `#[param(group = "...")]`, so hosts (e.g. Bitwig) map each group onto the eight controller knobs. Based on [#178](https://github.com/truce-audio/truce/pull/178) by @lxndrbe.

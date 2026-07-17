@@ -181,18 +181,32 @@ mutable), so it works through `Arc<Params>` without `&mut`.
 
 ## Sample-accurate automation
 
-When the host sends a parameter change mid-block, the smoother
-starts ramping from the event's `sample_offset` rather than from the
-top of the block. truce achieves this by chunking `process()` at
-event boundaries: each `EventBody::ParamChange` whose target
-parameter participates in chunking splits the audio block, and the
-smoother's `set_target` runs at the sub-block boundary instead of
-eagerly at block start.
+Sample-accurate automation is **two cooperating layers**. Most
+plugins want both, but they're independent and solve different
+halves of the problem:
 
-The behavior is on by default for every parameter. Plugins reading
-`.read()` per sample get sample-accurate behavior for free —
-smoothers ramp from the right sample, `SmoothingStyle::None` params
-snap at the right sample.
+1. **Per-sample smoother reads.** A smoother interpolates on every
+   sample, so reading it per sample turns even a block-rate target
+   change into a click-free ramp across the block. Read it with
+   `.read()` per sample, or fill a whole stride at once with
+   `.read_into(&mut [f32])` and its SIMD block siblings (see
+   [processing § reading smoothed params per block](processing.md#reading-smoothed-params-per-block)).
+   This layer needs no host support and works on every format - it's
+   what removes zipper noise.
+2. **Rechunking.** truce splits `process()` at each
+   `EventBody::ParamChange` offset, so the smoother's `set_target`
+   lands at the event's exact sample instead of at block start - the
+   ramp *begins* at the right sample, not just smoothly. This layer
+   needs the host to deliver sample-accurate offsets (per-format
+   coverage below).
+
+They compose: rechunking places the target change at the right
+sample, and the per-sample read produces the smooth ramp from
+there. Reach for `read_into` (or the SIMD helpers) and you get the
+first layer directly; the second is on by default for every
+parameter, so a `SmoothingStyle::None` param also snaps at the right
+sample. The rest of this section is about layer 2 - what the chunker
+does and how to tune it.
 
 ### Tuning the granularity
 
