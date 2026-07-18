@@ -2,6 +2,20 @@
 
 Notable changes per release.
 
+## 6.3.0
+
+- Per-format builds (`cargo truce build` / `install` / `package` / `run` / `screenshot`) keep a plugin's non-format default features instead of dropping them; `--no-default-features` opts back into a minimal build.
+- `cargo truce validate --aax` runs Avid's full AAX Plug-In Validator when `AAX_VALIDATOR` points at its `dsh`, selectable via `--aax-tests load|fast|full|required|info` (`load` forces the lightweight pluginrunner check); without `AAX_VALIDATOR` it falls back to pluginrunner. `cargo truce doctor` reports both tools' availability.
+- VST2: fixed a scan-time buffer overflow (string opcodes now copy no more than the spec buffer sizes) and made plugins load on Linux / windows-gnu (the `VSTPluginMain` entry is a Rust trampoline, no longer demoted to a local symbol `dlsym` can't find).
+
+## 6.2.1
+
+- AU: the oversized-block fail-safe and the not-yet-prepared bail no longer re-deliver the previous block's MIDI/SysEx output (duplicated note-ons, stuck notes); both clear the output events and reset the drain cursor before returning.
+- Standalone: a failed output-device switch on the unnamed system default (Linux/ALSA) falls back to the default device instead of going silent.
+- Standalone: `--input-file` on a layout with no main input bus is ignored instead of panicking on a divide-by-zero.
+- Standalone: the mic ring tracks a runtime bus-layout switch instead of freezing its channel width at launch, so a wider layout's extra channels aren't silent until mic off/on.
+- Standalone: windowed `--output-file` capture also finalizes the WAV header on Ctrl-C, not just the headless runner.
+
 ## 6.2.0
 
 Breaking: `MigratedState` gains a `persist` field (the `#[persist]` block to restore), so a `migrate_state` impl that builds it with a full struct literal no longer compiles. Plugins that don't override `migrate_state` need no change.
