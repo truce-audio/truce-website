@@ -151,8 +151,14 @@ way on every format:
    a host that reads params right back after the load sees the
    restored values.
 3. The extra block is handed to the audio thread, which runs your
-   `load_state` between blocks - or `clear_state`, when the restored
-   state carries no extra block (below).
+   `load_state` between blocks. A restored state with no extra block
+   loads your `default_extra` instead (below).
+
+The extra block is also published to the save slot right away, so a
+host that saves before the next block gets the loaded state. While a
+CLAP or VST3 plugin is deactivated nothing renders, so those wrappers
+run `load_state` on the host thread at once; AU, VST2 and AAX run it at
+the next audio block.
 
 Two hooks fire after a load, one per thread:
 
@@ -167,18 +173,22 @@ Two hooks fire after a load, one per thread:
 
 A preset authored without `extra` (parameters only), or a session saved
 while your extra state serialized to nothing, restores no extra block -
-the envelope can't tell the two apart. `load_state` doesn't run for such
-a restore; `clear_state` does, followed by `state_changed`. The default
-does nothing, so the instance keeps the extra state it already had,
-which suits a plugin that wants a parameter-only preset to leave, say, a
-loaded sample alone. If a full restore should replace your extra state,
-reset it there:
+the envelope can't tell the two apart. For such a restore truce loads
+the bytes your `default_extra` returns, through `load_state` like any
+other. The default returns `None`, which skips `load_state` so the
+instance keeps the extra state it already had: right for a plugin that
+wants a parameter-only preset to leave, say, a loaded sample alone. If a
+full restore should replace your extra state, return its default:
 
 ```rust
-fn clear_state(state: &mut StateExampleDsp) {
-    state.memo = InstanceMemo::default();
+fn default_extra() -> Option<Vec<u8>> {
+    Some(InstanceMemo::default().serialize())
 }
 ```
+
+It takes no `state` because the wrapper calls it on the host thread,
+before the audio thread applies the load, so a host that saves in
+between already gets these bytes.
 
 ## What's in the blob
 
