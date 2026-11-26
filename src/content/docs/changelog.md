@@ -2,6 +2,167 @@
 
 Notable changes per release.
 
+## 7.0.0
+
+truce 7.0 moves LV2 into [truce-extensions](https://github.com/truce-audio/truce-extensions), updates the GUI stack (egui 0.37, slint 1.19, wgpu 30) and raises the minimum Rust version to 1.95. A plug-in on a built-in editor that doesn't ship LV2 usually needs only a rebuild.
+
+### Breaking
+
+- **LV2 moved to truce-extensions.** `truce` no longer has an `lv2` feature and `truce-build` no longer renders TTL. The runtime wrapper (`truce-lv2`) and a new `truce-format-lv2` helper, which `cargo truce` finds on `PATH`, live there, and the TTL they produce is byte-identical to 6.3's. Without the helper `--lv2` is an error, and `cargo truce doctor` reports whether it's installed. A plain `cargo truce uninstall` still removes LV2 bundles 6.x installed. The LV2 entries below describe `truce-lv2` / `truce-format-lv2` 7.0. **Migration:** see *Migrating from 6.x*, step 3.
+- **GUI stack: egui 0.34 → 0.37, slint 1.15 → 1.19, wgpu 29 → 30.** Only plug-ins whose editors use these crates directly need changes. **Migration:** step 1.
+- **Minimum supported Rust is 1.95** (was 1.92), egui 0.37's floor. **Migration:** `rustup update`.
+- **`Editor::idle` takes `dt: std::time::Duration`**, the wall-clock time since the previous call. **Migration:** a custom `Editor` that overrides `idle` adds the parameter (`_dt` if unused).
+- **`Script::set_param` takes a normalized value.** Inside `.script(..)`, `s.set_param(id, v)` now maps `v` through the parameter's range, as the builder's `.set_param` already did; 6.x pushed `v` as a plain value. A value outside `[0, 1]` panics in debug builds and warns once in release, but an un-migrated plain value inside `[0, 1]` is silently reinterpreted: a plain `1.0` on `enum(4)` now selects the last variant, a plain `0.5` on `linear(0, 10)` sets 5.0. A `Script::default()` built outside the driver has no ranges and still passes values through. **Migration:** step 2.
+- **egui editors receive a key only when they claim it** or a text field is focused; unclaimed keys go to the host so DAW shortcuts keep working. **Migration:** call `truce_egui::claim_keys(ui.ctx(), &[…])` each frame with the keys you handle (`egui::Key::ALL` for every key), and `truce_egui::claim_shortcuts` for Cmd / Ctrl / Alt chords.
+- **iced editors return unconsumed keys to the host**, including keys handled in `subscription()`, so without a claim both act on them. **Migration:** implement `IcedPlugin::keeps_key` for the keys you handle.
+- **Unknown `truce.toml` values are compile errors.** `[[plugin]] category` must be `effect`, `instrument`, `midi` / `note_effect`, `analyzer` or `tool`, and `aax_category` a recognized value, checked in every format's build. 6.x treated an unknown category as an effect everywhere but the LV2 TTL. Correcting a misspelled instrument or note-effect category makes the plug-in one on every format: its MIDI wiring, its VST3 / CLAP / AAX / VST2 categories and, without `au_type`, its AU type (`aumu` / `aumi`) change, so hosts see a new AU. A corrected analyzer or tool spelling changes its VST3 category and CLAP features. **Migration:** fix the value the error names.
+- **LV2 refuses a plug-in whose audio layout differs from its category default** (effect, analyzer and tool 2 in / 2 out, instrument 0 in / 2 out, `midi` none) instead of loading it with shifted ports. That includes an `instrument` or `midi` plug-in left on the default stereo `bus_layouts()`, which means every `midi` plug-in scaffolded on 6.x. **Migration:** step 3, or ship that plug-in without LV2.
+- **`cargo truce validate` fails when pluginval or clap-validator is missing and a VST3 / CLAP bundle is installed**, reported as `validation incomplete (N skipped)`; 6.x passed. **Migration:** install the validator in CI, or scope the run to formats you can validate.
+- **`Theme` gained `toggle_track_hover` and `toggle_thumb`.** **Migration:** set them in a full `Theme { … }` literal, or fill the rest from `..Theme::dark()`.
+- **`EventList::with_capacity` lists no longer grow.** A full list drops events other than parameter changes and modulation (which fold into the queued one) and note-offs (which still grow it), and `push_sysex` can return the new `PushError::QueueFull`. **Migration:** size lists with `block_event_capacity(max_block, param_count)`, use `EventList::growable_with_capacity` off the audio thread, and add the new arm to `PushError` matches.
+- **`truce_standalone::audio::AudioHandles::is_effect` is renamed `takes_input`**, and now means the plug-in has an audio input bus in some layout. **Migration:** rename the field.
+
+### Migrating from 6.x
+
+1. **Update custom GUI code.** Skip this if your editor never names egui, slint or wgpu; iced and vizia are unchanged.
+
+   **egui 0.37:**
+
+   ```diff
+   -egui = "0.34"
+   +egui = "0.37"
+   ```
+
+   ```diff
+   -let id = egui::Id::new("my_widget");
+   +let id = egui::Id::unique("my_widget");
+   -egui::SidePanel::left("p").show_inside(ui, |ui| { /* ... */ });
+   +egui::Panel::left("p").show(ui, |ui| { /* ... */ });
+   ```
+
+   egui 0.37 ships its own fonts (emoji, icon glyphs such as `⚙` or `egui::special_emojis`) only behind features `truce-egui` doesn't enable, so a custom UI that draws them shows tofu. Enable them in your crate; they become fallbacks behind your font:
+
+   ```toml
+   egui = { version = "0.37", features = ["default_fonts", "monochrome_emoji_fonts"] }
+   ```
+
+   An editor without `with_font` now draws JetBrains Mono instead of egui's Ubuntu-Light. To keep the 6.x look, pass `with_font(epaint_default_fonts::UBUNTU_LIGHT)`.
+
+   **slint 1.19:** bump `slint` and `slint-build` to `=1.19.1`.
+
+   ```diff
+   -slint = "=1.15.1"
+   +slint = "=1.19.1"
+   ```
+
+   Markup that renders images or SVGs (an embedded PNG, `std-widgets` icons) also needs a direct `i-slint-core` dependency to turn decoding on, as `gui-zoo-slint` does:
+
+   ```toml
+   i-slint-core = { version = "=1.19.1", features = ["image-decoders", "image-default-formats", "svg"] }
+   ```
+
+   **wgpu 30**, only if your editor drives wgpu directly:
+
+   ```diff
+   -wgpu = "29"
+   +wgpu = "30"
+   ```
+
+2. **Pass normalized values to script `set_param`.** Only values outside `[0, 1]` fail, so check every call:
+
+   ```diff
+    // "gain" ranges 0..10; drive it to 8
+   -.script(|s| s.set_param(P::Gain, 8.0))
+   +.script(|s| s.set_param(P::Gain, 0.8))
+   ```
+
+3. **If you ship LV2,** depend on `truce-lv2` directly and install the helper wherever you build bundles:
+
+   ```toml
+   [features]
+   lv2 = ["dep:truce-lv2"]
+
+   [dependencies]
+   truce-lv2 = { version = "7.0", optional = true }
+   ```
+
+   ```sh
+   cargo install truce-format-lv2
+   ```
+
+   Give `instrument` and `midi` plug-ins their real bus layout, since LV2 refuses the effect default. The current scaffold emits these:
+
+   ```rust
+   // category = "instrument": no audio input, stereo out
+   fn bus_layouts() -> Vec<BusLayout> {
+       vec![BusLayout::new().with_output("Main", ChannelConfig::Stereo)]
+   }
+
+   // category = "midi": no audio I/O (AAX adds a passthrough itself)
+   fn bus_layouts() -> Vec<BusLayout> {
+       vec![BusLayout::new()]
+   }
+   ```
+
+4. **Rebuild all artifacts together.** A hot-reload shell checks its logic dylib's ABI version and AU v3 checks its framework / appex handshake, so 7.0 pieces refuse 6.x ones.
+
+### Other changes
+
+#### Editors and GUI
+
+- **`idle()` everywhere** (#233). CLAP, VST3, VST2, AU v2, LV2 and the standalone host now drive `Editor::idle`, only while the editor is open (AAX already did; AU v3's app-extension view still doesn't). `dt` resets when an editor opens and is capped at 100 ms. CLAP ticks it through the host's `timer-support` extension. truce's own ~60 Hz idle timers run only for an editor whose new `Editor::wants_idle()` is true: the default, while the built-in, egui, iced and slint editors return false. See the `idle-anim` example.
+- **Keyboard forwarding.** A key the focused editor doesn't use goes to the host (Space, Return, arrange shortcuts) in egui, iced and slint. A focused text field keeps every key, and an open egui popup keeps plain keys so Escape and arrows work in it. Claims add up within a frame and last only that frame; keys held when the window loses focus are released.
+- `truce-egui`: recovers from a failed surface acquire instead of freezing black and leaking memory (#248), and a panic in UI code or a frame dropped mid-render no longer aborts the host or kills the editor.
+- `truce-egui`: bundles Noto Music (`truce_font::NOTO_MUSIC`) as a symbol fallback, and uses JetBrains Mono when an editor sets no `with_font`. Emoji and icon glyphs need egui's font features (step 1).
+- `truce-slint`: window content no longer bleeds through open popups (#241).
+- Built-in GUI: a restyled toggle, coloured by the new `Theme` fields.
+
+#### Parameters
+
+- `#[nested]` accepts fixed-size arrays (`[T; N]`) and a `<field>_id(i, sub)` resolver, returning the id in its own struct's id space. Under the default hash id scheme each child gets a hashed start and the elements follow at a fixed odd stride, so growing the array or adding a param to the element type moves no existing id. A collision (about 0.1% for 64 elements × 16 children) panics at construction naming both params: pin one with `#[param(id = N)]`, rename the new field, or switch to `id_scheme = "ordinal"` before shipping, which packs elements contiguously. `#[nested(base = N)]` on a hash-scheme array is a compile error. Element names get the array's label and 1-based index (`Step 1 Level`, the label taken from the field name or `#[nested(label = "...")]`), groups inside elements are qualified too, and LV2 symbols follow the names.
+- `#[meter]` isn't supported inside a `#[nested]` struct; the panic now says so.
+- `range`, `smooth` and `default` accept `f64` consts, with the same compile-time checks as literals: ordered and positive bounds, skew, center, enum count. A const `default` on an Int, Enum or Bool param is range-checked too; Int and Enum need an explicit `range` for that, otherwise `IntParam::new` / `EnumParam::new` check it at construction. LV2 can't encode a const range or default, so `truce-format-lv2` refuses one when packaging.
+
+#### Formats
+
+- State: a save before the plug-in's first audio block now carries its custom state, on every format (#253). CLAP and VST3 also republish it on each save while deactivated.
+- State: the new `PluginLogic::clear_state` runs when a restored state carries no custom state (a parameter-only preset, or custom state that serialized to nothing), so a plug-in can drop the previous preset's state (#251). The default is a no-op that keeps it; `state_changed` fires after it, as after `load_state`.
+- CLAP: requests a parameter rescan after state and preset loads (#232) and a restart only while active (#238). `activate` notifies the host's `latency.changed()`, after releasing the plug-in so a re-entrant host can't alias it.
+- VST3: correct interface IDs for `IUnitInfo`, `IEditControllerHostEditing` and `IProcessContextRequirements`, which hosts never found before. `getUnitByBus` now answers, and `IProcessContextRequirements` asks only for the fields the wrapper reads. Only the view that attached the editor can close it, and a destroyed component detaches every live view.
+- VST2: restored the legacy macOS entry alias.
+- AU: editor state is touched only on the main thread, so a background state or preset load can't race the editor, and a disposed AU's view no longer calls into it.
+- AU v3: Logic sizes the window from the editor's `preferredContentSize` (iOS still accepts any size), an aspect-locked editor ignores off-aspect resizes on macOS, and a re-entrant `gui_close` runs after the current callback instead of being lost.
+- AAX: fewer transport-API calls per block (sample location and bar / beat only while playing), and a save right after a load no longer keeps the pre-load state.
+- LV2: the TTL carries `lv2:minorVersion` / `lv2:microVersion` (minor `2 × (major × 256 + minor) + 2`, micro `2 × patch`, so versions order across a major bump). A release that adds or reorders parameters needs at least a minor version bump. The UI lists `ui:idleInterface` as a feature too, so hosts that check features call `idle`.
+- Versions come from each plug-in's version (`[[plugin]].version`, else its crate's) in Info.plists, the AU component version, VST2, LV2 and the Windows standalone manifest (#240). For a 0.x plug-in that drops below 6.x's hardcoded values, so remove any 6.x copy in the other Library location (`~/Library` vs `/Library`): the AU registrar prefers the higher version.
+- macOS pkg: installers no longer version-check bundles, so an upgrade from a 6.x pkg and a rollback both replace the installed bundle.
+
+#### CLI
+
+- `cargo truce package --arch x86_64|arm64` builds a single non-host macOS slice (not combinable with `--host-only`).
+- `cargo truce validate` reads clap-validator 0.4.1's summary counts correctly (#245) and uses its `--exclude` argument.
+- Scaffolds: MIDI plug-ins declare an empty audio bus layout, and the commented LV2 hint points at `truce-lv2` on crates.io, with the `[patch.crates-io]` a `--github` scaffold needs to share one truce.
+- Packaging: the macOS archive dedupe is safe and deletes its `lib*.dedup-<pid>.a` afterwards, and an empty `[vendor].name` is rejected (it made `reset-aax`, `reset-au` and `uninstall --stale` match every file). `uninstall --stale` considers only files with the format's extension, and skips a slug-named format (LV2) when the vendor name has no ASCII letters or digits.
+- Generated TOML (metadata files, helper config views, `.preset` files) escapes control characters, so a name containing a tab or newline round-trips, and metadata files are written atomically.
+- Building for the host target no longer needs a rustup-managed toolchain; only cross targets do.
+- `cargo metadata` runs once per invocation.
+
+#### Standalone and test driver
+
+- The standalone app, `truce-driver` / `truce-test` and offline render feed audio input to any plug-in with an input bus in one of its `bus_layouts()`, not only effects, and offline render picks a layout with a main input.
+
+#### Real-time safety and hardening
+
+- Event lists are sized off the audio thread for the worst-case block (capped at 8192 frames) and don't reallocate in practice. When one fills, parameter changes and CLAP modulation fold into the queued ones and note-offs grow the list, so none is dropped.
+- The denormal guard covers each wrapper's whole process callback, not only the plug-in body.
+- Parameter get / set callbacks are panic-firewalled across the C ABI (AU, VST2, VST3), and CLAP and VST2 validate host-declared event and chunk sizes before reading them.
+- AAX's save-blob cache no longer serves stale state after a GUI-driven state change.
+- Bumped `zip` for a `cargo audit` advisory.
+
+#### Examples
+
+- New `stepgate` (`#[nested]` arrays) and `idle-anim` (`Editor::idle` with `dt`) examples. The EQ and fundsp reverb examples clamp frequencies to pass clap-validator.
+
 ## 6.3.0
 
 - Per-format builds (`cargo truce build` / `install` / `package` / `run` / `screenshot`) keep a plugin's non-format default features instead of dropping them; `--no-default-features` opts back into a minimal build.

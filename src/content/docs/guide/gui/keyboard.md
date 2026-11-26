@@ -45,6 +45,52 @@ fn ui(&mut self, ui: &mut egui::Ui, _state: &PluginContext<MyParams>) {
 }
 ```
 
+### Forwarding unused keys to the host
+
+In a DAW, pressing Space should start the host transport, not get
+swallowed by a focused plugin. So truce's egui backend forwards every key
+your UI hasn't claimed back to the host, and keeps only the ones you ask
+for.
+
+Call `truce_egui::claim_keys` each frame with the keys you handle
+(`egui::Key::ALL` for every key); everything else goes to the host. A
+focused text field keeps every key without a claim, and while an egui
+popup is open (a `ComboBox`, including `param_dropdown`, or a menu) the
+editor keeps plain keys so Escape and the arrows work in it. A key held
+with Cmd / Ctrl / Alt goes to the host even if you claimed the key; claim
+the chord itself with `truce_egui::claim_shortcuts`.
+
+```rust
+fn ui(&mut self, ui: &mut egui::Ui, _state: &PluginContext<MyParams>) {
+    // This editor drives a step grid with the arrow keys and loads
+    // presets with the number row. Claim exactly those; let the host
+    // keep Space, Return, and its arrange shortcuts.
+    truce_egui::claim_keys(
+        ui.ctx(),
+        &[
+            egui::Key::ArrowLeft,
+            egui::Key::ArrowRight,
+            egui::Key::Num1,
+            egui::Key::Num2,
+        ],
+    );
+
+    // ... draw the UI and read the claimed keys from `ui.input` as usual.
+}
+```
+
+A claim covers only the frame that made it, and claims made in one frame
+add up, so each panel can claim its own keys: claim inside the code that
+draws the panel, and when the panel closes its keys go back to the host on
+the next frame. Keep the claimed set tight. A claimed key never reaches the
+host, so claiming broadly brings back the swallowed-transport problem.
+
+```rust
+use egui::{Key, KeyboardShortcut, Modifiers};
+// Cmd+Z on macOS, Ctrl+Z elsewhere.
+truce_egui::claim_shortcuts(ui.ctx(), &[KeyboardShortcut::new(Modifiers::COMMAND, Key::Z)]);
+```
+
 ## iced
 
 Keys reach iced two ways.
@@ -75,6 +121,26 @@ An iced `KeyPressed` carries both the layout-resolved logical key and the
 layout-independent `physical_key`, so shortcuts (logical) and
 whole-keyboard input (physical, e.g. a tab editor) are both covered.
 
+**Unused keys go to the host.** truce returns each key to the host unless
+an iced widget consumed it: a focused `text_input` or a capture widget
+that handled the key keeps it, and everything else (Space, the host's
+transport and arrange shortcuts) reaches the DAW. A key you handle in
+`subscription()` (`keyboard::listen`, `event::listen_with`) arrives there
+unconsumed, so both the plugin and the host would act on it. Keep it by
+returning `true` from `IcedPlugin::keeps_key`, answering from your own
+state for keys you only sometimes use:
+
+```rust
+fn keeps_key(&self, event: &truce_iced::iced::keyboard::Event) -> bool {
+    use truce_iced::iced::keyboard::{Event, Key, key::Named};
+    let key = match event {
+        Event::KeyPressed { key, .. } | Event::KeyReleased { key, .. } => key,
+        _ => return false,
+    };
+    self.sequencer_open && matches!(key, Key::Named(Named::ArrowLeft | Named::ArrowRight))
+}
+```
+
 ## Slint
 
 Keys flow into Slint's own input system, so handle them the Slint way in
@@ -91,6 +157,13 @@ focus := FocusScope {
     // give it focus (e.g. a TouchArea calling focus()), then type
 }
 ```
+
+Like iced, slint needs no `claim_keys` call: truce returns each key to the
+host unless a focused slint item consumed it. A `FocusScope` whose handler
+returns `accept`, or a focused `LineEdit` / `TextInput`, keeps the key;
+anything `reject`ed or sent while nothing is focused (Space, the host's
+transport and arrange shortcuts) reaches the DAW. Returning `reject` from a
+`key-pressed` handler is how you deliberately pass a key through to the host.
 
 ## Vizia
 

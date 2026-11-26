@@ -168,6 +168,11 @@ GridLayout::build(sections)
     })
 ```
 
+Toggles take their hover track and knob colours from
+`toggle_track_hover` and `toggle_thumb`. Fill a custom theme from
+`..Theme::dark()` (or `light()`) as above rather than listing every
+field, so a field added in a later release doesn't break the build.
+
 Fonts: fontdue rasterization with JetBrains Mono Regular embedded
 at compile time. No font file on disk, no runtime load.
 

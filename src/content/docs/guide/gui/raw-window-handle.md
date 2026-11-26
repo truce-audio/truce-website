@@ -58,8 +58,12 @@ impl Editor for MyEditor {
         self.context = None;
     }
 
-    fn idle(&mut self) {
-        // called ~60fps by the host — repaint here
+    fn idle(&mut self, dt: std::time::Duration) {
+        // Called ~60fps on the host UI thread; repaint / animate here.
+        // `dt` is the real elapsed time since the last call - advance
+        // animation by it rather than assuming a fixed frame rate (hosts
+        // tick at different, uneven rates).
+        let _ = dt;
     }
 
     fn set_size(&mut self, width: u32, height: u32) -> bool {
@@ -81,6 +85,29 @@ impl Editor for MyEditor {
 unsafe impl Send for MyEditor {}
 ```
 
+## Idle
+
+CLAP, VST3, VST2, AU v2, AAX, LV2 and the standalone host call `idle`
+about 60 times a second on the host UI thread, only while the editor
+is open (the AU v3 app-extension view doesn't call it yet). `dt` is
+the wall-clock time since the previous call: it restarts when the
+editor opens and is capped at 100 ms, so a stalled UI thread can't make
+an animation jump. On CLAP the tick rides the host's `timer-support`
+extension, so a host that doesn't offer it never calls `idle`.
+
+If `idle` does nothing, return `false` from `wants_idle` so formats
+skip the timer entirely. The built-in, egui, iced and slint editors do
+this, since they repaint through their own frame loop. The value must
+not change over the editor's lifetime:
+
+```rust
+fn wants_idle(&self) -> bool {
+    false
+}
+```
+
+The `idle-anim` example animates a knob from `idle`.
+
 ## Reading and writing parameters
 
 `PluginContext` exposes its host bridge as methods. IDs use
@@ -89,7 +116,7 @@ through `impl Into<u32>`, so you can pass either the enum variant or a
 literal `u32`:
 
 ```rust
-fn idle(&mut self) {
+fn idle(&mut self, _dt: std::time::Duration) {
     let ctx = self.context.as_ref().unwrap();
 
     // read current values

@@ -64,7 +64,11 @@ Anything your plugin persists is captured: presets wrap the same
 state blob as session recall, so `[params]` plus your
 `#[derive(State)]` extras round-trip identically. The `extra`
 field carries the latter as base64 - another reason to author via
-`pull` rather than by hand.
+`pull` rather than by hand. A preset without `extra` carries no extra
+state: loading it calls your plugin's `clear_state` rather than
+`load_state`, which by default keeps whatever extra state the instance
+already had ([state → when a restore carries no extra
+state](state.md#when-a-restore-carries-no-extra-state)).
 
 ## Authoring presets in your DAW
 

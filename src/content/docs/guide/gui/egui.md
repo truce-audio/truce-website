@@ -9,8 +9,19 @@ hosting handled for you.
 
 ```toml
 [dependencies]
-truce-egui = "2.0"
-egui = "0.34"
+truce-egui = "7.0"
+egui = "0.37"
+```
+
+egui 0.37 ships its own fonts (Ubuntu-Light, Hack, emoji and icon
+glyphs) only behind features `truce-egui` doesn't enable. Text renders
+in your editor's `with_font`, or JetBrains Mono without one, with Noto
+Music as a fallback for music symbols. A UI that draws emoji or icon
+glyphs (`⚙`, `egui::special_emojis`) enables egui's font features in
+your crate, and they slot in as fallbacks:
+
+```toml
+egui = { version = "0.37", features = ["default_fonts", "monochrome_emoji_fonts"] }
 ```
 
 Return an `EguiEditor` from `editor()`:
@@ -230,6 +241,14 @@ fn gui_screenshot() {
 ```
 
 See [screenshot testing](screenshot-testing.md) for more.
+
+## Keyboard
+
+Read keys each frame from `ui.input`, the same as any egui app. The one
+truce-specific wrinkle: the editor forwards unclaimed keys back to the host
+so Space keeps driving the transport, and you declare the keys you handle
+with `truce_egui::claim_keys`. See [Keyboard input](keyboard.md) for the
+full story.
 
 ## Examples
 

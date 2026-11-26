@@ -39,7 +39,8 @@ default = ["clap", "vst3", "lv2"]   # CLAP + VST3 + LV2 every time
 ```
 
 Per-format setup (Xcode required for AU v3, PACE wraptool for
-retail AAX, `AAX_SDK_PATH`, etc.) is in the per-format pages:
+retail AAX, `AAX_SDK_PATH`, the `truce-format-lv2` helper for LV2,
+etc.) is in the per-format pages:
 [clap](../formats/clap.md) · [vst3](../formats/vst3.md) ·
 [vst2](../formats/vst2.md) · [lv2](../formats/lv2.md) ·
 [au](../formats/au.md) · [aax](../formats/aax.md).
@@ -132,23 +133,24 @@ cargo truce validate --clap --pluginval -p my-gain   # subset, single plugin
 - **VST2 smoke** is built in — it `dlopen`s the dylib and verifies
   `VSTPluginMain` returns a well-formed `AEffect`.
 
-Set `CLAP_VALIDATOR=/path/to/clap-validator` to override
-auto-discovery. `cargo truce doctor` tells you what's found.
+truce targets clap-validator 0.4.1. Set
+`CLAP_VALIDATOR=/path/to/clap-validator` to override auto-discovery. `cargo truce doctor` tells you what's found.
 
-### Strict mode for CI
+### Missing validators
 
-Per-format flags fail the run if their validator is missing:
+A format is in scope when you ask for it by flag, or, with no flag (or
+`--all`), when its bundle is installed. A validator missing for an
+in-scope format counts as skipped, and skips fail the run:
 
-| Invocation | Validator missing → |
+| Invocation | pluginval / clap-validator missing → |
 |---|---|
-| `cargo truce validate` (no flag) | warning, exit 0 |
-| `cargo truce validate --all` | warning, exit 0 |
-| `cargo truce validate --clap` | error, exit non-zero |
-| `cargo truce validate --pluginval` | error, exit non-zero |
+| `cargo truce validate` / `--all`, bundle installed | skipped, exit non-zero (`validation incomplete (N skipped)`) |
+| `cargo truce validate` / `--all`, bundle not installed | out of scope, ignored |
+| `cargo truce validate --clap` / `--pluginval` | skipped, exit non-zero |
 
-Wire `--clap --pluginval` (or whichever subset you want) into your
-CI so a missing validator binary fails the build instead of
-silently passing.
+auval and the AAX validator fail only when requested explicitly. So in
+CI, install the validators your installed formats need, or scope the
+run (`--clap --pluginval`) to the ones you can validate.
 
 ### Installing the validators
 

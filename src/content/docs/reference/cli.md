@@ -75,9 +75,13 @@ cargo truce uninstall --stale --dry-run    # preview cleanup of bundles whose
 | `--user` / `--system` | Limit to one scope. By default scans both (handy when you've switched scope mid-iteration). |
 | `-p <crate>` | Single plugin in a workspace. |
 | `-n <name>` | Target a bundle by display name when `truce.toml` no longer lists it. |
-| `--stale` | Remove bundles whose `[[plugin]]` entry was deleted from `truce.toml`. |
+| `--stale` | Remove bundles whose `[[plugin]]` entry was deleted from `truce.toml`: files with the format's extension whose name contains the vendor name. |
 | `--dry-run` | Print what would be removed without touching disk. |
 | `--yes` | Skip the confirmation prompt. |
+
+LV2 goes through the `truce-format-lv2` helper, so `--lv2` needs it
+installed. Without it, a plain `uninstall` still removes LV2 bundles
+from the locations truce 6.x installed them to.
 
 ## `build`
 
@@ -163,13 +167,7 @@ cargo truce validate --vst2             # VST2 dlopen + AEffect smoke
 cargo truce validate --clap --pluginval -p my-gain
 ```
 
-Strict mode for CI — any per-format flag (`--clap`, `--pluginval`, `--auval`, `--auval3`, `--vst2`) fails the run if its validator is missing:
-
-| Invocation | Validator missing → |
-|---|---|
-| `cargo truce validate` (no flag) | warning, exit 0 |
-| `cargo truce validate --all` | warning, exit 0 |
-| `cargo truce validate --<format>` (any one) | error, exit non-zero |
+A format is in scope when requested by flag or, with no flag (or `--all`), when its bundle is installed. A missing pluginval or clap-validator for an in-scope format is reported as skipped and the run exits non-zero (`validation incomplete (N skipped)`); auval and the AAX validator fail only when requested explicitly. See [shipping → missing validators](../guide/shipping.md#missing-validators).
 
 Override validator discovery via env: `CLAP_VALIDATOR`, `PLUGINVAL` (see [`cargo-config`](cargo-config.md)).
 
@@ -190,6 +188,7 @@ cargo truce package --formats clap,vst3,aax  # subset
 | `--user` | Hard-locked user-scope installer. |
 | `--system` | Hard-locked system-scope installer. |
 | `--host-only` | Skip the cross-arch build. Dev iteration. |
+| `--arch x86_64\|arm64` | macOS: build a single non-host slice instead of a universal binary. Not combinable with `--host-only`. |
 | `--no-sign` | Skip Authenticode / Developer ID signing. Dev only. |
 | `--no-notarize` | macOS: sign but skip Apple notarization. |
 | `--no-installer` | Windows: stage files but skip the Inno Setup compile step. |

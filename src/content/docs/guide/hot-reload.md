@@ -157,9 +157,11 @@ Expected — a 5–50 ms dropout while the swap happens. Hot reload
 is a development tool, not a live-performance feature.
 
 **"ABI mismatch" error.**
-The shell and logic were built with different Rust toolchains.
-Both must use the same compiler. `rust-toolchain.toml` in the
-workspace pins it.
+The shell and logic were built with different Rust toolchains, or
+against different truce versions - the interface between them changes
+between releases (it did for 7.0). Build both with the same compiler
+and the same truce; `rust-toolchain.toml` in the workspace pins the
+compiler.
 
 **State lost on reload.**
 `snapshot_into()` / `load_state()` format changed between builds.

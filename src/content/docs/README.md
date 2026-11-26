@@ -98,7 +98,7 @@ Truce compiles a single plugin crate into up to seven plugin formats, plus an ap
 | [CLAP](formats/clap.md) | `clap` | ✅ | ✅ | ✅ | ✅ | — |
 | [VST3](formats/vst3.md) | `vst3` | ✅ | ✅ | ✅ | ✅ | — |
 | [VST2](formats/vst2.md) | `vst2` | ✅ | ✅ | ✅ | opt-in | read licensing note |
-| [LV2](formats/lv2.md) | `lv2` | ✅ | ✅ | ✅ | opt-in | — |
+| [LV2](formats/lv2.md) | `lv2` | ✅ | ✅ | ✅ | opt-in | `truce-lv2` + the `truce-format-lv2` helper, from truce-extensions |
 | [AU v2](formats/au.md) | `au` | ✅ | — | — | opt-in | Xcode CLI tools |
 | [AU v3](formats/au.md) | `au` | ✅ | — | — | opt-in | full Xcode, Developer ID signing |
 | [AU v3 (iOS)](formats/au-ios.md) | `au` | ✅ (iOS) | — | — | opt-in | Xcode, Apple Developer team ID for device / `.ipa` |

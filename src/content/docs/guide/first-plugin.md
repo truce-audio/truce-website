@@ -168,18 +168,20 @@ credentials) go in `.cargo/config.toml` (gitignored), **not** here.
 ```toml
 [features]
 default = ["clap", "vst3", "standalone"]
-clap       = ["truce/clap"]
-vst3       = ["truce/vst3"]
-vst2       = ["truce/vst2"]
-lv2        = ["truce/lv2"]
-au         = ["truce/au"]
-aax        = ["truce/aax"]
-standalone = ["truce/standalone"]
-shell      = ["truce/shell"]
+clap = ["dep:truce-clap", "dep:clap-sys"]
+vst3 = ["dep:truce-vst3"]
+standalone = ["dep:truce-standalone"]
+shell = ["truce/shell"]
 ```
 
-Scaffolded plugins enable CLAP + VST3 + standalone by default. Add more formats
-to `default`, or opt in per-command (`cargo truce install --vst2`).
+Each format feature turns on its wrapper crate, an optional
+dependency. Scaffolded plugins enable CLAP + VST3 + standalone by
+default. To add VST2, AU, AAX or LV2, add the matching feature and
+optional dependency (the scaffolded `Cargo.toml` has commented hints),
+then add it to `default` or opt in per command
+(`cargo truce install --vst2`). LV2 ships from
+[truce-extensions](../formats/lv2.md) and also needs its helper
+installed.
 Per-format detail (SDKs, env vars, install paths, signing) is in
 [docs/formats/](../#formats).
 

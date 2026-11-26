@@ -126,7 +126,9 @@ saving state - even a large blob - never stalls audio. Because it runs
 every block, keep it cheap and allocation-free (use `serialize_into`,
 which reuses the buffer's capacity). Returning `true` is a static
 opt-in: once you return `true`, always return `true` (write an empty
-`buf` if there's nothing to save), never flip back to `false`.
+`buf` if there's nothing to save), never flip back to `false`. It also
+runs once when the plugin is created, so a host that saves before the
+first audio block still gets your state.
 
 `save_state(state) -> Vec<u8>` is the legacy path; `snapshot_into` is the
 one to override, and its default delegates to `save_state`, so overriding
@@ -149,7 +151,8 @@ way on every format:
    a host that reads params right back after the load sees the
    restored values.
 3. The extra block is handed to the audio thread, which runs your
-   `load_state` between blocks.
+   `load_state` between blocks - or `clear_state`, when the restored
+   state carries no extra block (below).
 
 Two hooks fire after a load, one per thread:
 
@@ -159,6 +162,23 @@ Two hooks fire after a load, one per thread:
   map.
 - `Editor::state_changed` - GUI thread. Refresh editor-side caches
   and repaint.
+
+### When a restore carries no extra state
+
+A preset authored without `extra` (parameters only), or a session saved
+while your extra state serialized to nothing, restores no extra block -
+the envelope can't tell the two apart. `load_state` doesn't run for such
+a restore; `clear_state` does, followed by `state_changed`. The default
+does nothing, so the instance keeps the extra state it already had,
+which suits a plugin that wants a parameter-only preset to leave, say, a
+loaded sample alone. If a full restore should replace your extra state,
+reset it there:
+
+```rust
+fn clear_state(state: &mut StateExampleDsp) {
+    state.memo = InstanceMemo::default();
+}
+```
 
 ## What's in the blob
 

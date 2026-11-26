@@ -5,6 +5,112 @@ self-contained: follow the steps for the version you're jumping to. For
 the full release notes behind these changes, see the
 [changelog](changelog.md).
 
+## Upgrading to 7.0 (from 6.x)
+
+A plugin on a built-in editor that doesn't ship LV2 usually needs only
+a rebuild. Work through the steps that apply.
+
+### Rust 1.95
+
+The minimum supported Rust is now 1.95 (egui 0.37's floor). Run
+`rustup update`.
+
+### LV2 moved to truce-extensions
+
+`truce` has no `lv2` feature any more. Depend on `truce-lv2` directly
+and install the `truce-format-lv2` helper wherever you build bundles
+(see [LV2](formats/lv2.md)):
+
+```toml
+[features]
+lv2 = ["dep:truce-lv2"]
+
+[dependencies]
+truce-lv2 = { version = "7.0", optional = true }
+```
+
+```sh
+cargo install truce-format-lv2
+```
+
+LV2 now refuses to load a plugin whose audio layout differs from its
+category's default, so give `instrument` and `midi` plugins their real
+bus layout instead of the default stereo effect one:
+
+```rust
+// category = "instrument": no audio input, stereo out
+fn bus_layouts() -> Vec<BusLayout> {
+    vec![BusLayout::new().with_output("Main", ChannelConfig::Stereo)]
+}
+
+// category = "midi": no audio I/O
+fn bus_layouts() -> Vec<BusLayout> {
+    vec![BusLayout::new()]
+}
+```
+
+### GUI crates
+
+Only editors that use these crates directly need changes.
+
+- **egui 0.34 → 0.37.** Bump `egui`, then `egui::Id::new` →
+  `egui::Id::unique` and `SidePanel::left(..).show_inside` →
+  `Panel::left(..).show`. egui's own fonts (emoji, icon glyphs) now sit
+  behind features: enable `default_fonts` / `monochrome_emoji_fonts` if
+  your UI draws them ([egui](guide/gui/egui.md)).
+- **slint 1.15 → 1.19.** Bump `slint` and `slint-build` to `=1.19.1`;
+  markup that renders images or SVGs adds a direct `i-slint-core`
+  dependency ([Slint](guide/gui/slint.md)).
+- **wgpu 29 → 30**, if your editor drives wgpu directly.
+- **Custom `Editor`s:** `idle` now takes `dt: std::time::Duration`. Add
+  the parameter (`_dt` if unused), and return `false` from `wants_idle`
+  if `idle` does nothing ([idle](guide/gui/raw-window-handle.md#idle)).
+- **Keyboard:** egui editors now receive a key only if they claim it
+  with `truce_egui::claim_keys` each frame, and iced editors return
+  unconsumed keys to the host unless `IcedPlugin::keeps_key` keeps them
+  ([keyboard input](guide/gui/keyboard.md)).
+- **Custom built-in themes:** `Theme` gained `toggle_track_hover` and
+  `toggle_thumb`; fill a `Theme { .. }` literal from `..Theme::dark()`.
+
+### Driver scripts
+
+`Script::set_param` inside `.script(..)` now takes a normalized
+`[0, 1]` value, like the builder's `.set_param`. Only values outside
+`[0, 1]` panic, so check every call - a plain value inside the range is
+silently read as a position:
+
+```diff
+ // "gain" ranges 0..10; drive it to 8
+-.script(|s| s.set_param(P::Gain, 8.0))
++.script(|s| s.set_param(P::Gain, 0.8))
+```
+
+### `truce.toml`
+
+An unknown `[[plugin]] category` or `aax_category` is now a compile
+error ([accepted values](reference/truce-toml.md)). Correcting a
+misspelled instrument or note-effect category makes the plugin one on
+every format, so its AU type and host categories change and hosts see
+a new AU.
+
+### Smaller breaks
+
+- `EventList::with_capacity` lists no longer grow: size them with
+  `block_event_capacity(max_block, param_count)`, or use
+  `EventList::growable_with_capacity` off the audio thread. `PushError`
+  gained `QueueFull`.
+- `truce_standalone::audio::AudioHandles::is_effect` is now
+  `takes_input`.
+- `cargo truce validate` exits non-zero when pluginval or clap-validator
+  is missing for an installed VST3 / CLAP bundle
+  ([shipping](guide/shipping.md#missing-validators)).
+
+### Rebuild everything together
+
+Hot-reload shells and logic dylibs, and AU v3 frameworks and app
+extensions, check each other's versions, so 7.0 pieces refuse 6.x ones.
+Rebuild and reinstall in one pass.
+
 ## Upgrading to 6.2 (from 6.1)
 
 6.2's only source break is for plugins that implement `migrate_state`.

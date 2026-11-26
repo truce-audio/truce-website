@@ -26,7 +26,7 @@ Add `truce-test` to `[dev-dependencies]`:
 
 ```toml
 [dev-dependencies]
-truce-test = "2.0"
+truce-test = "7.0"
 ```
 
 Drop a test into your `lib.rs`:
@@ -101,10 +101,14 @@ Instruments ignore `input` — set their notes via
 ## Scripted MIDI and automation
 
 `Script` advances a sample-accurate cursor; events land at the
-current offset. `wait_ms(0)` is a no-op (events stack). The
-script's `set_param` emits a `ParamChange` event the plugin sees
-inline — same delivery path CLAP / VST3 / AU automation lanes
-use.
+current offset, so consecutive events stack at the same sample
+(`wait_ms(0)` trips a debug assertion as a likely mistake; use
+`wait_samples(0)` if you mean it). The script's `set_param` takes a
+normalized `[0, 1]` value, maps it through the parameter's range, and
+emits a `ParamChange` event the plugin sees inline — the same delivery
+path CLAP / VST3 / AU automation lanes use. A value outside `[0, 1]`
+panics in debug builds, but a plain value that happens to fall inside
+it is read as a position, so pass normalized values throughout.
 
 ```rust
 #[test]
@@ -328,7 +332,7 @@ impl<P: PluginExport> PluginDriver<P> {
 
     // Pre-run mutations (apply in order: state_file → set_param → setup)
     pub fn state_file(self, path: impl Into<PathBuf>) -> Self;
-    pub fn set_param(self, id: impl Into<u32>, normalized: f32) -> Self;
+    pub fn set_param(self, id: impl Into<u32>, normalized: f64) -> Self;
     pub fn setup<F: FnOnce(&mut P) + 'static>(self, f: F) -> Self;
 
     // In-run automation / events

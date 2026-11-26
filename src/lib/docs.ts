@@ -313,6 +313,8 @@ export async function getSidebar(): Promise<SidebarSection[]> {
     "examples/mpe-synth.md",
     "examples/fundsp-reverb-simple.md",
     "examples/fundsp-reverb-worker.md",
+    "examples/stepgate.md",
+    "examples/idle-anim.md",
     "examples/gain-egui.md",
     "examples/gain-egui-aspect.md",
     "examples/gain-iced.md",

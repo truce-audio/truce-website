@@ -2,9 +2,14 @@
 
 LV2 is the open plugin standard that dominates Linux-native DAWs
 (Ardour, Qtractor, Carla, Zrythm, Jalv) and is also supported by
-Reaper and Bitwig on other platforms. Truce ships hand-rolled C
-bindings (`truce-lv2/src/lib.rs`, no `lv2-sys` dependency), so the
-crate itself has no runtime dependencies beyond libc.
+Reaper and Bitwig on other platforms.
+
+LV2 support lives in
+[truce-extensions](https://github.com/truce-audio/truce-extensions),
+not in truce itself: `truce-lv2` is the runtime wrapper linked into
+your plugin (hand-rolled C bindings, no `lv2-sys`), and
+`truce-format-lv2` is the helper `cargo truce` runs to render the TTL
+and lay out the bundle. Match their `major.minor` to truce's.
 
 ## Status
 
@@ -14,23 +19,33 @@ but expected to work.
 
 ## Enable
 
-Opt-in. Either add `"lv2"` to `[features].default` in
-`Cargo.toml`, or pass `--lv2`.
+Depend on `truce-lv2` behind an `lv2` feature. `truce::plugin!`
+already emits the LV2 export under `#[cfg(feature = "lv2")]`, so
+nothing else in your crate changes. Add `"lv2"` to
+`[features].default` to build it every time, or pass `--lv2`.
 
 ```toml
 [features]
 default = ["clap", "vst3", "lv2"]
 lv2 = ["dep:truce-lv2"]
+
+[dependencies]
+truce-lv2 = { version = "7.0", optional = true }
 ```
 
+Then install the helper wherever you build bundles:
+
 ```sh
+cargo install truce-format-lv2
+cargo truce doctor          # confirms the helper was found
 cargo truce install --lv2
 ```
 
 ## Requirements
 
-- Nothing beyond the usual platform toolchain. The shim is pure
-  Rust; no SDK, no env vars, no external signing.
+- `truce-format-lv2` on `PATH`. Without it `--lv2` is an error that
+  says how to install it, and a plain build or install skips LV2 with
+  a note. No SDK, no env vars, no external signing.
 
 ## Install paths
 
@@ -57,22 +72,32 @@ Bundle contents:
 └─ {slug}.{so,dylib,dll} (the compiled plugin)
 ```
 
-The TTL files are generated at install time by calling the
-plugin's `__truce_lv2_emit_bundle` FFI entry point. They're
-regenerated on every install and don't need to be committed.
+`truce-format-lv2` writes the TTL files on every install or package,
+from the parameter metadata truce's derives record during the build,
+so they don't need to be committed.
 
 ## Plugin URI
 
-The plugin URI is derived from `vendor.url` + `/lv2/` +
-`clap_id`:
+The plugin URI is `vendor.url` + `/lv2/` + `bundle_id`:
 
 ```
-https://github.com/your-org/your-repo/lv2/com.vendor.my-plugin
+https://github.com/your-org/your-repo/lv2/my-plugin
 ```
 
-Many LV2 hosts (lilv's reference loader, Reaper) require an HTTP
-URI. Don't change `vendor.url` or `clap_id` after release — the URI
+With no `vendor.url` it falls back to `urn:truce:<bundle_id>`, but
+lilv's reference loader prefers an HTTP URI, so set one before you
+ship. Don't change `vendor.url` or `bundle_id` after release — the URI
 is the LV2 host's identity for the plugin.
+
+## Versions
+
+LV2 has no major version and reads an odd minor or micro, or minor 0,
+as a development release. truce maps your plugin version so versions
+order across a major bump and every release reads as one:
+`lv2:minorVersion` is `2 × (major × 256 + minor) + 2` and
+`lv2:microVersion` is `2 × patch` (1.5.3 → 524.6). LV2 requires a
+minor bump when port indices change, so a release that adds or
+reorders parameters needs at least a minor version bump.
 
 ## Supported extensions
 
@@ -86,6 +111,8 @@ is the LV2 host's identity for the plugin.
     ID).
   - macOS: `ui:CocoaUI` (GUI hosted on an `NSView`).
   - Windows: `ui:WindowsUI` (GUI hosted on an `HWND`).
+- **`ui:idleInterface`** — drives `Editor::idle`, declared as an
+  optional UI feature so hosts that check features call it.
 
 ## Signing
 
@@ -125,15 +152,27 @@ jalv 'https://your-uri/here'
 
 ## Gotchas
 
+- **The audio layout must match the category.** The TTL declares
+  audio ports from `category` (effect, analyzer and tool 2 in / 2 out,
+  instrument 0 in / 2 out, `midi` none), and `truce-lv2` refuses to
+  instantiate a plugin whose real layout differs rather than load it
+  with shifted ports. An `instrument` or `midi` plugin therefore needs
+  its own `bus_layouts()` instead of the default stereo effect layout.
+- **No const parameter ranges or defaults.** A `range` or `default`
+  given as a Rust `const` can't be written into the TTL;
+  `truce-format-lv2` refuses it when packaging and names the parameter.
+- **Port names are persisted.** Hosts save `lv2:symbol`s, which derive
+  from parameter names (`Step 1 Level` → `Step_1_Level`), in sessions,
+  so renaming a parameter breaks saved sessions.
 - **Plugin URI is immutable**. Once a plugin ships, the URI is the
   handle by which hosts refer to it in saved sessions. Changing
-  `vendor.url` or `clap_id` will break every saved session using
+  `vendor.url` or `bundle_id` will break every saved session using
   your plugin. Choose them carefully.
 - **X11UI `widget` = parent window ID**. truce's X11UI reports the
   plugin's parent window as its own widget (rather than creating a
   distinct child). Works in Reaper, expected to work in Ardour /
-  Jalv; stricter hosts may object and require a follow-up. Flag
-  bugs against `truce-lv2`.
+  Jalv; stricter hosts may object and require a follow-up. Report
+  bugs on [truce-extensions](https://github.com/truce-audio/truce-extensions/issues).
 - **No MIDI 2.0**. LV2 Atom carries MIDI 1.0 byte streams. Plugins
   exposing MIDI 2.0 `EventBody` variants only see the MIDI 1.0
   mapping when loaded as LV2.

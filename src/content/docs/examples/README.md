@@ -31,6 +31,10 @@ sitting.
 | [fundsp-reverb-simple](./fundsp-reverb-simple) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-simple.png" width="208" height="182" alt="fundsp-reverb-simple plugin"> |
 | [fundsp-reverb-worker](./fundsp-reverb-worker) | Effect | Built-in | <img src="/screenshots/examples/fundsp-reverb-worker.png" width="208" height="182" alt="fundsp-reverb-worker plugin"> |
 
+Two more show specific APIs and have no screenshot yet:
+[stepgate](./stepgate) (`#[nested]` parameter arrays) and
+[idle-anim](./idle-anim) (`Editor::idle` animation).
+
 The two `fundsp-reverb-*` crates share a topology and signal
 flow but rebuild the graph differently; the [fundsp integration
 guide](../guide/fundsp) walks through both.

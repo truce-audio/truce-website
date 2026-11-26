@@ -24,6 +24,27 @@ Every attribute, range type, smoothing mode, and parameter type that the params 
 
 The derive generates `MyParams::new()`, a `Default` impl, the full `Params` trait impl, and a typed `MyParamsParamId` enum (`#[repr(u32)]`) with one variant per parameter.
 
+### Constants
+
+The numeric slots of `range`, `smooth`, and `default` accept an `f64` const in place of a literal:
+
+```rust
+pub const DEFAULT_SMOOTHING_MSEC: f64 = 5.0;
+pub const MAX_RATIO: f64 = 10.0;
+
+#[param(
+    name = "Ratio",
+    range = "linear(1.0, MAX_RATIO)",
+    smooth = "linear(DEFAULT_SMOOTHING_MSEC)",
+    default = 4.0,
+)]
+pub ratio: FloatParam,
+```
+
+The derive emits the const into the generated code, so rustc resolves it and `param_infos()` carries the resolved value. The referenced item must be an `f64` const in scope. `min < max` and default-in-range are still checked at compile time (via a generated `const` assertion) even when a const hides the value.
+
+Two limits: a `#[nested]` array length isn't a numeric slot, so it must stay a literal; and LV2 can't write a const `range` or `default` into its TTL, which is rendered from build metadata without running the plugin. The plugin builds on every format, but `truce-format-lv2` refuses it when packaging the LV2 bundle and names the parameter. `smooth` is unaffected (LV2 doesn't encode it). Use literal bounds if you ship LV2.
+
 ## Parameter types
 
 | Field type | Default widget | Notes |
@@ -348,7 +369,40 @@ knob(params.filter.cutoff.id(), "Cutoff")
 
 See the `synth` (distinct groups), `stereo-utility` (one group reused), and `eq` (pinned bases) examples for the three shapes.
 
-> **Meters** can't live in a nested group that's used more than once - meter ids occupy a separate fixed range and aren't rebased, so two nested groups each declaring a meter collide (the derive rejects it at construction). Keep meters in a single, non-reused `Params` struct.
+### Arrays of groups
+
+To instantiate one group a fixed number of times, make the `#[nested]` field a fixed-size array. The length must be an integer literal, since the derive lays out ids at compile time:
+
+```rust
+#[derive(Params)]
+pub struct GateParams {
+    #[nested]
+    pub step: [StepParams; 8],
+    // ...
+}
+```
+
+Reach an element's params off the array field, exactly as for a single group:
+
+```rust
+for (i, step) in params.step.iter().enumerate() {
+    knob(step.level.id(), "Level");
+}
+```
+
+Under the default hash id scheme, each param of the element type gets a hashed start and the elements follow it at a fixed stride, so growing the array or adding a param to the element type later moves no existing id, and hosts' saved automation stays put. Ids from different children collide only by chance (about 0.1% for 64 elements × 16 children); a collision panics at construction naming both params, so pin the new param with `#[param(id = N)]` or rename the new field. `#[nested(base = N)]` isn't allowed on an array under the hash scheme. Under `id_scheme = "ordinal"` elements pack contiguously instead: element `i` lands at `base + i * group_size`.
+
+For code that needs an element's id **without** a live instance, the derive ships a static resolver named `<field>_id`. It returns the id in its own struct's id space, which is the host-facing id only when that struct is the plugin's root params:
+
+```rust
+let id = GateParams::step_id(3, StepParamsParamId::Level);
+```
+
+Each element's params are named with the array's label and a 1-based index: `Step 1 Level` … `Step 8 Level`, the label being the field name title-cased or `#[nested(label = "...")]`. A group inside an element is qualified too (`Step 1 Env Level`), nested arrays read outermost first (`Bank 1 Step 2 Level`), and short names keep just the index (`Lv 1`). LV2 port symbols follow the full names.
+
+> **Meters** can't live in a nested group that's used more than once - meter ids occupy a separate fixed range and aren't rebased, so two nested groups each declaring a meter collide (the derive rejects it at construction). This includes array groups (every element would alias the same meter id). Keep meters in a single, non-reused `Params` struct.
+
+See the [`stepgate`](../examples/stepgate.md) example for a step sequencer built this way.
 
 ## Parameter ID stability
 

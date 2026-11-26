@@ -27,7 +27,7 @@ Add `truce-test` to `[dev-dependencies]`:
 
 ```toml
 [dev-dependencies]
-truce-test = "2.0"
+truce-test = "7.0"
 ```
 
 Drop the test into your `lib.rs` (or wherever your `mod tests` lives):
@@ -288,7 +288,7 @@ auto-derived path, no implicit directory.
 ```rust
 impl<P: PluginExport> ScreenshotTest<P> {
     pub fn state_file<S: Into<PathBuf>>(self, path: S) -> Self;
-    pub fn set_param(self, id: impl Into<u32>, normalized: f32) -> Self;
+    pub fn set_param(self, id: impl Into<u32>, normalized: f64) -> Self;
     pub fn setup<F: FnOnce(&mut P) + 'static>(self, f: F) -> Self;
     pub fn tolerance(self, t: usize) -> Self;
     pub fn pixel_threshold(self, d: u8) -> Self;

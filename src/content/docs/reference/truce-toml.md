@@ -27,7 +27,7 @@ or shell env vars instead. See
 | `name` | string | yes | Human name. Used for bundle filenames and DAW display names. |
 | `bundle_id` | string | yes | Short lowercase identifier (`a-z0-9` plus `-`/`_`/`.` separators, alphanumeric at both ends, no consecutive separators; validated at compile time). The stable identity key: `clap_id` / `vst3_id` / the state-envelope hash derive from it, and it names bundles, extension reverse-DNS IDs (`com.{vendor}.{bundle_id}.au`), install plists, and scratch paths. Not used at the CLI. |
 | `crate` | string | yes | Cargo package name. CLI uses this for `-p <crate>`. Hyphens become underscores in built `.dll`/`.dylib`. |
-| `category` | string | yes | `"effect"` / `"instrument"` / `"midi"`. Drives AU/VST3/CLAP category metadata. |
+| `category` | string | yes | `"effect"`, `"instrument"`, `"midi"` (or `"note_effect"`), `"analyzer"` or `"tool"`; anything else is a compile error. Drives each format's category metadata and the default MIDI wiring. |
 | `midi_input` | bool | no | Whether the host routes MIDI into the plugin. Defaults to `true` for instruments and note effects (`"midi"`); set `true` on an effect that reacts to MIDI (e.g. CC-controlled), or `false` to suppress. On AU, `true` on an effect promotes it to the `aumf` MusicEffect type so the host actually routes MIDI to it; `false` on an instrument is a no-op (an `aumu` receives MIDI by type). |
 | `midi_output` | bool | no | Whether the plugin emits MIDI to the host. Defaults to `true` for note effects (`"midi"`) only; set `true` on an instrument or effect that also emits MIDI so the host declares the MIDI output port/bus. |
 | `midi2` | bool | no | Opt the plugin's MIDI ports into MIDI 2.0 / UMP. Defaults to `false` (MIDI 1.0). CLAP advertises the MIDI2 note dialect and carries the native 16/32-bit + per-note + UMP-group `EventBody` variants in and out; AU v3 declares `audioUnitMIDIProtocol` = 2.0 and emits over the host's `MIDIEventList` block (macOS 12+ / iOS 15+); VST3 maps the per-note subset through note expression; VST2 / AU v2 / AAX / LV2 stay MIDI 1.0 regardless. Requires at least one MIDI port in either direction (compile error otherwise) and applies only to directions that have one. |
@@ -40,7 +40,7 @@ or shell env vars instead. See
 | `au_subtype` | string | no | Synonym for `fourcc`. `fourcc` wins if both are set. |
 | `au3_subtype` | string | no | 4-char subtype for AU v3 only. Set if v2/v3 must differ. |
 | `au_tag` | string | no | AU category tag. Defaults to `"Effects"`. Common: `"Synthesizer"`, `"Dynamics"`, `"EQ"`, `"MIDI"`. |
-| `aax_category` | string | no | AAX category string (e.g. `"Delay"`, `"Reverb"`, `"EQ"`). Maps to `AAX_ePlugInCategory` in the AAX SDK. |
+| `aax_category` | string | no | AAX category: `"EQ"`, `"Dynamics"`, `"PitchShift"`, `"Reverb"`, `"Delay"`, `"Modulation"`, `"Harmonic"`, `"NoiseReduction"`, `"Dither"`, `"SoundField"` or `"Effect"`. Maps to `AAX_ePlugInCategory`. Anything else is a compile error in every format's build, not just AAX. |
 | `vst3_subcategory` | string | no | VST3 "Plugin Type Categories" secondary token. Without this, hosts like Cubase bucket the plugin under "Other". Values from the VST3 SDK list: `"Delay"`, `"Distortion"`, `"Dynamics"`, `"EQ"`, `"Filter"`, `"Mastering"`, `"Modulation"`, `"Pitch Shift"`, `"Restoration"`, `"Reverb"`, `"Surround"`, `"Analyzer"`, `"Tools"`. Wrapper emits `Fx\|<sub>` for effects, `Instrument\|<sub>` for instruments. |
 | `{format}_name` | string | no | Per-format display-name override: `clap_name`, `vst3_name`, `vst2_name`, `au_name`, `au3_name`, `aax_name`, `lv2_name`. |
 | `windows_icon` | string | no | Path to `.ico` (workspace-root-relative). Embedded as `RT_GROUP_ICON` in the standalone `.exe`. Distinct from `[windows.packaging] installer_icon` — that one's the Inno-wizard chrome; this one's the per-product app icon. |
@@ -55,6 +55,8 @@ Category to format-metadata mapping:
 | `"effect"` | `audio-effect` | `Fx` | `aufx` |
 | `"instrument"` | `instrument` | `Instrument\|Synth` | `aumu` |
 | `"midi"` | `note-effect` | `Fx\|Event` | `aumi` |
+| `"analyzer"` | `analyzer`, `audio-effect` | `Fx\|Analyzer` | `aufx` |
+| `"tool"` | `utility`, `audio-effect` | `Fx\|Tools` | `aufx` |
 
 `{format}_name` overrides the display name surfaced to hosts
 while leaving bundle filenames, IDs, and install paths derived

@@ -11,11 +11,11 @@ Add the dependencies:
 
 ```toml
 [dependencies]
-truce-slint = "2.0"
-slint = { version = "=1.15.1", default-features = false, features = ["compat-1-2", "renderer-software", "std"] }
+truce-slint = "7.0"
+slint = { version = "=1.19.1", default-features = false, features = ["compat-1-2", "renderer-software", "std"] }
 
 [build-dependencies]
-truce-slint-build = "2.0"
+truce-slint-build = "7.0"
 ```
 
 Create `build.rs`:
@@ -24,6 +24,17 @@ Create `build.rs`:
 fn main() {
     truce_slint_build::compile("ui/main.slint").unwrap();
 }
+```
+
+Markup that renders images or SVGs (an embedded PNG, or
+`std-widgets` icons, which are SVGs) also needs a direct
+`i-slint-core` dependency to turn decoding on, since truce's
+software-render path doesn't use slint's windowing backend, where
+decoding otherwise lives. Cargo unifies it onto the crate `slint`
+already pulls in:
+
+```toml
+i-slint-core = { version = "=1.19.1", features = ["image-decoders", "image-default-formats", "svg"] }
 ```
 
 `truce_slint_build::compile` wraps `slint-build` with the truce
