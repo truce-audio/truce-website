@@ -20,9 +20,8 @@ Source: [`examples/truce-example-envelope/`](https://github.com/truce-audio/truc
   level does not flood the host
 - A peak follower with instant attack and a parameterized release
   (`log(..)` range, `smooth = "exp(10)"` on the Release param)
-- Explicit `bus_layouts()` returning `BusLayout::stereo()` and
-  bit-exact audio passthrough via `buffer.io(ch)` +
-  `copy_from_slice`
+- Bit-exact audio passthrough via `buffer.io(ch)` +
+  `copy_from_slice` on the default stereo-and-mono layouts
 
 ## Parameters
 
