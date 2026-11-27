@@ -2,21 +2,30 @@
 
 Notable changes per release.
 
+## 7.0.1
+
+- CLI: `cargo truce uninstall` removes AAX bundles on Windows; it looked only in the macOS Avid folder.
+- CLI: `cargo truce uninstall --stale` and `-n` match bundles by their on-disk names, so a name with a character a file name can't hold (`Truce Dry/Wet` installs as `Truce Dry-Wet.clap`) no longer makes a live plug-in look stale or hides a vendor's stale ones.
+- CLI: `cargo truce uninstall --stale` finds Linux VST2 plug-ins (`.so`, not `.vst`) and lists each Linux bundle once.
+- CLI: `cargo truce uninstall` exits non-zero when a bundle can't be removed and points Windows users at an Administrator prompt rather than `sudo`; a bundle already gone counts as removed.
+- CLI: `cargo truce uninstall` keeps the shell-mode sidecar while any copy of the plug-in stays installed, after a failed removal or with `--user` / `--system`.
+- CLI: Windows builds find the MSVC toolchain in a Build Tools-only install (`vswhere -products *`).
+- Standalone: editor meters no longer flicker to zero; they read the lock-free meter store instead of taking the plug-in lock (#237).
+
 ## 7.0.0
 
 truce 7.0 moves LV2 into [truce-extensions](https://github.com/truce-audio/truce-extensions), updates the GUI stack (egui 0.37, slint 1.19, wgpu 30) and raises the minimum Rust version to 1.95. A plug-in on a built-in editor that doesn't ship LV2 usually needs only a rebuild.
 
 ### Breaking
 
-- **LV2 moved to truce-extensions.** `truce` no longer has an `lv2` feature and `truce-build` no longer renders TTL. The runtime wrapper (`truce-lv2`) and a new `truce-format-lv2` helper, which `cargo truce` finds on `PATH`, live there, and the TTL they produce is byte-identical to 6.3's. Without the helper `--lv2` is an error, and `cargo truce doctor` reports whether it's installed. A plain `cargo truce uninstall` still removes LV2 bundles 6.x installed. The LV2 entries below describe `truce-lv2` / `truce-format-lv2` 7.0. **Migration:** see *Migrating from 6.x*, step 3.
-- **GUI stack: egui 0.34 → 0.37, slint 1.15 → 1.19, wgpu 29 → 30.** Only plug-ins whose editors use these crates directly need changes. **Migration:** step 1.
+- **LV2 moved to truce-extensions.** `truce` no longer has an `lv2` feature and `truce-build` no longer renders TTL. The runtime wrapper (`truce-lv2`) and a new `truce-format-lv2` helper, which `cargo truce` finds on `PATH`, live there, and the TTL they produce matches 6.3's apart from two LV2 spec fixes: the plug-in is also typed `doap:Project`, and `lv2:Parameter` blocks no longer carry `lv2:portProperty` (their control ports still do). Without the helper `--lv2` is an error, and `cargo truce doctor` reports whether it's installed. A plain `cargo truce uninstall` still removes LV2 bundles 6.x installed. **Migration:** see *Migrating from 6.x*, step 3.
+- **GUI stack: egui 0.34 → 0.37, slint 1.15 → 1.19, wgpu 29 → 30.** **Migration:** step 1.
 - **Minimum supported Rust is 1.95** (was 1.92), egui 0.37's floor. **Migration:** `rustup update`.
 - **`Editor::idle` takes `dt: std::time::Duration`**, the wall-clock time since the previous call. **Migration:** a custom `Editor` that overrides `idle` adds the parameter (`_dt` if unused).
 - **`Script::set_param` takes a normalized value.** Inside `.script(..)`, `s.set_param(id, v)` now maps `v` through the parameter's range, as the builder's `.set_param` already did; 6.x pushed `v` as a plain value. A value outside `[0, 1]` panics in debug builds and warns once in release, but an un-migrated plain value inside `[0, 1]` is silently reinterpreted: a plain `1.0` on `enum(4)` now selects the last variant, a plain `0.5` on `linear(0, 10)` sets 5.0. A `Script::default()` built outside the driver has no ranges, so it passes values through unchecked, as does an id the plug-in doesn't declare. **Migration:** step 2.
 - **egui editors receive a key only when they claim it** or a text field is focused; unclaimed keys go to the host so DAW shortcuts keep working. **Migration:** call `truce_egui::claim_keys(ui.ctx(), &[…])` each frame with the keys you handle (`egui::Key::ALL` for every key), and `truce_egui::claim_shortcuts` for Cmd / Ctrl / Alt chords.
 - **iced editors return unconsumed keys to the host**, including keys handled in `subscription()`, so without a claim both act on them. **Migration:** implement `IcedPlugin::keeps_key` for the keys you handle.
-- **Unknown `truce.toml` values are compile errors.** `[[plugin]] category` must be `effect`, `instrument`, `midi` / `note_effect`, `analyzer` or `tool`, and `aax_category` a recognized value, checked in every format's build. 6.x treated an unknown category as an effect everywhere but the LV2 TTL. Correcting a misspelled instrument or note-effect category makes the plug-in one on every format: its MIDI wiring, its VST3 / CLAP / AAX / VST2 categories and, without `au_type`, its AU type (`aumu` / `aumi`) change, so hosts see a new AU. A corrected analyzer or tool spelling changes its VST3 category and CLAP features. **Migration:** fix the value the error names.
-- **LV2 refuses a plug-in whose audio layout differs from its category default** (effect, analyzer and tool 2 in / 2 out, instrument 0 in / 2 out, `midi` none) instead of loading it with shifted ports. That includes an `instrument` or `midi` plug-in left on the default stereo `bus_layouts()`, which means every `midi` plug-in scaffolded on 6.x. **Migration:** step 3, or ship that plug-in without LV2.
+- **Unknown `truce.toml` values are compile errors.** `[[plugin]] category` must be `effect`, `instrument`, `midi` / `note_effect`, `analyzer` or `tool`, and `aax_category` a recognized value, checked in every format's build. **Migration:** fix the value the error names.
 - **`cargo truce validate` fails when pluginval or clap-validator is missing and a VST3 / CLAP bundle is installed**, reported as `validation incomplete (N skipped)`; 6.x passed. **Migration:** install the validator in CI, or scope the run to formats you can validate.
 - **`Theme` gained `toggle_track_hover` and `toggle_thumb`.** **Migration:** set them in a full `Theme { … }` literal, or fill the rest from `..Theme::dark()`.
 - **`EventList::with_capacity` lists no longer grow.** A full list drops events other than parameter changes and modulation (which fold into the queued one) and note-offs (which still grow it), and `push_sysex` can return the new `PushError::QueueFull`. **Migration:** size lists with `block_event_capacity(max_block, param_count)`, use `EventList::growable_with_capacity` off the audio thread, and add the new arm to `PushError` matches.
@@ -90,7 +99,7 @@ truce 7.0 moves LV2 into [truce-extensions](https://github.com/truce-audio/truce
    cargo install truce-format-lv2
    ```
 
-   Give `instrument` and `midi` plug-ins their real bus layout, since LV2 refuses the effect default. The current scaffold emits these:
+   LV2 loads a plug-in only if its first bus layout has its category's audio ports (effect, analyzer and tool 2 in / 2 out, instrument 0 in / 2 out, `midi` none), so give `instrument` and `midi` plug-ins their real layout instead of the default stereo effect one. The current scaffold emits these:
 
    ```rust
    // category = "instrument": no audio input, stereo out
@@ -125,11 +134,13 @@ truce 7.0 moves LV2 into [truce-extensions](https://github.com/truce-audio/truce
 
 #### Formats
 
-- State: a save before the plug-in's first audio block now carries its custom state, on every format (#253). CLAP and VST3 also republish it on each save while deactivated.
+- State: a save before the plug-in's first audio block now carries its custom state, on every format (#253). CLAP and VST3 also republish it when activated and deactivated.
+- State: a plug-in that overrides only `save_state`, and whose custom state starts empty (no sample loaded yet), is saved once that state fills. The default `snapshot_into` took "empty right now" to mean "no custom state" and stopped publishing for good, so a session restore or a state the plug-in filled later was never saved.
+- State: AAX saves custom state that changed with no parameter move and no state load (an editor message, MIDI learn). Its save cache is keyed on the snapshot generation, which only an off-thread publish or a state load moved, so Pro Tools got the previous blob back. The generation now also moves whenever a published snapshot's bytes differ from the last one, with or without `snapshot_version`, so the default plug-in that overrides only `save_state` is covered too.
 - State: the new `PluginLogic::default_extra` names the custom state to load when a restored state carries none (a parameter-only preset, or custom state that serialized to nothing), so a plug-in can drop the previous preset's state (#251). The default, `None`, keeps the current state.
-- State: AU, VST2, and CLAP / VST3 while active publish a queued load's custom state at once, as AAX already did, so a save before the block that applies the load no longer pairs the restored params with the pre-load custom state. Formats still differ in when the plug-in itself sees the load: CLAP and VST3 apply it at once while deactivated, while AU, VST2 and AAX (and CLAP / VST3 while active) apply it at the next audio block, so a plug-in that isn't rendering keeps its pre-load state internally until then.
+- State: every format queues a host state load and publishes its custom state at once, as AAX already did, so a save before the plug-in applies the load no longer pairs the restored params with the pre-load custom state - for a plug-in on the off-thread snapshot lane too. The plug-in applies it at the next audio block, or for CLAP and VST3 at the next activate or deactivate if that comes first, so `load_state` runs on the host thread for a load made while deactivated. Host-thread saves and loads no longer take the plug-in at all, so they can't race a host that processes without activating (pluginval), which aliased the plug-in in 6.3. The queue carries only the custom state - the parameters apply on the host thread when the load arrives - so applying it never reverts a parameter changed in between, and a parameter-only load doesn't displace one still queued, whose custom state is the one to keep.
 - CLAP: requests a parameter rescan after state and preset loads (#232) and a restart only while active (#238). `activate` notifies the host's `latency.changed()`, after releasing the plug-in so a re-entrant host can't alias it.
-- VST3: correct interface IDs for `IUnitInfo`, `IEditControllerHostEditing` and `IProcessContextRequirements`, which hosts never found before. `getUnitByBus` now answers, and `IProcessContextRequirements` asks only for the fields the wrapper reads. Only the view that attached the editor can close it, and a destroyed component detaches every live view.
+- VST3: correct interface IDs for `IUnitInfo`, `IEditControllerHostEditing` and `IProcessContextRequirements`, which hosts never found before. `getUnitByBus` now answers, and `IProcessContextRequirements` asks only for the fields the wrapper reads. Now that hosts call `getUnitInfo`, a parameter group name of 128 bytes or more is cut to fit instead of being read past its buffer, and its parameters share one unit instead of each getting its own. Only the view that attached the editor can close it, and a destroyed component detaches every live view.
 - VST2: restored the legacy macOS entry alias.
 - AU: editor state is touched only on the main thread, so a background state or preset load can't race the editor, and a disposed AU's view no longer calls into it.
 - AU v3: Logic sizes the window from the editor's `preferredContentSize` (iOS still accepts any size), an aspect-locked editor ignores off-aspect resizes on macOS, and a re-entrant `gui_close` runs after the current callback instead of being lost.
@@ -143,7 +154,7 @@ truce 7.0 moves LV2 into [truce-extensions](https://github.com/truce-audio/truce
 - `cargo truce package --arch x86_64|arm64` builds a single non-host macOS slice (not combinable with `--host-only`).
 - `cargo truce validate` reads clap-validator 0.4.1's summary counts correctly (#245) and uses its `--exclude` argument.
 - Scaffolds: MIDI plug-ins declare an empty audio bus layout, and the commented LV2 hint points at `truce-lv2` on crates.io, with the `[patch.crates-io]` a `--github` scaffold needs to share one truce.
-- Packaging: the macOS archive dedupe is safe and deletes its `lib*.dedup-<pid>.a` afterwards, and an empty `[vendor].name` is rejected (it made `reset-aax`, `reset-au` and `uninstall --stale` match every file). `uninstall --stale` considers only files with the format's extension, and skips a slug-named format (LV2) when the vendor name has no ASCII letters or digits.
+- Packaging: the macOS archive dedupe is safe and deletes its `lib*.dedup-<pid>.a` afterwards, and an empty `[vendor].name` is rejected (it made `reset-aax`, `reset-au` and `uninstall --stale` match every file). `uninstall --stale` considers only files with the format's extension, and skips a slug-named format (LV2) when the vendor name has no ASCII letters or digits. It also counts a bundle as the vendor's only when its name starts with the vendor name as a whole word, so a short vendor name no longer catches other vendors' bundles that merely contain it (`Ab` matched `Fabulous.clap`).
 - Generated TOML (metadata files, helper config views, `.preset` files) escapes control characters, so a name containing a tab or newline round-trips, and metadata files are written atomically.
 - Building for the host target no longer needs a rustup-managed toolchain; only cross targets do.
 - `cargo metadata` runs once per invocation.
